@@ -17,7 +17,7 @@ Deciding rule, fixed before T1 starts: T0 and T1 are ticked, `npm run gate` exit
 
 - [x] T0 Init. needs: none. Run `git init`, then commit exactly the setup files (`CAD_AGENT_LOOP.md`, `package.json`, `.gitignore`, `docs/LOOP_GRAPH.md`, `docs/LOOP_CONVENTIONS.md`, `docs/loops/`, `docs/roadmap/MECAGENT_ROADMAP.md`, `scripts/graph-lint.mjs`, `scripts/gate-guard.mjs`, `scripts/clean-room-lint.mjs`, `.claude/commands/cad-agent.md`) as `chore: add CAD agent loop graph`. Then run the three self-checks. Evidence: `node scripts/graph-lint.mjs --self-check`, `node scripts/clean-room-lint.mjs --self-check` and `node scripts/gate-guard.mjs --self-check` each exit 0; `npm run gate` exits 0; `git log --oneline` shows the commit.
 - [x] T1 Environment audit. needs: T0. Write `docs/cad-agent/PHASE_00_ENVIRONMENT_AUDIT.md` (new) covering the roadmap's four Phase 0 tasks: verified OS and tools with versions, the REA tools the MCP server lists this tick, the reference install re-read this tick (plain-text paths), CAD software found or absent with the command that showed it, required dependencies, prerequisites for a real CAD integration, and risks. Every fact quotes the command that produced it. It ends with exactly one line `Decision: GO` or `Decision: BLOCKED — <reason>`. Missing CAD software blocks L9, not L1. Evidence: graph-lint exits 0 and `grep -E "^Decision: (GO|BLOCKED)" docs/cad-agent/PHASE_00_ENVIRONMENT_AUDIT.md` exits 0.
-- [ ] T2 (human) Signoff. needs: T1. The human reads the audit and agrees or corrects the decision. Evidence: the signoff line in the Journal.
+- [x] T2 (human) Signoff. needs: T1. The human reads the audit and agrees or corrects the decision. Evidence: the signoff line in the Journal.
 
 ## Journal
 
@@ -46,3 +46,4 @@ Deciding rule, fixed before T1 starts: T0 and T1 are ticked, `npm run gate` exit
   clean-room-lint: clean
   gate-guard: clean · HEAD..working tree
   ```
+- 2026-11-07 · L0/T2 · passed · gate green · commit loop(L0/T2) (this entry's own commit) · human signoff in chat: "go  ahead  tick L0", agreeing with `Decision: GO` in `docs/cad-agent/PHASE_00_ENVIRONMENT_AUDIT.md`; the agent ticked T2 and the L0 loop line on the human's instruction (driver rule 4) · Direction: still the goal; baseline done, investigation next · Next: L1 T0 (human) scope
