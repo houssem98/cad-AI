@@ -1,0 +1,7 @@
+node_modules/
+.rea/
+rea/
+node24/
+reverse mec agent .md
+*.log
+.env*

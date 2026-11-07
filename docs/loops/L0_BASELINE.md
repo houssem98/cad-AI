@@ -1,0 +1,24 @@
+# L0 Baseline
+
+Phase 0 of `docs/roadmap/MECAGENT_ROADMAP.md`, "Environment and baseline". Needs no other loop. Budget in `docs/LOOP_GRAPH.md`; rules in `docs/LOOP_CONVENTIONS.md`.
+
+Target: `docs/roadmap/MECAGENT_ROADMAP.md#End with a clear GO / BLOCKED decision for Phase 1.`
+
+Deciding rule, fixed before T1 starts: T0 and T1 are ticked, `npm run gate` exits 0 on the tick that ticks T1, and the human's signoff line (T2) is in the Journal.
+
+## Current state (read 2026-11-07; T0 re-verifies)
+
+- Not a git repository. The folder holds the human's input (copied verbatim to `docs/roadmap/MECAGENT_ROADMAP.md`), a clone of the REA source in rea/, a portable Node 24 in node24/, and these loop files. `.gitignore` excludes rea/, node24/, `.rea/` and the original input file.
+- Tools: node v25.8.1 on PATH, Python 3.12.10, git 2.53. The REA MCP server is connected to Claude Code; among its tools are inspect_desktop_application, inspect_electron_fuses, inspect_managed_artifact and capture_electron_scenario.
+- Reference app: MecAgent desktop 2.12.1, per-user install under %LOCALAPPDATA%\mecagent-app\app-2.12.1. An Electron shell (resources\app.asar, 108.5 MB, Squirrel updater) plus a .NET sidecar in resources\win-x64: MecAgent.dll, MecAgent.SolidWorks.Host.dll, MecAgent.SolidWorks.Lifecycle.dll, MecAgent.SolidWorks.Protocol.dll, EdgeJs.dll (in-process Node to .NET bridge), WPF assemblies and Newtonsoft.Json. INFERRED from file names only: the live agent drives SolidWorks over COM from that sidecar.
+- No CAD software: no SolidWorks key under HKLM or HKCU\SOFTWARE, no SOLIDWORKS Corp folder in Program Files, no FreeCAD. The reference's live-agent workflow cannot run on this machine.
+
+## Tasks
+
+- [ ] T0 Init. needs: none. Run `git init`, then commit exactly the setup files (`CAD_AGENT_LOOP.md`, `package.json`, `.gitignore`, `docs/LOOP_GRAPH.md`, `docs/LOOP_CONVENTIONS.md`, `docs/loops/`, `docs/roadmap/MECAGENT_ROADMAP.md`, `scripts/graph-lint.mjs`, `scripts/gate-guard.mjs`, `scripts/clean-room-lint.mjs`, `.claude/commands/cad-agent.md`) as `chore: add CAD agent loop graph`. Then run the three self-checks. Evidence: `node scripts/graph-lint.mjs --self-check`, `node scripts/clean-room-lint.mjs --self-check` and `node scripts/gate-guard.mjs --self-check` each exit 0; `npm run gate` exits 0; `git log --oneline` shows the commit.
+- [ ] T1 Environment audit. needs: T0. Write `docs/cad-agent/PHASE_00_ENVIRONMENT_AUDIT.md` (new) covering the roadmap's four Phase 0 tasks: verified OS and tools with versions, the REA tools the MCP server lists this tick, the reference install re-read this tick (plain-text paths), CAD software found or absent with the command that showed it, required dependencies, prerequisites for a real CAD integration, and risks. Every fact quotes the command that produced it. It ends with exactly one line `Decision: GO` or `Decision: BLOCKED — <reason>`. Missing CAD software blocks L9, not L1. Evidence: graph-lint exits 0 and `grep -E "^Decision: (GO|BLOCKED)" docs/cad-agent/PHASE_00_ENVIRONMENT_AUDIT.md` exits 0.
+- [ ] T2 (human) Signoff. needs: T1. The human reads the audit and agrees or corrects the decision. Evidence: the signoff line in the Journal.
+
+## Journal
+
+- 2026-11-07 · L0/T0 · started T0

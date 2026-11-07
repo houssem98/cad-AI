@@ -1,0 +1,9 @@
+{
+  "name": "cad-agent",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "graph": "node scripts/graph-lint.mjs",
+    "gate": "node scripts/graph-lint.mjs && node scripts/clean-room-lint.mjs && node scripts/gate-guard.mjs"
+  }
+}
