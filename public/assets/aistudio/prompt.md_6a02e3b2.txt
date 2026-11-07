@@ -1,0 +1,53 @@
+Perform a complete premium UI/UX redesign of the current application.
+
+Do not change the product concept or remove existing functionality.
+
+I want the visual quality of a leading enterprise engineering platform.
+
+Use professional industrial software design as the reference.
+
+Improve:
+
+1. Sidebar hierarchy and navigation.
+2. Main dashboard composition.
+3. CAD workspace proportions.
+4. 3D viewport presentation.
+5. Engineering feature tree.
+6. AI agent conversation interface.
+7. Operation progress visualization.
+8. Technical property panels.
+9. Tables and data density.
+10. Typography and spacing.
+11. Empty and loading states.
+12. Micro-interactions and transitions.
+
+Design characteristics:
+- Deep graphite surfaces.
+- Restrained navy and blue accents.
+- Clean typography.
+- Precise borders.
+- Professional technical icons.
+- Consistent spacing.
+- Subtle animations.
+- Excellent information hierarchy.
+
+The CAD workspace should be the visual centerpiece.
+
+The interface should feel like professional mechanical engineering software, not a generic chatbot or analytics dashboard.
+
+Avoid:
+- Excessive glass effects.
+- Neon colors.
+- Huge gradients.
+- Oversized rounded cards.
+- Decorative AI imagery.
+- Unnecessary whitespace.
+- Excessive animations.
+
+Make the interface realistic, information-rich, elegant, and highly usable.
+
+Review every screen for consistency.
+
+Ensure all existing interactions continue working.
+
+Run browser tests after the redesign and fix broken interactions.

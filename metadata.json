@@ -1,0 +1,6 @@
+{
+  "name": "MechForge AI",
+  "description": "Enterprise AI Mechanical Engineering Platform with parametric CAD copilot, 3D viewport, automated drafting, and independent verification center.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

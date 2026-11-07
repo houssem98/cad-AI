@@ -1,0 +1,320 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import React, { useState } from 'react';
+import { NavigationModule, CADModelParameters, OperationHistoryRecord, ProjectInfo } from './types/cad';
+import {
+  INITIAL_CAD_PARAMETERS,
+  INITIAL_OPERATION_HISTORY,
+  INITIAL_VERIFICATION_CHECKS,
+  DEMO_PROJECTS,
+} from './data/mockCadData';
+
+// Core Components
+import { TopNavigation } from './components/navigation/TopNavigation';
+import { Sidebar } from './components/navigation/Sidebar';
+import { ThreeCADViewport } from './components/cad/ThreeCADViewport';
+import { AICADAgentPanel } from './components/agent/AICADAgentPanel';
+import { RightInspectorPanel } from './components/inspector/RightInspectorPanel';
+import { BottomConsole } from './components/bottom/BottomConsole';
+
+// Modals
+import { CommandPaletteModal } from './components/modals/CommandPaletteModal';
+import { VerificationReportModal } from './components/modals/VerificationReportModal';
+import { ExportModal } from './components/modals/ExportModal';
+import { LiveVoiceConversationModal } from './components/agent/LiveVoiceConversationModal';
+
+// Views
+import { OverviewView } from './components/views/OverviewView';
+import { TextToCadView } from './components/views/TextToCadView';
+import { DrawingToCadView } from './components/views/DrawingToCadView';
+import { ReverseEngineeringView } from './components/views/ReverseEngineeringView';
+import { AssemblyIntelligenceView } from './components/views/AssemblyIntelligenceView';
+import { DrawingAutomationView } from './components/views/DrawingAutomationView';
+import { EngineeringCopilotView } from './components/views/EngineeringCopilotView';
+import { SimulationIntelligenceView } from './components/views/SimulationIntelligenceView';
+import { AutomationStudioView } from './components/views/AutomationStudioView';
+import { BackgroundTasksView } from './components/views/BackgroundTasksView';
+import { VerificationCenterView } from './components/views/VerificationCenterView';
+import { ProjectsView } from './components/views/ProjectsView';
+import { IntegrationsView } from './components/views/IntegrationsView';
+import { AdministrationView } from './components/views/AdministrationView';
+import { KnowledgeHubView } from './components/views/KnowledgeHubView';
+
+export default function App() {
+  // Navigation state (defaults to primary AI CAD Agent workspace matching screenshot)
+  const [currentModule, setCurrentModule] = useState<NavigationModule>('ai-cad-agent');
+  const [currentProject, setCurrentProject] = useState<ProjectInfo>(DEMO_PROJECTS[0]);
+
+  // CAD Model & Geometry Parameters
+  const [parameters, setParameters] = useState<CADModelParameters>(INITIAL_CAD_PARAMETERS);
+  const [operationHistory, setOperationHistory] = useState<OperationHistoryRecord[]>(INITIAL_OPERATION_HISTORY);
+
+  // Modals state
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isVerificationReportOpen, setIsVerificationReportOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isLiveVoiceOpen, setIsLiveVoiceOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+
+  // Parameter update handler (updates 3D model, mass properties, and dimensions in real-time)
+  const handleUpdateParameters = (newParams: Partial<CADModelParameters>) => {
+    setParameters((prev) => {
+      const merged = { ...prev, ...newParams };
+      // Keep mass in sync if thickness or length changes and mass not explicitly provided
+      if (!newParams.mass && (newParams.thickness || newParams.length || newParams.width)) {
+        const approxVolume = (merged.length * merged.width * merged.thickness) / 1000;
+        merged.mass = parseFloat(((approxVolume * merged.density) / 100).toFixed(2));
+      }
+      return merged;
+    });
+  };
+
+  const handleAddOperation = (op: OperationHistoryRecord) => {
+    setOperationHistory((prev) => [op, ...prev]);
+  };
+
+  return (
+    <div className="flex flex-col w-screen h-screen bg-[#0b0f19] text-slate-200 overflow-hidden font-sans">
+      {/* 1. Global Top Navigation Header */}
+      <TopNavigation
+        currentProject={currentProject}
+        onSelectProject={setCurrentProject}
+        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+        onOpenHelp={() => setIsHelpOpen(true)}
+        onOpenLiveVoice={() => setIsLiveVoiceOpen(true)}
+      />
+
+      {/* 2. Main Body: Sidebar + Dynamic Workspace Modules */}
+      <div className="flex flex-1 min-h-0 w-full overflow-hidden">
+        {/* Left Global Sidebar */}
+        <Sidebar
+          currentModule={currentModule}
+          onSelectModule={setCurrentModule}
+          onOpenPricing={() => setIsHelpOpen(true)}
+        />
+
+        {/* Dynamic Center Workstation */}
+        <main className="flex-1 min-w-0 flex flex-col h-full bg-[#0b0f19] overflow-hidden">
+          {/* PRIMARY WORKSPACE: AI CAD AGENT (Matches exact screenshot reference) */}
+          {currentModule === 'ai-cad-agent' && (
+            <div className="flex flex-col h-full w-full overflow-hidden">
+              {/* Upper split: [Left Agent Panel] | [Center 3D Viewport] | [Right Inspector Panel] */}
+              <div className="flex flex-1 min-h-0 w-full overflow-hidden">
+                {/* AI CAD Agent Conversation Panel */}
+                <AICADAgentPanel
+                  parameters={parameters}
+                  onUpdateParameters={handleUpdateParameters}
+                  onAddOperation={handleAddOperation}
+                  onOpenLiveVoice={() => setIsLiveVoiceOpen(true)}
+                  onFocusCAD={() => {
+                    // Flash / highlight CAD viewport or center
+                  }}
+                />
+
+                {/* 3D Interactive Three.js CAD Viewport */}
+                <div className="flex-1 min-w-0 h-full relative">
+                  <ThreeCADViewport
+                    parameters={parameters}
+                    onParameterChange={handleUpdateParameters}
+                    onOpenReport={() => setIsVerificationReportOpen(true)}
+                  />
+                </div>
+
+                {/* Technical Properties / Feature Tree / BOM Inspector */}
+                <RightInspectorPanel
+                  parameters={parameters}
+                  onUpdateParameters={handleUpdateParameters}
+                />
+              </div>
+
+              {/* Lower split: Operation History & Verification Center Console */}
+              <BottomConsole
+                operations={operationHistory}
+                onOpenReport={() => setIsVerificationReportOpen(true)}
+                onNavigateVerification={() => setCurrentModule('verification-center')}
+              />
+            </div>
+          )}
+
+          {/* FULL SCREEN CAD WORKSPACE */}
+          {currentModule === 'cad-workspace' && (
+            <div className="flex flex-col h-full w-full overflow-hidden">
+              <div className="flex flex-1 min-h-0 w-full overflow-hidden">
+                <div className="flex-1 min-w-0 h-full relative">
+                  <ThreeCADViewport
+                    parameters={parameters}
+                    onParameterChange={handleUpdateParameters}
+                    onOpenReport={() => setIsVerificationReportOpen(true)}
+                  />
+                </div>
+                <RightInspectorPanel
+                  parameters={parameters}
+                  onUpdateParameters={handleUpdateParameters}
+                />
+              </div>
+              <BottomConsole
+                operations={operationHistory}
+                onOpenReport={() => setIsVerificationReportOpen(true)}
+                onNavigateVerification={() => setCurrentModule('verification-center')}
+              />
+            </div>
+          )}
+
+          {/* OVERVIEW DASHBOARD */}
+          {currentModule === 'overview' && (
+            <OverviewView
+              onNavigate={setCurrentModule}
+              onOpenReport={() => setIsVerificationReportOpen(true)}
+            />
+          )}
+
+          {/* TEXT TO CAD */}
+          {currentModule === 'text-to-cad' && (
+            <TextToCadView
+              onApplyToCAD={handleUpdateParameters}
+              onNavigateToAgent={() => setCurrentModule('ai-cad-agent')}
+            />
+          )}
+
+          {/* DRAWING TO CAD */}
+          {currentModule === 'drawing-to-cad' && (
+            <DrawingToCadView
+              onNavigateToAgent={() => setCurrentModule('ai-cad-agent')}
+            />
+          )}
+
+          {/* REVERSE ENGINEERING */}
+          {currentModule === 'reverse-engineering' && <ReverseEngineeringView />}
+
+          {/* ASSEMBLY INTELLIGENCE */}
+          {currentModule === 'assembly-intelligence' && <AssemblyIntelligenceView />}
+
+          {/* DRAWING AUTOMATION */}
+          {currentModule === 'drawing-automation' && (
+            <DrawingAutomationView parameters={parameters} />
+          )}
+
+          {/* ENGINEERING COPILOT */}
+          {currentModule === 'engineering-copilot' && <EngineeringCopilotView />}
+
+          {/* SIMULATION INTELLIGENCE */}
+          {currentModule === 'simulation-intelligence' && (
+            <SimulationIntelligenceView
+              parameters={parameters}
+              onNavigateToAgent={() => setCurrentModule('ai-cad-agent')}
+            />
+          )}
+
+          {/* AUTOMATION STUDIO */}
+          {currentModule === 'automation-studio' && <AutomationStudioView />}
+
+          {/* BACKGROUND TASKS */}
+          {currentModule === 'background-tasks' && <BackgroundTasksView />}
+
+          {/* VERIFICATION CENTER */}
+          {currentModule === 'verification-center' && (
+            <VerificationCenterView
+              parameters={parameters}
+              onOpenReportModal={() => setIsVerificationReportOpen(true)}
+            />
+          )}
+
+          {/* KNOWLEDGE HUB */}
+          {currentModule === 'knowledge-hub' && <KnowledgeHubView />}
+
+          {/* PROJECTS */}
+          {currentModule === 'projects' && (
+            <ProjectsView
+              onSelectProject={setCurrentProject}
+              onNavigateToAgent={() => setCurrentModule('ai-cad-agent')}
+            />
+          )}
+
+          {/* INTEGRATIONS */}
+          {currentModule === 'integrations' && <IntegrationsView />}
+
+          {/* ADMINISTRATION */}
+          {currentModule === 'administration' && <AdministrationView />}
+        </main>
+      </div>
+
+      {/* Modals & Overlays */}
+      <CommandPaletteModal
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onSelectModule={setCurrentModule}
+        onTriggerCADAction={(action) => {
+          if (action.includes('thickness')) {
+            handleUpdateParameters({ thickness: 15 });
+          } else if (action.includes('Titanium')) {
+            handleUpdateParameters({ material: 'Titanium Ti-6Al-4V', density: 4.43 });
+          }
+          setCurrentModule('ai-cad-agent');
+        }}
+      />
+
+      <VerificationReportModal
+        isOpen={isVerificationReportOpen}
+        onClose={() => setIsVerificationReportOpen(false)}
+        parameters={parameters}
+      />
+
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        parameters={parameters}
+      />
+
+      <LiveVoiceConversationModal
+        isOpen={isLiveVoiceOpen}
+        onClose={() => setIsLiveVoiceOpen(false)}
+        onCADCommand={(cmd) => {
+          if (cmd.includes('thickness')) handleUpdateParameters({ thickness: 15 });
+          else if (cmd.includes('Titanium')) handleUpdateParameters({ material: 'Titanium Ti-6Al-4V' });
+        }}
+      />
+
+      {/* Help Modal */}
+      {isHelpOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="w-full max-w-lg bg-[#0f1728] border border-[#232f48] rounded-xl p-6 space-y-4 text-xs">
+            <div className="flex items-center justify-between border-b border-[#1e293b] pb-3">
+              <span className="font-bold text-slate-100 text-sm">MechForge AI — Enterprise Copilot Guide</span>
+              <button
+                onClick={() => setIsHelpOpen(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-2 text-slate-300 leading-relaxed">
+              <p>
+                <strong>3D Viewport Controls:</strong> Left-click and drag to rotate/orbit the model. Right-click and drag to pan. Scroll to zoom.
+              </p>
+              <p>
+                <strong>Interactive Parameter Editing:</strong> Click any dimension in the right Properties panel (e.g. Length, Thickness) to edit its value and watch the 3D model update live.
+              </p>
+              <p>
+                <strong>Command Palette:</strong> Press <kbd className="px-1.5 py-0.5 bg-slate-800 rounded font-tech">Ctrl+K</kbd> anywhere to quickly search across modules and trigger CAD actions.
+              </p>
+              <p>
+                <strong>CAD Integration Bridge:</strong> Connected to local SolidWorks 2024 desktop bridge on port 8892 with deterministic B-Rep verification.
+              </p>
+            </div>
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setIsHelpOpen(false)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-medium"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
