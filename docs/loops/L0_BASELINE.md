@@ -36,7 +36,7 @@ Deciding rule, fixed before T1 starts: T0 and T1 are ticked, `npm run gate` exit
   4e900b0 chore: add CAD agent loop graph
   ```
 - 2026-11-07 · L0/T1 · started T1
-- 2026-11-07 · L0/T1 · passed · gate green · commit see next line · wrote `docs/cad-agent/PHASE_00_ENVIRONMENT_AUDIT.md`: Windows 10.0.26300 AMD64, node v25.8.1, Python 3.12.10 on PATH is a foreign venv (antigravity gravity-api), .NET runtimes 10.0.14 with no SDK, no CAD software (7 registry probes absent), reference app 2.12.1 build 2026-11-02 re-listed, REA answers (6 workflows), disk 12G free, memory 1.1 GB free; `Decision: GO`. Also gitignored `.claude/scheduled_tasks.lock`, the /loop scheduler's lock for this session (read: sessionId and pid only) · Direction: still the goal; the risks table (disk, memory, foreign venv) feeds L2 T1 · Next: T2 (human) signoff, then L1 T0 (human) scope
+- 2026-11-07 · L0/T1 · passed · gate green · commit a84f64b · wrote `docs/cad-agent/PHASE_00_ENVIRONMENT_AUDIT.md`: Windows 10.0.26300 AMD64, node v25.8.1, Python 3.12.10 on PATH is a foreign venv (antigravity gravity-api), .NET runtimes 10.0.14 with no SDK, no CAD software (7 registry probes absent), reference app 2.12.1 build 2026-11-02 re-listed, REA answers (6 workflows), disk 12G free, memory 1.1 GB free; `Decision: GO`. Also gitignored `.claude/scheduled_tasks.lock`, the /loop scheduler's lock for this session (read: sessionId and pid only) · Direction: still the goal; the risks table (disk, memory, foreign venv) feeds L2 T1 · Next: T2 (human) signoff, then L1 T0 (human) scope
 
   ```
   grep -E "^Decision: (GO|BLOCKED)" → Decision: GO   (exit 0; before writing the doc it exited 2: No such file or directory)
