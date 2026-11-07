@@ -16,7 +16,7 @@ Deciding rule, fixed before T1 starts: T0 and T1 are ticked, `npm run gate` exit
 ## Tasks
 
 - [x] T0 Init. needs: none. Run `git init`, then commit exactly the setup files (`CAD_AGENT_LOOP.md`, `package.json`, `.gitignore`, `docs/LOOP_GRAPH.md`, `docs/LOOP_CONVENTIONS.md`, `docs/loops/`, `docs/roadmap/MECAGENT_ROADMAP.md`, `scripts/graph-lint.mjs`, `scripts/gate-guard.mjs`, `scripts/clean-room-lint.mjs`, `.claude/commands/cad-agent.md`) as `chore: add CAD agent loop graph`. Then run the three self-checks. Evidence: `node scripts/graph-lint.mjs --self-check`, `node scripts/clean-room-lint.mjs --self-check` and `node scripts/gate-guard.mjs --self-check` each exit 0; `npm run gate` exits 0; `git log --oneline` shows the commit.
-- [ ] T1 Environment audit. needs: T0. Write `docs/cad-agent/PHASE_00_ENVIRONMENT_AUDIT.md` (new) covering the roadmap's four Phase 0 tasks: verified OS and tools with versions, the REA tools the MCP server lists this tick, the reference install re-read this tick (plain-text paths), CAD software found or absent with the command that showed it, required dependencies, prerequisites for a real CAD integration, and risks. Every fact quotes the command that produced it. It ends with exactly one line `Decision: GO` or `Decision: BLOCKED — <reason>`. Missing CAD software blocks L9, not L1. Evidence: graph-lint exits 0 and `grep -E "^Decision: (GO|BLOCKED)" docs/cad-agent/PHASE_00_ENVIRONMENT_AUDIT.md` exits 0.
+- [x] T1 Environment audit. needs: T0. Write `docs/cad-agent/PHASE_00_ENVIRONMENT_AUDIT.md` (new) covering the roadmap's four Phase 0 tasks: verified OS and tools with versions, the REA tools the MCP server lists this tick, the reference install re-read this tick (plain-text paths), CAD software found or absent with the command that showed it, required dependencies, prerequisites for a real CAD integration, and risks. Every fact quotes the command that produced it. It ends with exactly one line `Decision: GO` or `Decision: BLOCKED — <reason>`. Missing CAD software blocks L9, not L1. Evidence: graph-lint exits 0 and `grep -E "^Decision: (GO|BLOCKED)" docs/cad-agent/PHASE_00_ENVIRONMENT_AUDIT.md` exits 0.
 - [ ] T2 (human) Signoff. needs: T1. The human reads the audit and agrees or corrects the decision. Evidence: the signoff line in the Journal.
 
 ## Journal
@@ -34,4 +34,15 @@ Deciding rule, fixed before T1 starts: T0 and T1 are ticked, `npm run gate` exit
   clean-room-lint: clean
   gate-guard: clean · HEAD..working tree
   4e900b0 chore: add CAD agent loop graph
+  ```
+- 2026-11-07 · L0/T1 · started T1
+- 2026-11-07 · L0/T1 · passed · gate green · commit see next line · wrote `docs/cad-agent/PHASE_00_ENVIRONMENT_AUDIT.md`: Windows 10.0.26300 AMD64, node v25.8.1, Python 3.12.10 on PATH is a foreign venv (antigravity gravity-api), .NET runtimes 10.0.14 with no SDK, no CAD software (7 registry probes absent), reference app 2.12.1 build 2026-11-02 re-listed, REA answers (6 workflows), disk 12G free, memory 1.1 GB free; `Decision: GO`. Also gitignored `.claude/scheduled_tasks.lock`, the /loop scheduler's lock for this session (read: sessionId and pid only) · Direction: still the goal; the risks table (disk, memory, foreign venv) feeds L2 T1 · Next: T2 (human) signoff, then L1 T0 (human) scope
+
+  ```
+  grep -E "^Decision: (GO|BLOCKED)" → Decision: GO   (exit 0; before writing the doc it exited 2: No such file or directory)
+  graph-lint: 15 docs · 111 citations (46 file, 0 line range, 45 literal, 20 planned)
+  graph-lint: clean
+  clean-room-lint: 20 tracked files · 0 fingerprints · 0 identifiers
+  clean-room-lint: clean
+  gate-guard: clean · HEAD..working tree
   ```

@@ -5,3 +5,4 @@ node24/
 reverse mec agent .md
 *.log
 .env*
+.claude/scheduled_tasks.lock
