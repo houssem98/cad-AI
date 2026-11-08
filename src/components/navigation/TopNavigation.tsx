@@ -11,10 +11,14 @@ import {
   ChevronDown,
   Building2,
   FolderKanban,
-  CheckCircle,
-  ExternalLink,
-  Laptop,
   Check,
+  Mic,
+  Cpu,
+  Layers,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen,
 } from 'lucide-react';
 import { DEMO_PROJECTS } from '../../data/mockCadData';
 import { ProjectInfo } from '../../types/cad';
@@ -25,6 +29,10 @@ interface TopNavigationProps {
   onOpenCommandPalette: () => void;
   onOpenHelp: () => void;
   onOpenLiveVoice?: () => void;
+  isAgentOpen?: boolean;
+  onToggleAgent?: () => void;
+  isInspectorOpen?: boolean;
+  onToggleInspector?: () => void;
 }
 
 export const TopNavigation: React.FC<TopNavigationProps> = ({
@@ -33,6 +41,10 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
   onOpenCommandPalette,
   onOpenHelp,
   onOpenLiveVoice,
+  isAgentOpen = true,
+  onToggleAgent,
+  isInspectorOpen = true,
+  onToggleInspector,
 }) => {
   const [showOrgDropdown, setShowOrgDropdown] = useState(false);
   const [showProjectDropdown, setShowProjectDropdown] = useState(false);
@@ -42,48 +54,48 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
   const orgs = ['AutoNova Corp', 'AeroFluid Dynamics', 'HyperMach Industrial'];
 
   return (
-    <header className="h-14 bg-[#0a0e17] border-b border-[#1a2336] flex items-center justify-between px-4 z-40 select-none flex-shrink-0">
-      {/* 1. Left: Brand & Switchers */}
-      <div className="flex items-center gap-6">
-        {/* Logo */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-400 p-[1px] flex items-center justify-center shadow-md shadow-blue-900/40">
-            <div className="w-full h-full bg-[#0d1322] rounded-[7px] flex items-center justify-center">
-              <span className="font-black text-transparent bg-clip-text bg-gradient-to-tr from-cyan-400 to-blue-400 text-sm tracking-tighter">
+    <header className="h-13 bg-[#080c14] border-b border-[#1a2336] flex items-center justify-between px-3.5 z-40 select-none flex-shrink-0 gap-3">
+      {/* 1. Left Zone: Brand + Org & Project Switchers */}
+      <div className="flex items-center gap-3 shrink-0">
+        {/* Logo and Brand */}
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-400 p-[1px] flex items-center justify-center shadow-md shadow-blue-900/30">
+            <div className="w-full h-full bg-[#0b101c] rounded-[7px] flex items-center justify-center">
+              <span className="font-black text-transparent bg-clip-text bg-gradient-to-tr from-cyan-400 to-blue-400 text-xs tracking-tighter">
                 MF
               </span>
             </div>
           </div>
-          <div>
-            <div className="font-bold text-slate-100 text-sm tracking-tight leading-none">
+          <div className="flex flex-col">
+            <span className="font-bold text-slate-100 text-xs tracking-tight leading-none whitespace-nowrap">
               MechForge AI
-            </div>
-            <div className="text-[10px] text-slate-400 font-medium tracking-tight mt-0.5">
-              Engineering Copilot
-            </div>
+            </span>
+            <span className="text-[9px] text-slate-400 font-medium tracking-tight mt-0.5 whitespace-nowrap">
+              CAD Copilot
+            </span>
           </div>
         </div>
 
         {/* Separator */}
-        <div className="w-[1px] h-6 bg-[#1e293b]" />
+        <div className="w-[1px] h-5 bg-[#1e293b] hidden sm:block" />
 
         {/* Organization Switcher */}
-        <div className="relative">
+        <div className="relative hidden md:block">
           <button
             onClick={() => {
               setShowOrgDropdown(!showOrgDropdown);
               setShowProjectDropdown(false);
             }}
-            className="flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-[#12192a] text-slate-300 hover:text-white transition-colors text-xs border border-transparent hover:border-[#232f48]"
+            className="flex items-center gap-1.5 px-2 py-1 rounded bg-[#0f1728] hover:bg-[#152035] text-slate-300 hover:text-white transition-colors text-xs border border-[#1f2b42] cursor-pointer"
           >
-            <Building2 className="w-3.5 h-3.5 text-blue-400" />
-            <span className="font-medium text-slate-200">{currentOrg}</span>
-            <ChevronDown className="w-3 h-3 text-slate-400" />
+            <Building2 className="w-3 h-3 text-blue-400 shrink-0" />
+            <span className="font-medium text-slate-200 max-w-[110px] truncate">{currentOrg}</span>
+            <ChevronDown className="w-3 h-3 text-slate-400 shrink-0" />
           </button>
 
           {showOrgDropdown && (
-            <div className="absolute top-full left-0 mt-1 w-48 bg-[#101728] border border-[#232f48] rounded-md shadow-2xl py-1 z-50">
-              <div className="px-3 py-1 text-[10px] uppercase font-tech text-slate-500">
+            <div className="absolute top-full left-0 mt-1 w-48 bg-[#101728] border border-[#232f48] rounded-lg shadow-2xl py-1 z-50">
+              <div className="px-3 py-1 text-[10px] uppercase font-tech text-slate-500 font-semibold">
                 Organizations
               </div>
               {orgs.map((org) => (
@@ -93,10 +105,10 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
                     setCurrentOrg(org);
                     setShowOrgDropdown(false);
                   }}
-                  className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-slate-300 hover:bg-[#182338] hover:text-white text-left"
+                  className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-slate-300 hover:bg-[#182338] hover:text-white text-left cursor-pointer"
                 >
-                  <span>{org}</span>
-                  {currentOrg === org && <Check className="w-3.5 h-3.5 text-blue-400" />}
+                  <span className="truncate">{org}</span>
+                  {currentOrg === org && <Check className="w-3 h-3 text-blue-400" />}
                 </button>
               ))}
             </div>
@@ -110,16 +122,18 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
               setShowProjectDropdown(!showProjectDropdown);
               setShowOrgDropdown(false);
             }}
-            className="flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-[#12192a] text-slate-300 hover:text-white transition-colors text-xs border border-transparent hover:border-[#232f48]"
+            className="flex items-center gap-1.5 px-2 py-1 rounded bg-[#0f1728] hover:bg-[#152035] text-slate-300 hover:text-white transition-colors text-xs border border-[#1f2b42] cursor-pointer"
           >
-            <FolderKanban className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="font-medium text-slate-200">{currentProject.name}</span>
-            <ChevronDown className="w-3 h-3 text-slate-400" />
+            <FolderKanban className="w-3 h-3 text-cyan-400 shrink-0" />
+            <span className="font-medium text-slate-200 max-w-[130px] lg:max-w-[160px] truncate">
+              {currentProject.name}
+            </span>
+            <ChevronDown className="w-3 h-3 text-slate-400 shrink-0" />
           </button>
 
           {showProjectDropdown && (
-            <div className="absolute top-full left-0 mt-1 w-64 bg-[#101728] border border-[#232f48] rounded-md shadow-2xl py-1 z-50">
-              <div className="px-3 py-1 text-[10px] uppercase font-tech text-slate-500">
+            <div className="absolute top-full left-0 mt-1 w-64 bg-[#101728] border border-[#232f48] rounded-lg shadow-2xl py-1 z-50">
+              <div className="px-3 py-1 text-[10px] uppercase font-tech text-slate-500 font-semibold">
                 Switch Project
               </div>
               {DEMO_PROJECTS.map((proj) => (
@@ -129,13 +143,15 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
                     onSelectProject(proj);
                     setShowProjectDropdown(false);
                   }}
-                  className="w-full flex items-center justify-between px-3 py-2 text-xs text-slate-300 hover:bg-[#182338] hover:text-white text-left"
+                  className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-slate-300 hover:bg-[#182338] hover:text-white text-left cursor-pointer"
                 >
-                  <div>
-                    <div className="font-medium">{proj.name}</div>
-                    <div className="text-[10px] text-slate-500 font-tech">{proj.code} • {proj.docCount} docs</div>
+                  <div className="min-w-0 pr-2">
+                    <div className="font-medium truncate">{proj.name}</div>
+                    <div className="text-[10px] text-slate-500 font-tech truncate">
+                      {proj.code} • {proj.docCount} docs
+                    </div>
                   </div>
-                  {currentProject.id === proj.id && <Check className="w-3.5 h-3.5 text-cyan-400" />}
+                  {currentProject.id === proj.id && <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0" />}
                 </button>
               ))}
             </div>
@@ -143,58 +159,82 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
         </div>
       </div>
 
-      {/* 2. Center: Global Search Bar with Ctrl+K */}
-      <div className="flex-1 max-w-md mx-6">
+      {/* 2. Center Zone: Responsive Command Search Bar */}
+      <div className="flex-1 max-w-sm md:max-w-md mx-2 min-w-0">
         <button
           onClick={onOpenCommandPalette}
-          className="w-full flex items-center justify-between px-3 py-1.5 bg-[#12192a] hover:bg-[#162035] border border-[#1f2b42] hover:border-blue-500/50 rounded-lg text-slate-400 text-xs transition-all shadow-inner group"
+          className="w-full flex items-center justify-between px-3 py-1 bg-[#101728] hover:bg-[#141d30] border border-[#1e2a42] hover:border-blue-500/50 rounded-lg text-slate-400 text-xs transition-colors cursor-pointer group"
         >
-          <div className="flex items-center gap-2">
-            <Search className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-400 transition-colors" />
-            <span>Search anything...</span>
+          <div className="flex items-center gap-2 truncate">
+            <Search className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-400 transition-colors shrink-0" />
+            <span className="truncate text-slate-400">Search commands, parts, features...</span>
           </div>
-          <kbd className="px-1.5 py-0.5 text-[10px] font-tech text-slate-400 bg-[#1b253b] border border-[#2b3a58] rounded shadow-sm">
+          <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-tech text-slate-400 bg-[#162035] border border-[#263550] rounded shadow-sm shrink-0 ml-2">
             Ctrl + K
           </kbd>
         </button>
       </div>
 
-      {/* 3. Right: Integration Pill, Notifications, Help, User Profile */}
-      <div className="flex items-center gap-3">
+      {/* 3. Right Zone: Status, Toggles, Profile */}
+      <div className="flex items-center gap-2 shrink-0">
+        {/* Panel View Toggles for Quick Layout Control */}
+        <div className="hidden lg:flex items-center bg-[#0d1424] border border-[#1e293b] rounded-md p-0.5 gap-0.5">
+          {onToggleAgent && (
+            <button
+              onClick={onToggleAgent}
+              className={`p-1 rounded text-xs transition-colors cursor-pointer ${
+                isAgentOpen ? 'bg-blue-600/30 text-cyan-300' : 'text-slate-500 hover:text-slate-300'
+              }`}
+              title={isAgentOpen ? 'Hide Agent Panel' : 'Show Agent Panel'}
+            >
+              {isAgentOpen ? <PanelLeftClose className="w-3.5 h-3.5" /> : <PanelLeftOpen className="w-3.5 h-3.5" />}
+            </button>
+          )}
+          {onToggleInspector && (
+            <button
+              onClick={onToggleInspector}
+              className={`p-1 rounded text-xs transition-colors cursor-pointer ${
+                isInspectorOpen ? 'bg-blue-600/30 text-cyan-300' : 'text-slate-500 hover:text-slate-300'
+              }`}
+              title={isInspectorOpen ? 'Hide Properties Panel' : 'Show Properties Panel'}
+            >
+              {isInspectorOpen ? <PanelRightClose className="w-3.5 h-3.5" /> : <PanelRightOpen className="w-3.5 h-3.5" />}
+            </button>
+          )}
+        </div>
+
         {/* Gemini Live Voice Conversation Launcher */}
         {onOpenLiveVoice && (
           <button
             onClick={onOpenLiveVoice}
-            className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-600/30 via-cyan-500/20 to-blue-600/30 hover:from-blue-600/40 hover:to-cyan-500/30 text-cyan-300 border border-blue-500/40 rounded-full text-xs font-tech font-semibold transition-all shadow-sm group"
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-blue-900/40 to-cyan-900/30 hover:from-blue-900/60 hover:to-cyan-900/50 text-cyan-300 border border-blue-500/40 rounded-full text-[11px] font-tech font-semibold transition-all shadow-sm cursor-pointer group shrink-0"
             title="Start real-time voice conversation with gemini-3.8-live"
           >
-            <span className="w-2 h-2 rounded-full bg-cyan-400 group-hover:animate-ping" />
-            <span>gemini-3.8-live</span>
+            <Mic className="w-3 h-3 text-cyan-400 group-hover:animate-pulse" />
+            <span className="hidden md:inline">gemini-3.8-live</span>
           </button>
         )}
 
         {/* Local CAD Bridge Pill */}
-        <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 bg-[#10192b] border border-[#21304d] rounded-full text-xs font-tech">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-slate-300 text-[11px]">SolidWorks 2024 Bridge</span>
-          <span className="text-[10px] text-blue-400">14ms</span>
+        <div className="hidden xl:flex items-center gap-1.5 px-2 py-0.5 bg-[#0e1626] border border-[#1e2a40] rounded-full text-[11px] font-tech text-slate-400 shrink-0">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-slate-300">SolidWorks Bridge</span>
+          <span className="text-[10px] text-cyan-400">14ms</span>
         </div>
 
         {/* Notifications */}
         <div className="relative">
           <button
             onClick={() => setShowNotificationModal(!showNotificationModal)}
-            className="relative p-2 text-slate-300 hover:text-white hover:bg-[#141b2b] rounded-lg transition-colors"
-            title="Engineering Notifications"
+            className="relative p-1.5 text-slate-300 hover:text-white hover:bg-[#12192a] rounded-md transition-colors cursor-pointer"
+            title="Notifications"
           >
             <Bell className="w-4 h-4" />
-            <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-blue-600 text-white text-[9px] font-tech font-bold flex items-center justify-center ring-2 ring-[#0a0e17]">
-              3
-            </span>
+            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-blue-500 ring-2 ring-[#080c14]" />
           </button>
 
           {showNotificationModal && (
-            <div className="absolute top-full right-0 mt-2 w-80 bg-[#101728] border border-[#232f48] rounded-xl shadow-2xl p-3 z-50 space-y-2 text-xs">
+            <div className="absolute top-full right-0 mt-2 w-72 bg-[#101728] border border-[#232f48] rounded-xl shadow-2xl p-3 z-50 space-y-2 text-xs">
               <div className="flex items-center justify-between border-b border-[#1e293b] pb-2 font-semibold text-slate-200">
                 <span>Engineering Alerts</span>
                 <span className="text-[10px] text-blue-400 font-tech">3 unread</span>
@@ -202,15 +242,11 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
               <div className="space-y-1.5">
                 <div className="p-2 bg-[#141d30] rounded border border-blue-500/20">
                   <div className="font-medium text-slate-200">Mounting Bracket Regenerated</div>
-                  <div className="text-[11px] text-slate-400">Euler check verified manifold solid.</div>
+                  <div className="text-[10px] text-slate-400">Euler check verified manifold solid.</div>
                 </div>
                 <div className="p-2 bg-[#141d30] rounded border border-slate-700/40">
                   <div className="font-medium text-slate-200">FEA Mesh Solved (TSK-9401)</div>
-                  <div className="text-[11px] text-slate-400">Von Mises max stress = 184 MPa.</div>
-                </div>
-                <div className="p-2 bg-[#141d30] rounded border border-slate-700/40">
-                  <div className="font-medium text-slate-200">Drawing PDF Generated</div>
-                  <div className="text-[11px] text-slate-400">Ready for release approval.</div>
+                  <div className="text-[10px] text-slate-400">Von Mises max stress = 184 MPa.</div>
                 </div>
               </div>
             </div>
@@ -220,24 +256,24 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
         {/* Help / Docs */}
         <button
           onClick={onOpenHelp}
-          className="p-2 text-slate-300 hover:text-white hover:bg-[#141b2b] rounded-lg transition-colors"
-          title="Engineering Documentation & Shortcuts"
+          className="p-1.5 text-slate-300 hover:text-white hover:bg-[#12192a] rounded-md transition-colors cursor-pointer"
+          title="Documentation & Shortcuts"
         >
           <HelpCircle className="w-4 h-4" />
         </button>
 
         {/* User Profile */}
-        <div className="flex items-center gap-2.5 pl-2 border-l border-[#1e293b]">
-          <div className="w-8 h-8 rounded-full overflow-hidden border border-blue-500/40 shadow-sm bg-slate-800">
+        <div className="flex items-center gap-2 pl-2 border-l border-[#1e293b] shrink-0">
+          <div className="w-7 h-7 rounded-full overflow-hidden border border-blue-500/40 shadow-sm bg-slate-800">
             <img
               src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
               alt="Alex Johnson"
               className="w-full h-full object-cover"
             />
           </div>
-          <div className="hidden sm:block text-left">
+          <div className="hidden lg:block text-left">
             <div className="text-xs font-semibold text-slate-200 leading-tight">Alex Johnson</div>
-            <div className="text-[10px] text-slate-400 font-tech">Senior Engineer</div>
+            <div className="text-[9px] text-slate-400 font-tech">Senior Engineer</div>
           </div>
         </div>
       </div>

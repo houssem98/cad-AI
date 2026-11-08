@@ -98,6 +98,16 @@ export interface AgentChatMessage {
     type: string;
   }[];
   suggestedActions?: string[];
+  pendingParameters?: Partial<CADModelParameters>;
+  deliverablesAvailable?: boolean;
+  targetPartName?: string;
+  activeStageName?: string;
+  downloadArtifacts?: {
+    name: string;
+    type: 'step' | 'stl' | 'vba' | 'python' | 'drawing';
+    description: string;
+    size: string;
+  }[];
 }
 
 export interface OperationHistoryRecord {

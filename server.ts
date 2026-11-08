@@ -10,6 +10,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Modality, Type } from '@google/genai';
+import {
+  generateSTEPFile,
+  generateSTLFile,
+  generateSolidWorksVBAMacro,
+  generatePythonCADScript,
+  generate2DDrawingSVG,
+} from './src/services/cad/cadGenerators';
 
 dotenv.config();
 
@@ -186,6 +193,57 @@ Return JSON matching schema.`,
     console.error("Text-to-CAD Error:", error);
     res.status(500).json({ error: error.message });
   }
+});
+
+// CAD Deliverables Export Endpoints
+app.post('/api/cad/export-step', (req, res) => {
+  const params = req.body.parameters || {
+    length: 80, width: 50, thickness: 10, flangeHeight: 50, holeDiameter: 8, centerBoreDiameter: 24, filletRadius: 2, material: 'Aluminum 6061-T6', density: 2.7, mass: 0.12, volume: 44.4, surfaceArea: 168.2
+  };
+  const stepData = generateSTEPFile(params);
+  res.setHeader('Content-Type', 'application/step');
+  res.setHeader('Content-Disposition', `attachment; filename="Mounting_Bracket_${params.length}x${params.width}.step"`);
+  res.send(stepData);
+});
+
+app.post('/api/cad/export-stl', (req, res) => {
+  const params = req.body.parameters || {
+    length: 80, width: 50, thickness: 10, flangeHeight: 50, holeDiameter: 8, centerBoreDiameter: 24, filletRadius: 2, material: 'Aluminum 6061-T6', density: 2.7, mass: 0.12, volume: 44.4, surfaceArea: 168.2
+  };
+  const stlData = generateSTLFile(params);
+  res.setHeader('Content-Type', 'application/sla');
+  res.setHeader('Content-Disposition', `attachment; filename="Mounting_Bracket_${params.length}x${params.width}.stl"`);
+  res.send(stlData);
+});
+
+app.post('/api/cad/export-macro', (req, res) => {
+  const params = req.body.parameters || {
+    length: 80, width: 50, thickness: 10, flangeHeight: 50, holeDiameter: 8, centerBoreDiameter: 24, filletRadius: 2, material: 'Aluminum 6061-T6', density: 2.7, mass: 0.12, volume: 44.4, surfaceArea: 168.2
+  };
+  const macroData = generateSolidWorksVBAMacro(params);
+  res.setHeader('Content-Type', 'text/plain');
+  res.setHeader('Content-Disposition', `attachment; filename="Rebuild_SolidWorks_Macro.vbs"`);
+  res.send(macroData);
+});
+
+app.post('/api/cad/export-python', (req, res) => {
+  const params = req.body.parameters || {
+    length: 80, width: 50, thickness: 10, flangeHeight: 50, holeDiameter: 8, centerBoreDiameter: 24, filletRadius: 2, material: 'Aluminum 6061-T6', density: 2.7, mass: 0.12, volume: 44.4, surfaceArea: 168.2
+  };
+  const pyData = generatePythonCADScript(params);
+  res.setHeader('Content-Type', 'text/x-python');
+  res.setHeader('Content-Disposition', `attachment; filename="SolidWorks_Bridge.py"`);
+  res.send(pyData);
+});
+
+app.post('/api/cad/export-drawing', (req, res) => {
+  const params = req.body.parameters || {
+    length: 80, width: 50, thickness: 10, flangeHeight: 50, holeDiameter: 8, centerBoreDiameter: 24, filletRadius: 2, material: 'Aluminum 6061-T6', density: 2.7, mass: 0.12, volume: 44.4, surfaceArea: 168.2
+  };
+  const svgData = generate2DDrawingSVG(params);
+  res.setHeader('Content-Type', 'image/svg+xml');
+  res.setHeader('Content-Disposition', `attachment; filename="Mounting_Bracket_Drawing.svg"`);
+  res.send(svgData);
 });
 
 // 3. WebSocket Server for Gemini Live API Voice Conversations (gemini-3.8-live)

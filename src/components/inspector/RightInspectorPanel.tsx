@@ -26,6 +26,9 @@ interface RightInspectorPanelProps {
   onUpdateParameters: (newParams: Partial<CADModelParameters>) => void;
   featureTree?: CADFeatureNode[];
   bomItems?: BOMItem[];
+  isOpen?: boolean;
+  onToggleOpen?: () => void;
+  onClose?: () => void;
 }
 
 export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
@@ -33,6 +36,9 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
   onUpdateParameters,
   featureTree = INITIAL_FEATURE_TREE,
   bomItems = INITIAL_BOM,
+  isOpen = true,
+  onToggleOpen,
+  onClose,
 }) => {
   const [activeTab, setActiveTab] = useState<'properties' | 'featureTree' | 'bom'>('properties');
   const [features, setFeatures] = useState<CADFeatureNode[]>(featureTree);
@@ -48,7 +54,6 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
     if (!selectedMat) return;
 
     // Recalculate mass based on density
-    // volume is approx 44.4 cm³
     const newMass = parseFloat(((parameters.volume * selectedMat.density) / 1000).toFixed(2));
 
     onUpdateParameters({
@@ -72,46 +77,116 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
     setIsEditingDim(null);
   };
 
+  // Collapsed rail view (44px)
+  if (!isOpen) {
+    return (
+      <div className="w-11 bg-[#090e18] border-l border-[#1a2336] flex flex-col items-center py-2.5 justify-between select-none flex-shrink-0 z-20">
+        <div className="flex flex-col items-center gap-3">
+          <button
+            onClick={onToggleOpen}
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-[#12192a] rounded transition-colors cursor-pointer"
+            title="Expand Inspector Panel"
+          >
+            <Box className="w-4 h-4 text-cyan-400" />
+          </button>
+
+          <div className="w-5 h-[1px] bg-[#1a2336]" />
+
+          <button
+            onClick={() => {
+              if (onToggleOpen) onToggleOpen();
+              setActiveTab('properties');
+            }}
+            className={`p-1.5 rounded transition-colors cursor-pointer ${
+              activeTab === 'properties' ? 'text-blue-400 bg-blue-950/60' : 'text-slate-400 hover:text-slate-200'
+            }`}
+            title="Properties"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={() => {
+              if (onToggleOpen) onToggleOpen();
+              setActiveTab('featureTree');
+            }}
+            className={`p-1.5 rounded transition-colors cursor-pointer ${
+              activeTab === 'featureTree' ? 'text-blue-400 bg-blue-950/60' : 'text-slate-400 hover:text-slate-200'
+            }`}
+            title="Feature Tree"
+          >
+            <Layers className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={() => {
+              if (onToggleOpen) onToggleOpen();
+              setActiveTab('bom');
+            }}
+            className={`p-1.5 rounded transition-colors cursor-pointer ${
+              activeTab === 'bom' ? 'text-blue-400 bg-blue-950/60' : 'text-slate-400 hover:text-slate-200'
+            }`}
+            title="Bill of Materials"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-[300px] min-w-[280px] max-w-[340px] h-full bg-[#0d121f] border-l border-[#1e293b] flex flex-col flex-shrink-0 select-none">
-      {/* 1. Header Tabs: Properties | Feature Tree | BOM */}
-      <div className="flex items-center border-b border-[#1e293b] bg-[#101728] px-2 pt-2 gap-1 text-xs font-medium">
-        <button
-          onClick={() => setActiveTab('properties')}
-          className={`flex-1 py-2 px-3 text-center rounded-t-md transition-colors ${
-            activeTab === 'properties'
-              ? 'bg-[#182338] text-white border-t-2 border-t-blue-500 border-x border-[#2b3a58]'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Properties
-        </button>
+    <div className="w-[280px] lg:w-[300px] h-full bg-[#080d17] border-l border-[#1a2336] flex flex-col flex-shrink-0 select-none z-20 transition-all">
+      {/* 1. Header Segmented Tabs with Collapse Button */}
+      <div className="flex items-center justify-between px-2 py-1.5 border-b border-[#182338] bg-[#0c1220]">
+        <div className="flex items-center gap-1 p-0.5 bg-[#080d17] border border-[#1a263c] rounded-lg text-xs font-medium flex-1 mr-1">
+          <button
+            onClick={() => setActiveTab('properties')}
+            className={`flex-1 py-1 px-2 text-center rounded text-[11px] transition-colors cursor-pointer ${
+              activeTab === 'properties'
+                ? 'bg-blue-600 text-white font-semibold shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            Properties
+          </button>
 
-        <button
-          onClick={() => setActiveTab('featureTree')}
-          className={`flex-1 py-2 px-3 text-center rounded-t-md transition-colors ${
-            activeTab === 'featureTree'
-              ? 'bg-[#182338] text-white border-t-2 border-t-blue-500 border-x border-[#2b3a58]'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          Feature Tree
-        </button>
+          <button
+            onClick={() => setActiveTab('featureTree')}
+            className={`flex-1 py-1 px-2 text-center rounded text-[11px] transition-colors cursor-pointer ${
+              activeTab === 'featureTree'
+                ? 'bg-blue-600 text-white font-semibold shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            Feature Tree
+          </button>
 
-        <button
-          onClick={() => setActiveTab('bom')}
-          className={`flex-1 py-2 px-3 text-center rounded-t-md transition-colors ${
-            activeTab === 'bom'
-              ? 'bg-[#182338] text-white border-t-2 border-t-blue-500 border-x border-[#2b3a58]'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          BOM
-        </button>
+          <button
+            onClick={() => setActiveTab('bom')}
+            className={`flex-1 py-1 px-2 text-center rounded text-[11px] transition-colors cursor-pointer ${
+              activeTab === 'bom'
+                ? 'bg-blue-600 text-white font-semibold shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            BOM
+          </button>
+        </div>
+
+        {onToggleOpen && (
+          <button
+            onClick={onToggleOpen}
+            className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors cursor-pointer"
+            title="Collapse Inspector"
+          >
+            <EyeOff className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
       {/* 2. Main Content Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-5 text-xs">
+      <div className="flex-1 overflow-y-auto p-3 space-y-4 text-xs no-scrollbar">
         {/* TAB 1: PROPERTIES (Matches Screenshot exactly) */}
         {activeTab === 'properties' && (
           <>

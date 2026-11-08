@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   LayoutDashboard,
   Bot,
@@ -24,6 +24,8 @@ import {
   Settings,
   Sparkles,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { NavigationModule } from '../../types/cad';
 
@@ -31,6 +33,8 @@ interface SidebarProps {
   currentModule: NavigationModule;
   onSelectModule: (module: NavigationModule) => void;
   onOpenPricing?: () => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 interface NavItem {
@@ -44,7 +48,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
   currentModule,
   onSelectModule,
   onOpenPricing,
+  collapsed: externalCollapsed,
+  onToggleCollapse,
 }) => {
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const isCollapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
+
+  const toggle = () => {
+    if (onToggleCollapse) {
+      onToggleCollapse();
+    } else {
+      setInternalCollapsed(!internalCollapsed);
+    }
+  };
+
   const mainNavItems: NavItem[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'ai-cad-agent', label: 'AI CAD Agent', icon: Bot, badge: 'Active' },
@@ -69,9 +86,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="w-[220px] min-w-[200px] h-full bg-[#0a0e17] border-r border-[#1a2336] flex flex-col justify-between select-none flex-shrink-0">
-      {/* 1. Main Navigation List */}
-      <div className="flex-1 overflow-y-auto px-2.5 py-3 space-y-1 text-xs">
+    <aside
+      className={`h-full bg-[#080c14] border-r border-[#1a2336] flex flex-col justify-between select-none flex-shrink-0 transition-all duration-200 z-30 ${
+        isCollapsed ? 'w-14' : 'w-[208px]'
+      }`}
+    >
+      {/* 1. Header with Collapse Toggle */}
+      <div className="flex items-center justify-between px-2.5 py-2 border-b border-[#141d2e]">
+        {!isCollapsed && (
+          <span className="text-[10px] uppercase font-tech font-bold tracking-wider text-slate-500 pl-1.5">
+            Modules
+          </span>
+        )}
+        <button
+          onClick={toggle}
+          className={`p-1 text-slate-400 hover:text-white hover:bg-[#12192a] rounded transition-colors cursor-pointer ${
+            isCollapsed ? 'mx-auto' : ''
+          }`}
+          title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+        >
+          {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+        </button>
+      </div>
+
+      {/* 2. Main Navigation List */}
+      <div className="flex-1 overflow-y-auto px-1.5 py-2 space-y-1 text-xs no-scrollbar">
         {mainNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentModule === item.id;
@@ -80,30 +119,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               key={item.id}
               onClick={() => onSelectModule(item.id)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium transition-all group ${
+              className={`w-full flex items-center rounded-lg font-medium transition-all group cursor-pointer ${
+                isCollapsed ? 'justify-center p-2' : 'justify-between px-2.5 py-1.5'
+              } ${
                 isActive
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                  : 'text-slate-400 hover:text-slate-100 hover:bg-[#131b2e]'
+                  : 'text-slate-400 hover:text-slate-100 hover:bg-[#111829]'
               }`}
+              title={isCollapsed ? item.label : undefined}
             >
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2.5 truncate">
                 <Icon
-                  className={`w-4 h-4 transition-colors ${
+                  className={`w-4 h-4 shrink-0 transition-colors ${
                     isActive ? 'text-white' : 'text-slate-400 group-hover:text-blue-400'
                   }`}
                 />
-                <span className="truncate">{item.label}</span>
+                {!isCollapsed && <span className="truncate text-xs">{item.label}</span>}
               </div>
 
-              {item.badge && !isActive && (
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              {!isCollapsed && item.badge && !isActive && (
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
               )}
             </button>
           );
         })}
 
         {/* Divider */}
-        <div className="my-2.5 mx-1 border-t border-[#1a2336]" />
+        <div className="my-2 mx-1 border-t border-[#162033]" />
 
         {/* Secondary Category / Governance */}
         {adminNavItems.map((item) => {
@@ -114,44 +156,59 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               key={item.id}
               onClick={() => onSelectModule(item.id)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium transition-all group ${
+              className={`w-full flex items-center rounded-lg font-medium transition-all group cursor-pointer ${
+                isCollapsed ? 'justify-center p-2' : 'justify-between px-2.5 py-1.5'
+              } ${
                 isActive
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                  : 'text-slate-400 hover:text-slate-100 hover:bg-[#131b2e]'
+                  : 'text-slate-400 hover:text-slate-100 hover:bg-[#111829]'
               }`}
+              title={isCollapsed ? item.label : undefined}
             >
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2.5 truncate">
                 <Icon
-                  className={`w-4 h-4 transition-colors ${
+                  className={`w-4 h-4 shrink-0 transition-colors ${
                     isActive ? 'text-white' : 'text-slate-400 group-hover:text-blue-400'
                   }`}
                 />
-                <span className="truncate">{item.label}</span>
+                {!isCollapsed && <span className="truncate text-xs">{item.label}</span>}
               </div>
             </button>
           );
         })}
       </div>
 
-      {/* 2. Bottom Card: Enterprise Edition (Exact Match to Screenshot) */}
-      <div className="p-3 border-t border-[#1a2336] bg-[#0c111c]">
-        <div className="p-3 bg-[#111829] border border-[#212f4c] rounded-xl space-y-2.5">
-          <div className="flex items-center justify-between">
-            <span className="font-semibold text-slate-200 text-xs">Enterprise Edition</span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+      {/* 3. Bottom Enterprise Badge */}
+      {!isCollapsed ? (
+        <div className="p-2 border-t border-[#162033] bg-[#090d16]">
+          <div className="p-2.5 bg-[#0f1627] border border-[#1d2a44] rounded-lg space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-slate-200 text-xs">Enterprise Edition</span>
+              <ChevronDown className="w-3 h-3 text-slate-400" />
+            </div>
+            <p className="text-[10px] text-slate-400 leading-tight">
+              Advanced AI · Unlimited CAD
+            </p>
+            <button
+              onClick={onOpenPricing}
+              className="w-full flex items-center justify-center gap-1 py-1 px-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium text-xs rounded transition-all shadow-sm cursor-pointer"
+            >
+              <Sparkles className="w-3 h-3 text-cyan-200" />
+              <span>Upgrade Plan</span>
+            </button>
           </div>
-          <p className="text-[11px] text-slate-400 leading-tight">
-            Advanced AI. Unlimited Potential.
-          </p>
+        </div>
+      ) : (
+        <div className="p-2 border-t border-[#162033] flex justify-center">
           <button
             onClick={onOpenPricing}
-            className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium text-xs rounded-lg transition-all shadow-md shadow-blue-600/20"
+            className="p-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-500 transition-colors cursor-pointer"
+            title="Enterprise Plan"
           >
-            <Sparkles className="w-3.5 h-3.5 text-cyan-200" />
-            <span>Upgrade Plan</span>
+            <Sparkles className="w-3.5 h-3.5" />
           </button>
         </div>
-      </div>
+      )}
     </aside>
   );
 };

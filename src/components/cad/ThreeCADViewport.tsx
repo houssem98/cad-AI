@@ -547,325 +547,323 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full flex flex-col bg-[#0b0f19] select-none overflow-hidden">
-      {/* 1. CAD Document Tab Bar */}
-      <div className="flex items-center justify-between px-3 py-1.5 bg-[#0f1524] border-b border-[#1e293b] text-xs">
-        <div className="flex items-center gap-1.5">
+    <div className="relative w-full h-full flex flex-col bg-[#080c14] select-none overflow-hidden">
+      {/* 1. Clean CAD Document Tab Bar */}
+      <div className="h-8 bg-[#090e18] border-b border-[#182338] flex items-center justify-between px-2.5 z-10 flex-shrink-0 text-xs">
+        <div className="flex items-center gap-1 min-w-0">
           <button
-            title="CAD Workspace Home"
+            title="CAD Workspace"
             className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors"
           >
-            <Box className="w-3.5 h-3.5" />
+            <Box className="w-3.5 h-3.5 text-blue-400" />
           </button>
 
           {/* Active Document Tab */}
-          <div className="flex items-center gap-2 px-3 py-1 bg-[#182236] border border-[#2b3a58] rounded-t text-slate-200 font-medium">
-            <span className="w-2 h-2 rounded-full bg-blue-500 shadow-sm shadow-blue-500/50" />
-            <span className="font-tech text-xs tracking-tight">{activeTab}</span>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#121b2d] border-t-2 border-t-blue-500 border-x border-[#1e2c44] rounded-t text-slate-200 font-medium text-[11px] truncate max-w-[200px]">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0" />
+            <span className="font-tech tracking-tight truncate">{activeTab}</span>
             <button
               title="Close Tab"
-              className="p-0.5 text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 rounded ml-1"
+              className="p-0.5 text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 rounded ml-1 shrink-0"
             >
-              <X className="w-3 h-3" />
+              <X className="w-2.5 h-2.5" />
             </button>
           </div>
 
           <button
-            title="New Document"
+            title="New CAD Document"
             className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3 h-3" />
           </button>
         </div>
 
-        {/* Engine status indicator */}
-        <div className="flex items-center gap-2">
-          <span className="px-2 py-0.5 rounded text-[10px] font-tech uppercase tracking-wider bg-blue-950/60 text-blue-400 border border-blue-800/40">
-            SolidWorks Parasolid v35.1
+        {/* Clean Unboxed Document Metadata (Anti-Slop Zero-Pill) */}
+        <div className="hidden md:flex items-center gap-2 text-[10px] font-tech text-slate-400 shrink-0">
+          <span>Parasolid B-Rep</span>
+          <span aria-hidden="true" className="text-slate-600">·</span>
+          <span className="text-emerald-400 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            Bridge Connected
           </span>
-          <span className="flex items-center gap-1 text-[11px] text-emerald-400 font-tech">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            Parametric Active
-          </span>
+          <span aria-hidden="true" className="text-slate-600">·</span>
+          <span>ISO 2768-m</span>
         </div>
       </div>
 
-      {/* 2. CAD Viewport Floating Toolbar */}
-      <div className="absolute top-11 left-4 z-20 flex items-center gap-0.5 p-1 bg-[#131b2e]/95 backdrop-blur-md border border-[#232f48] rounded-lg shadow-xl shadow-black/40">
-        <button
-          onClick={() => setActiveTool('select')}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${
-            activeTool === 'select'
-              ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/50'
-              : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-          }`}
-          title="Select entity (Click parts to inspect)"
-        >
-          <MousePointer className="w-3.5 h-3.5" />
-          <span>Select</span>
-        </button>
+      {/* 2. Floating 3D Canvas Viewport */}
+      <div className="relative flex-1 w-full h-full min-h-0 overflow-hidden">
+        {/* Three.js Canvas Container */}
+        <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
-        <button
-          onClick={() => setActiveTool('rotate')}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${
-            activeTool === 'rotate'
-              ? 'bg-blue-600 text-white'
-              : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-          }`}
-          title="Rotate model (Left Click + Drag)"
-        >
-          <RotateCw className="w-3.5 h-3.5" />
-          <span>Rotate</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTool('pan')}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${
-            activeTool === 'pan'
-              ? 'bg-blue-600 text-white'
-              : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-          }`}
-          title="Pan view (Right Click + Drag)"
-        >
-          <Hand className="w-3.5 h-3.5" />
-          <span>Pan</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTool('zoom')}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${
-            activeTool === 'zoom'
-              ? 'bg-blue-600 text-white'
-              : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-          }`}
-          title="Zoom (Scroll or Pinch)"
-        >
-          <ZoomIn className="w-3.5 h-3.5" />
-          <span>Zoom</span>
-        </button>
-
-        <button
-          onClick={handleFitToView}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors"
-          title="Fit model to view"
-        >
-          <Maximize2 className="w-3.5 h-3.5" />
-          <span>Fit</span>
-        </button>
-
-        <div className="w-[1px] h-5 bg-slate-700/60 mx-1" />
-
-        <button
-          onClick={() => setShowDimensions(!showDimensions)}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${
-            showDimensions
-              ? 'bg-slate-700 text-blue-400 border border-blue-500/30'
-              : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-          }`}
-          title="Toggle Technical Engineering Dimensions"
-        >
-          <Ruler className="w-3.5 h-3.5" />
-          <span>Measure</span>
-        </button>
-
-        <button
-          onClick={() => {
-            const nextMode = renderMode === 'section' ? 'shaded' : 'section';
-            setRenderMode(nextMode);
-          }}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${
-            renderMode === 'section'
-              ? 'bg-amber-600 text-white'
-              : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-          }`}
-          title="Section Cut View"
-        >
-          <Scissors className="w-3.5 h-3.5" />
-          <span>Section</span>
-        </button>
-
-        {/* Render Mode Dropdown */}
-        <div className="relative">
+        {/* Floating Compact HUD Toolbar (Top-Left of Viewport, Zero Collision) */}
+        <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-0.5 p-1 bg-[#0d1424]/90 backdrop-blur-md border border-[#1e2c46] rounded-lg shadow-xl shadow-black/40">
           <button
-            onClick={() => {
-              setShowRenderMenu(!showRenderMenu);
-              setShowViewsMenu(false);
-            }}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${
-              renderMode !== 'shaded' ? 'text-blue-400 bg-slate-800' : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+            onClick={() => setActiveTool('select')}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+              activeTool === 'select'
+                ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/50'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
             }`}
-            title="Rendering styles"
+            title="Select entity (Click to inspect)"
           >
-            <Box className="w-3.5 h-3.5" />
-            <span className="capitalize">{renderMode}</span>
+            <MousePointer className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Select</span>
           </button>
 
-          {showRenderMenu && (
-            <div className="absolute top-full left-0 mt-1 w-32 bg-[#131b2e] border border-[#2b3a58] rounded-md shadow-xl py-1 z-30">
-              <button
-                onClick={() => {
-                  setRenderMode('shaded');
-                  setShowRenderMenu(false);
-                }}
-                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-800 ${
-                  renderMode === 'shaded' ? 'text-blue-400 font-semibold' : 'text-slate-300'
-                }`}
-              >
-                PBR Shaded
-              </button>
-              <button
-                onClick={() => {
-                  setRenderMode('wireframe');
-                  setShowRenderMenu(false);
-                }}
-                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-800 ${
-                  renderMode === 'wireframe' ? 'text-blue-400 font-semibold' : 'text-slate-300'
-                }`}
-              >
-                Wireframe
-              </button>
-              <button
-                onClick={() => {
-                  setRenderMode('xray');
-                  setShowRenderMenu(false);
-                }}
-                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-800 ${
-                  renderMode === 'xray' ? 'text-blue-400 font-semibold' : 'text-slate-300'
-                }`}
-              >
-                X-Ray Translucent
-              </button>
-            </div>
-          )}
-        </div>
+          <button
+            onClick={() => setActiveTool('rotate')}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+              activeTool === 'rotate'
+                ? 'bg-blue-600 text-white'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+            }`}
+            title="Orbit / Rotate (Left Click + Drag)"
+          >
+            <RotateCw className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Rotate</span>
+          </button>
 
-        {/* Camera Views Dropdown */}
-        <div className="relative">
+          <button
+            onClick={() => setActiveTool('pan')}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+              activeTool === 'pan'
+                ? 'bg-blue-600 text-white'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+            }`}
+            title="Pan (Right Click + Drag)"
+          >
+            <Hand className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Pan</span>
+          </button>
+
+          <button
+            onClick={handleFitToView}
+            className="flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
+            title="Fit model to view"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Fit</span>
+          </button>
+
+          <div className="w-[1px] h-4 bg-slate-700/60 mx-0.5" />
+
+          <button
+            onClick={() => setShowDimensions(!showDimensions)}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+              showDimensions
+                ? 'bg-slate-800 text-cyan-300 border border-blue-500/40'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+            }`}
+            title="Toggle Engineering Dimensions"
+          >
+            <Ruler className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Measure</span>
+          </button>
+
           <button
             onClick={() => {
-              setShowViewsMenu(!showViewsMenu);
-              setShowRenderMenu(false);
+              const nextMode = renderMode === 'section' ? 'shaded' : 'section';
+              setRenderMode(nextMode);
             }}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors"
-            title="Orthographic & Isometric Camera Views"
+            className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+              renderMode === 'section'
+                ? 'bg-amber-600 text-white'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+            }`}
+            title="Section Cut View"
           >
-            <Eye className="w-3.5 h-3.5" />
-            <span className="uppercase">{cameraView}</span>
+            <Scissors className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Section</span>
           </button>
 
-          {showViewsMenu && (
-            <div className="absolute top-full right-0 mt-1 w-32 bg-[#131b2e] border border-[#2b3a58] rounded-md shadow-xl py-1 z-30">
-              {(['iso', 'front', 'top', 'right', 'back'] as CameraPreset[]).map((p) => (
+          <div className="w-[1px] h-4 bg-slate-700/60 mx-0.5" />
+
+          {/* Shading Style Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowRenderMenu(!showRenderMenu);
+                setShowViewsMenu(false);
+              }}
+              className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                renderMode !== 'shaded' ? 'text-blue-400 bg-slate-800' : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+              }`}
+              title="Rendering mode"
+            >
+              <Box className="w-3.5 h-3.5" />
+              <span className="capitalize hidden md:inline">{renderMode}</span>
+            </button>
+
+            {showRenderMenu && (
+              <div className="absolute top-full left-0 mt-1 w-32 bg-[#101728] border border-[#232f48] rounded-md shadow-xl py-1 z-30 font-tech text-xs">
                 <button
-                  key={p}
                   onClick={() => {
-                    setCameraPreset(p);
-                    setShowViewsMenu(false);
+                    setRenderMode('shaded');
+                    setShowRenderMenu(false);
                   }}
-                  className={`w-full text-left px-3 py-1.5 text-xs uppercase hover:bg-slate-800 ${
-                    cameraView === p ? 'text-blue-400 font-semibold' : 'text-slate-300'
+                  className={`w-full text-left px-3 py-1.5 hover:bg-slate-800 cursor-pointer ${
+                    renderMode === 'shaded' ? 'text-blue-400 font-semibold' : 'text-slate-300'
                   }`}
                 >
-                  {p === 'iso' ? 'Isometric' : `${p} View`}
+                  PBR Shaded
                 </button>
-              ))}
+                <button
+                  onClick={() => {
+                    setRenderMode('wireframe');
+                    setShowRenderMenu(false);
+                  }}
+                  className={`w-full text-left px-3 py-1.5 hover:bg-slate-800 cursor-pointer ${
+                    renderMode === 'wireframe' ? 'text-blue-400 font-semibold' : 'text-slate-300'
+                  }`}
+                >
+                  Wireframe
+                </button>
+                <button
+                  onClick={() => {
+                    setRenderMode('xray');
+                    setShowRenderMenu(false);
+                  }}
+                  className={`w-full text-left px-3 py-1.5 hover:bg-slate-800 cursor-pointer ${
+                    renderMode === 'xray' ? 'text-blue-400 font-semibold' : 'text-slate-300'
+                  }`}
+                >
+                  X-Ray Translucent
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Camera Views Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowViewsMenu(!showViewsMenu);
+                setShowRenderMenu(false);
+              }}
+              className="flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
+              title="Camera view angles"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span className="uppercase text-[10px] hidden md:inline">{cameraView}</span>
+            </button>
+
+            {showViewsMenu && (
+              <div className="absolute top-full right-0 mt-1 w-32 bg-[#101728] border border-[#232f48] rounded-md shadow-xl py-1 z-30 font-tech text-xs">
+                {(['iso', 'front', 'top', 'right', 'back'] as CameraPreset[]).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => {
+                      setCameraPreset(p);
+                      setShowViewsMenu(false);
+                    }}
+                    className={`w-full text-left px-3 py-1.5 uppercase hover:bg-slate-800 cursor-pointer ${
+                      cameraView === p ? 'text-blue-400 font-semibold' : 'text-slate-300'
+                    }`}
+                  >
+                    {p === 'iso' ? 'Isometric' : `${p} View`}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Floating Compact 3D Orientation Gizmo (Top-Right, Zero Collision) */}
+        <div className="absolute top-2.5 right-2.5 z-20 flex flex-col items-end gap-1.5">
+          <div className="relative w-11 h-11 bg-[#0d1424]/90 backdrop-blur-md border border-[#1e2c46] rounded-lg shadow-lg flex items-center justify-center p-1">
+            <div className="relative w-9 h-9 border border-blue-500/30 rounded bg-gradient-to-br from-[#162238] to-[#0d1424] flex flex-col items-center justify-center text-[9px] font-tech text-blue-300 font-bold">
+              <span className="text-blue-400 text-[8px]">Z</span>
+              <div className="flex items-center justify-between w-full px-0.5">
+                <span className="text-emerald-400 text-[8px]">Y</span>
+                <span className="text-slate-200 text-[8px]">TOP</span>
+                <span className="text-rose-400 text-[8px]">X</span>
+              </div>
             </div>
-          )}
+          </div>
+
+          {/* Quick Camera Presets Strip */}
+          <div className="flex items-center gap-0.5 bg-[#0d1424]/90 backdrop-blur-md border border-[#1e2c46] rounded p-0.5 text-[9px] font-tech">
+            <button
+              onClick={() => setCameraPreset('iso')}
+              className={`px-1.5 py-0.5 rounded cursor-pointer ${
+                cameraView === 'iso' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              ISO
+            </button>
+            <button
+              onClick={() => setCameraPreset('front')}
+              className={`px-1 py-0.5 rounded cursor-pointer ${
+                cameraView === 'front' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              F
+            </button>
+            <button
+              onClick={() => setCameraPreset('top')}
+              className={`px-1 py-0.5 rounded cursor-pointer ${
+                cameraView === 'top' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              T
+            </button>
+            <button
+              onClick={() => setCameraPreset('right')}
+              className={`px-1 py-0.5 rounded cursor-pointer ${
+                cameraView === 'right' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              R
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* 3. Three.js Canvas Container */}
-      <div ref={mountRef} className="relative flex-1 w-full h-full cursor-grab active:cursor-grabbing" />
+        {/* Technical Dimension Callouts (Responsive & Graceful) */}
+        {showDimensions && (
+          <div className="absolute inset-0 pointer-events-none z-10">
+            {/* Length Badge */}
+            <div
+              className="absolute left-[45%] bottom-[20%] -translate-x-1/2 px-2 py-0.5 bg-[#0b1220]/90 backdrop-blur-sm border border-[#233554] rounded text-slate-200 text-[11px] font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
+              title="Base Length"
+            >
+              {parameters.length.toFixed(0)} mm
+            </div>
 
-      {/* 4. Top-Right 3D Orientation Gizmo & Coordinate Axes */}
-      <div className="absolute top-11 right-4 z-20 flex flex-col items-end gap-2">
-        <div className="relative w-16 h-16 bg-[#131b2e]/85 backdrop-blur-sm border border-[#232f48] rounded-lg shadow-lg flex items-center justify-center p-1">
-          {/* Interactive Orientation Cube visual representation */}
-          <div className="relative w-12 h-12 border border-blue-500/40 rounded bg-gradient-to-br from-[#1e2c48] to-[#10192e] flex flex-col items-center justify-center text-[10px] font-tech text-blue-300 font-bold shadow-inner">
-            <span className="text-blue-400 text-[9px]">Z</span>
-            <div className="flex items-center justify-between w-full px-1">
-              <span className="text-emerald-400 text-[9px]">Y</span>
-              <span className="text-slate-300 text-[8px] font-bold">TOP</span>
-              <span className="text-rose-400 text-[9px]">X</span>
+            {/* Width Badge */}
+            <div
+              className="absolute right-[22%] bottom-[20%] px-2 py-0.5 bg-[#0b1220]/90 backdrop-blur-sm border border-[#233554] rounded text-slate-200 text-[11px] font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
+              title="Base Width"
+            >
+              {parameters.width.toFixed(0)} mm
+            </div>
+
+            {/* Flange Height Badge */}
+            <div
+              className="absolute left-[36%] top-[42%] -translate-y-1/2 -rotate-90 px-2 py-0.5 bg-[#0b1220]/90 backdrop-blur-sm border border-[#233554] rounded text-slate-200 text-[11px] font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
+              title="Flange Height"
+            >
+              {parameters.flangeHeight.toFixed(0)} mm
+            </div>
+
+            {/* Hole Diameter Callout */}
+            <div
+              className="absolute right-[28%] top-[46%] px-2 py-0.5 bg-blue-950/90 backdrop-blur-sm border border-blue-500/50 rounded text-cyan-300 text-[11px] font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
+              title="4x Mounting Holes"
+            >
+              Ø{parameters.holeDiameter.toFixed(0)} mm
             </div>
           </div>
+        )}
+
+        {/* Clean Bottom Viewport Metadata Bar */}
+        <div className="absolute bottom-2.5 left-2.5 z-20 flex items-center gap-2 text-[10px] font-tech text-slate-400 bg-[#0d1424]/85 backdrop-blur-sm px-2 py-0.5 rounded border border-[#1e2a40]">
+          <span>Scale 1:1</span>
+          <span className="text-slate-600">·</span>
+          <span>MMGS</span>
+          <span className="text-slate-600">·</span>
+          <span>ISO 2768-m</span>
         </div>
-
-        {/* View preset quick buttons */}
-        <div className="flex items-center gap-1 bg-[#131b2e]/80 border border-[#232f48] rounded p-0.5 text-[10px] font-tech">
-          <button
-            onClick={() => setCameraPreset('iso')}
-            className={`px-1.5 py-0.5 rounded ${cameraView === 'iso' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}
-          >
-            ISO
-          </button>
-          <button
-            onClick={() => setCameraPreset('front')}
-            className={`px-1.5 py-0.5 rounded ${cameraView === 'front' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}
-          >
-            F
-          </button>
-          <button
-            onClick={() => setCameraPreset('top')}
-            className={`px-1.5 py-0.5 rounded ${cameraView === 'top' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}
-          >
-            T
-          </button>
-          <button
-            onClick={() => setCameraPreset('right')}
-            className={`px-1.5 py-0.5 rounded ${cameraView === 'right' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}
-          >
-            R
-          </button>
-        </div>
-      </div>
-
-      {/* 5. Engineering Dimension HUD Overlay Badges (Matching Screenshot labels exactly) */}
-      {showDimensions && (
-        <div className="absolute inset-0 pointer-events-none z-10">
-          {/* 80 mm Width dimension badge */}
-          <div
-            className="absolute left-[44%] bottom-[24%] -translate-x-1/2 px-2 py-0.5 bg-[#0f172a]/90 border border-slate-600/70 rounded text-slate-200 text-xs font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
-            title="Nominal Base Length"
-          >
-            {parameters.length.toFixed(0)} mm
-          </div>
-
-          {/* 50 mm Depth dimension badge */}
-          <div
-            className="absolute right-[22%] bottom-[24%] px-2 py-0.5 bg-[#0f172a]/90 border border-slate-600/70 rounded text-slate-200 text-xs font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
-            title="Nominal Base Width"
-          >
-            {parameters.width.toFixed(0)} mm
-          </div>
-
-          {/* 50 mm Height dimension badge */}
-          <div
-            className="absolute left-[38%] top-[42%] -translate-y-1/2 -rotate-90 px-2 py-0.5 bg-[#0f172a]/90 border border-slate-600/70 rounded text-slate-200 text-xs font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
-            title="Flange Height"
-          >
-            {parameters.flangeHeight.toFixed(0)} mm
-          </div>
-
-          {/* Ø8 mm Hole callout leader badge */}
-          <div
-            className="absolute right-[26%] top-[48%] px-2 py-0.5 bg-blue-950/90 border border-blue-500/60 rounded text-cyan-300 text-xs font-tech font-semibold tracking-wide shadow-md pointer-events-auto flex items-center gap-1"
-            title="4x Mounting Holes"
-          >
-            <span>Ø{parameters.holeDiameter.toFixed(0)} mm</span>
-          </div>
-        </div>
-      )}
-
-      {/* 6. Bottom Viewport Metadata Bar */}
-      <div className="absolute bottom-2 left-4 z-20 flex items-center gap-3 text-[11px] font-tech text-slate-400 bg-[#0f172a]/80 backdrop-blur-sm px-2.5 py-1 rounded border border-[#1e293b]">
-        <span>Scale 1:1</span>
-        <span>•</span>
-        <span>Units: MMGS</span>
-        <span>•</span>
-        <span>Grid: 10.00 mm</span>
-        <span>•</span>
-        <span className="text-slate-300">Tolerance: ISO 2768-m</span>
       </div>
     </div>
   );

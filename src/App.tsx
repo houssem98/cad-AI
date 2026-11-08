@@ -59,6 +59,27 @@ export default function App() {
   const [isLiveVoiceOpen, setIsLiveVoiceOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
+  // Responsive Layout & Panel Docking State
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isAgentOpen, setIsAgentOpen] = useState(true);
+  const [isInspectorOpen, setIsInspectorOpen] = useState(true);
+  const [isConsoleOpen, setIsConsoleOpen] = useState(true);
+
+  const toggleAgent = () => {
+    setIsAgentOpen((prev) => !prev);
+    setTimeout(() => window.dispatchEvent(new Event('resize')), 60);
+  };
+
+  const toggleInspector = () => {
+    setIsInspectorOpen((prev) => !prev);
+    setTimeout(() => window.dispatchEvent(new Event('resize')), 60);
+  };
+
+  const toggleConsole = () => {
+    setIsConsoleOpen((prev) => !prev);
+    setTimeout(() => window.dispatchEvent(new Event('resize')), 60);
+  };
+
   // Parameter update handler (updates 3D model, mass properties, and dimensions in real-time)
   const handleUpdateParameters = (newParams: Partial<CADModelParameters>) => {
     setParameters((prev) => {
@@ -77,7 +98,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col w-screen h-screen bg-[#0b0f19] text-slate-200 overflow-hidden font-sans">
+    <div className="flex flex-col w-screen h-screen bg-[#080c14] text-slate-200 overflow-hidden font-sans">
       {/* 1. Global Top Navigation Header */}
       <TopNavigation
         currentProject={currentProject}
@@ -85,19 +106,28 @@ export default function App() {
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
         onOpenHelp={() => setIsHelpOpen(true)}
         onOpenLiveVoice={() => setIsLiveVoiceOpen(true)}
+        isAgentOpen={isAgentOpen}
+        onToggleAgent={toggleAgent}
+        isInspectorOpen={isInspectorOpen}
+        onToggleInspector={toggleInspector}
       />
 
       {/* 2. Main Body: Sidebar + Dynamic Workspace Modules */}
       <div className="flex flex-1 min-h-0 w-full overflow-hidden">
-        {/* Left Global Sidebar */}
+        {/* Left Global Sidebar with Auto-Collapse Rail */}
         <Sidebar
           currentModule={currentModule}
           onSelectModule={setCurrentModule}
           onOpenPricing={() => setIsHelpOpen(true)}
+          collapsed={isSidebarCollapsed}
+          onToggleCollapse={() => {
+            setIsSidebarCollapsed((prev) => !prev);
+            setTimeout(() => window.dispatchEvent(new Event('resize')), 60);
+          }}
         />
 
         {/* Dynamic Center Workstation */}
-        <main className="flex-1 min-w-0 flex flex-col h-full bg-[#0b0f19] overflow-hidden">
+        <main className="flex-1 min-w-0 flex flex-col h-full bg-[#080c14] overflow-hidden">
           {/* PRIMARY WORKSPACE: AI CAD AGENT (Matches exact screenshot reference) */}
           {currentModule === 'ai-cad-agent' && (
             <div className="flex flex-col h-full w-full overflow-hidden">
@@ -109,8 +139,10 @@ export default function App() {
                   onUpdateParameters={handleUpdateParameters}
                   onAddOperation={handleAddOperation}
                   onOpenLiveVoice={() => setIsLiveVoiceOpen(true)}
+                  isOpen={isAgentOpen}
+                  onToggleOpen={toggleAgent}
                   onFocusCAD={() => {
-                    // Flash / highlight CAD viewport or center
+                    // Focus / center CAD viewport
                   }}
                 />
 
@@ -127,6 +159,8 @@ export default function App() {
                 <RightInspectorPanel
                   parameters={parameters}
                   onUpdateParameters={handleUpdateParameters}
+                  isOpen={isInspectorOpen}
+                  onToggleOpen={toggleInspector}
                 />
               </div>
 
@@ -135,6 +169,8 @@ export default function App() {
                 operations={operationHistory}
                 onOpenReport={() => setIsVerificationReportOpen(true)}
                 onNavigateVerification={() => setCurrentModule('verification-center')}
+                isOpen={isConsoleOpen}
+                onToggleOpen={toggleConsole}
               />
             </div>
           )}
@@ -153,12 +189,16 @@ export default function App() {
                 <RightInspectorPanel
                   parameters={parameters}
                   onUpdateParameters={handleUpdateParameters}
+                  isOpen={isInspectorOpen}
+                  onToggleOpen={toggleInspector}
                 />
               </div>
               <BottomConsole
                 operations={operationHistory}
                 onOpenReport={() => setIsVerificationReportOpen(true)}
                 onNavigateVerification={() => setCurrentModule('verification-center')}
+                isOpen={isConsoleOpen}
+                onToggleOpen={toggleConsole}
               />
             </div>
           )}

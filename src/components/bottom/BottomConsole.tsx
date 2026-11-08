@@ -23,6 +23,8 @@ interface BottomConsoleProps {
   verificationChecks?: VerificationCheckItem[];
   onOpenReport?: () => void;
   onNavigateVerification?: () => void;
+  isOpen?: boolean;
+  onToggleOpen?: () => void;
 }
 
 export const BottomConsole: React.FC<BottomConsoleProps> = ({
@@ -30,58 +32,100 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
   verificationChecks = INITIAL_VERIFICATION_CHECKS,
   onOpenReport,
   onNavigateVerification,
+  isOpen = true,
+  onToggleOpen,
 }) => {
   const [activeTab, setActiveTab] = useState<'history' | 'verification' | 'progress' | 'logs'>('history');
 
+  if (!isOpen) {
+    return (
+      <div className="h-7 bg-[#080d17] border-t border-[#182338] flex items-center justify-between px-3 text-xs select-none flex-shrink-0 z-20">
+        <div className="flex items-center gap-3 text-[11px] font-tech text-slate-400">
+          <span className="flex items-center gap-1.5 text-slate-300">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            Verification: All Checks Passed
+          </span>
+          <span className="text-slate-600">·</span>
+          <span>{operations.length} CAD Operations</span>
+          <span className="text-slate-600">·</span>
+          <span>ISO 2768-m Invariants Verified</span>
+        </div>
+
+        {onToggleOpen && (
+          <button
+            onClick={onToggleOpen}
+            className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-tech text-blue-400 hover:text-white hover:bg-slate-800 rounded transition-colors cursor-pointer"
+          >
+            <span>Show Console</span>
+            <span className="text-cyan-400 font-bold">▲</span>
+          </button>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div className="h-[210px] min-h-[180px] max-h-[260px] bg-[#0c111c] border-t border-[#1e293b] flex select-none flex-shrink-0">
-      {/* 1. Left Section: Tabs and Table View (approx 68% width) */}
-      <div className="flex-1 flex flex-col border-r border-[#1e293b] min-w-0">
-        {/* Tab Headers */}
-        <div className="flex items-center gap-1 px-4 pt-2 border-b border-[#1a2336] bg-[#0e1422] text-xs">
-          <button
-            onClick={() => setActiveTab('history')}
-            className={`py-2 px-3 font-medium rounded-t-md transition-colors ${
-              activeTab === 'history'
-                ? 'bg-[#182338] text-white border-t-2 border-t-blue-500 border-x border-[#2b3a58]'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Operation History
-          </button>
+    <div className="h-[185px] bg-[#080d17] border-t border-[#182338] flex select-none flex-shrink-0 z-20 transition-all">
+      {/* 1. Left Section: Tabs and Table View */}
+      <div className="flex-1 flex flex-col border-r border-[#182338] min-w-0">
+        {/* Tab Headers with Collapse Button */}
+        <div className="flex items-center justify-between px-3 py-1.5 border-b border-[#182338] bg-[#0c1220] text-xs">
+          <div className="flex items-center gap-1 p-0.5 bg-[#080d17] border border-[#1a263c] rounded-lg">
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`py-1 px-2.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                activeTab === 'history'
+                  ? 'bg-blue-600 text-white font-semibold shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Operation History ({operations.length})
+            </button>
 
-          <button
-            onClick={() => setActiveTab('verification')}
-            className={`py-2 px-3 font-medium rounded-t-md transition-colors ${
-              activeTab === 'verification'
-                ? 'bg-[#182338] text-white border-t-2 border-t-blue-500 border-x border-[#2b3a58]'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Verification Results
-          </button>
+            <button
+              onClick={() => setActiveTab('verification')}
+              className={`py-1 px-2.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                activeTab === 'verification'
+                  ? 'bg-blue-600 text-white font-semibold shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Verification Results
+            </button>
 
-          <button
-            onClick={() => setActiveTab('progress')}
-            className={`py-2 px-3 font-medium rounded-t-md transition-colors ${
-              activeTab === 'progress'
-                ? 'bg-[#182338] text-white border-t-2 border-t-blue-500 border-x border-[#2b3a58]'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Task Progress
-          </button>
+            <button
+              onClick={() => setActiveTab('progress')}
+              className={`py-1 px-2.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                activeTab === 'progress'
+                  ? 'bg-blue-600 text-white font-semibold shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Task Progress
+            </button>
 
-          <button
-            onClick={() => setActiveTab('logs')}
-            className={`py-2 px-3 font-medium rounded-t-md transition-colors ${
-              activeTab === 'logs'
-                ? 'bg-[#182338] text-white border-t-2 border-t-blue-500 border-x border-[#2b3a58]'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            Logs
-          </button>
+            <button
+              onClick={() => setActiveTab('logs')}
+              className={`py-1 px-2.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                activeTab === 'logs'
+                  ? 'bg-blue-600 text-white font-semibold shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Logs
+            </button>
+          </div>
+
+          {onToggleOpen && (
+            <button
+              onClick={onToggleOpen}
+              className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors text-[10px] font-tech flex items-center gap-1 cursor-pointer"
+              title="Minimize Console"
+            >
+              <span>Minimize</span>
+              <span className="font-bold">▼</span>
+            </button>
+          )}
         </div>
 
         {/* Content Table */}
@@ -188,28 +232,27 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
         </div>
       </div>
 
-      {/* 2. Right Section: Verification Center Card (Exact Match to Screenshot) */}
-      <div className="w-[320px] min-w-[280px] max-w-[360px] p-4 flex flex-col justify-between bg-[#0e1524]">
+      {/* 2. Right Section: Verification Center Card */}
+      <div className="w-[240px] md:w-[260px] lg:w-[280px] p-3 flex flex-col justify-between bg-[#0a101d] shrink-0 border-l border-[#182338]">
         <div className="flex items-center justify-between text-xs font-medium text-slate-300">
-          <span>Verification Center</span>
-          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+          <span className="font-semibold text-slate-200">Verification Center</span>
+          <span className="w-2 h-2 rounded-full bg-emerald-400" />
         </div>
 
-        {/* Big Circular Green Verification Indicator */}
-        <div className="flex items-center gap-4 py-2">
-          {/* Radial Pulse / Check Badge */}
-          <div className="relative w-16 h-16 rounded-full bg-emerald-950/60 border-2 border-emerald-500/80 flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-950/50">
-            <div className="w-11 h-11 rounded-full bg-emerald-500/20 flex items-center justify-center">
-              <Check className="w-6 h-6 text-emerald-400 stroke-[3]" />
+        {/* Circular Green Verification Indicator */}
+        <div className="flex items-center gap-3 py-1.5">
+          <div className="relative w-12 h-12 rounded-full bg-emerald-950/60 border-2 border-emerald-500/80 flex items-center justify-center shrink-0 shadow-md shadow-emerald-950/40">
+            <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+              <Check className="w-4 h-4 text-emerald-400 stroke-[3]" />
             </div>
           </div>
 
-          <div className="space-y-1">
-            <div className="text-base font-bold text-slate-100 tracking-tight">
+          <div className="min-w-0">
+            <div className="text-sm font-bold text-slate-100 tracking-tight truncate">
               All Checks Passed
             </div>
-            <div className="text-xs text-slate-400 leading-snug">
-              Model is valid and ready for use.
+            <div className="text-[11px] text-slate-400 leading-tight">
+              Euler genus 1 · Manifold solid
             </div>
           </div>
         </div>
@@ -221,10 +264,10 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
               if (onOpenReport) onOpenReport();
               else if (onNavigateVerification) onNavigateVerification();
             }}
-            className="flex items-center gap-2 px-3.5 py-1.5 bg-[#182338] hover:bg-blue-600 border border-[#2b3a58] hover:border-blue-500 rounded text-xs font-medium text-slate-200 hover:text-white transition-all shadow-sm group"
+            className="flex items-center gap-1.5 px-3 py-1 bg-[#141e30] hover:bg-blue-600 border border-[#233550] hover:border-blue-500 rounded text-xs font-medium text-slate-200 hover:text-white transition-all shadow-sm cursor-pointer group"
           >
             <span>View Report</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>
       </div>
