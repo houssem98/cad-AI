@@ -1,0 +1,34 @@
+# cad-AI Truth Audit
+
+Read 2026-11-08 at cad-AI commit f46cc70 (a separate git repo cloned into `cad-AI/`, remote github.com/houssem98/cad-AI). Every finding below cites code read this day. The repo's own status page claims all 19 phases are done (`cad-AI/IMPLEMENTATION_STATUS.md#| **Phase 16: Verification Center** | **Fully Implemented** |`), while its own earlier audit already rates that same module simulated (`cad-AI/docs/roadmap/00_REPOSITORY_TRUTH_AUDIT.md#| **Verification Center** | **D. Simulated / Demonstration** |`). This audit grades the code, not either document.
+
+Labels: PRODUCTION READY, PARTIALLY IMPLEMENTED, MOCKED, UNTESTED, UNSUPPORTED (`docs/LOOP_CONVENTIONS.md#I11 Status words.`). "Not inspected" means this audit did not read the code, so it makes no claim.
+
+## Findings, worst first
+
+1. **No CAD kernel exists.** The only geometry library is Three.js (`cad-AI/package.json#"three": "^0.187.0"`), a mesh renderer. No OpenCascade, Parasolid, build123d or CadQuery package. Every claim of B-Rep, Euler topology or a native rebuild therefore has nothing behind it. UNSUPPORTED.
+2. **Agent execution is a timer animation.** After plan approval, three timers step the progress through 25, 50 and 75 to 100 percent, show `cad-AI/src/components/agent/AICADAgentPanel.tsx#Dispatching COM commands to SolidWorks 2024...`, and then report `cad-AI/src/components/agent/AICADAgentPanel.tsx#Operation completed successfully! Model is ready. Dimensions verified.` while logging `cad-AI/src/components/agent/AICADAgentPanel.tsx#Euler genus 1 verified` in the operation history (`cad-AI/src/components/agent/AICADAgentPanel.tsx:236-310`). Nothing is dispatched or verified. MOCKED, and it breaks `docs/LOOP_CONVENTIONS.md#I3 No kernel evidence, no geometry claim.`
+3. **The verification engine passes its own constants.** The topology check is always passed with a fixed result (`cad-AI/src/services/verification/verificationEngine.ts#0 open edges, closed 2-manifold genus`), attributed to `cad-AI/src/services/verification/verificationEngine.ts#system: 'Parasolid Kernel Boundary Auditor',`. The edge margin is a constant (`cad-AI/src/services/verification/verificationEngine.ts#const actualMargin = 14.0;`) and the deviation is fixed text (`cad-AI/src/services/verification/verificationEngine.ts#Deviation: 0.00 mm (within ISO 2768-m tolerance).`). It reads only the input parameters, never geometry. MOCKED.
+4. **The verification engine, the operation validator and the orchestrator are dead code.** `cad-AI/src/services/agent/agentOrchestrator.ts` is the only importer of `VerificationEngine` and of `cad-AI/src/services/cad/cadOperationIR.ts#export class CADOperationValidator`, and no file imports the orchestrator (`grep -rln agentOrchestrator src server.ts` lists only itself). The app never runs any of them. The validator's switch covers 3 of the 6 command types, so CREATE_SKETCH, CUT_EXTRUDE and ASSIGN_MATERIAL pass unchecked. PARTIALLY IMPLEMENTED, unused.
+5. **The STEP export is invalid.** The closed shell lists six faces, each pointing to undefined entities (`cad-AI/src/services/cad/cadGenerators.ts#ADVANCED_FACE('BASE_BOTTOM_FACE',(#71),#81,.T.);`). Entities #71 to #76 and #81 to #86 are referenced 6 times and defined 0 times. No STEP reader can load the file. The header also hardcodes a fake author and kernel (`cad-AI/src/services/cad/cadGenerators.ts#('Alex Johnson'),`, `cad-AI/src/services/cad/cadGenerators.ts#('MechForge Parasolid B-Rep Engine v3.4'),`). MOCKED.
+6. **The desktop bridge always succeeds and is never started.** `cad.execute_ir_plan` returns success with rebuild code 0 for any input (`cad-AI/desktop-companion/bridge.ts#// Simulates native COM dispatch SwApp.ActiveDoc.EditRebuild3()`). It reports a fixed SolidWorks install (`cad-AI/desktop-companion/bridge.ts#{ name: 'SOLIDWORKS', version: '2024 SP3.1', running: this.isSolidWorksRunning },`). Pairing accepts any token or none (`cad-AI/desktop-companion/bridge.ts#this.pairedSessionToken = params?.token || 'paired';`), and CORS allows every origin (`cad-AI/desktop-companion/bridge.ts#res.setHeader('Access-Control-Allow-Origin', '*');`). No file creates `DesktopCADCompanion`. MOCKED, plus a security gap for when it gets wired up.
+7. **The UI claims a live SolidWorks connection.** `cad-AI/src/App.tsx#Connected to local SolidWorks 2024 desktop bridge on port 8892` is shown with no bridge running. MOCKED, and it breaks `docs/LOOP_CONVENTIONS.md#I12 Honest limits.`
+8. **Text-to-CAD returns model text unchecked, and canned output without a key.** Without `GEMINI_API_KEY` (`cad-AI/server.ts#const apiKey = process.env.GEMINI_API_KEY || '';`), `/api/generate-cad` returns a fixed plan (`cad-AI/server.ts#{ step: 2, name: 'Base Plate Sketch', desc: 'Profile 80x50mm with corner blends.' },`) with no flag saying so. `/api/chat` and `/api/live` also have a no-key branch (server.ts lines 63 and 264), not inspected here. With a key, the user's prompt is pasted straight into the model request (`cad-AI/server.ts#Generate a structured CAD feature sequence for this requirement: "${prompt}".`) and the parsed reply is returned as is (`cad-AI/server.ts#const parsed = JSON.parse(response.text || '{}');`). It returns free-form parameters, not the typed IR in `cad-AI/src/services/cad/cadOperationIR.ts`. PARTIALLY IMPLEMENTED, and it breaks `docs/LOOP_CONVENTIONS.md#I6 Typed operations only.`
+9. **No tests.** There are 0 test files, and the only check script is a typecheck (`cad-AI/package.json#"lint": "tsc --noEmit"`). That typecheck was not run because dependencies are not installed. UNTESTED.
+
+## Not inspected
+
+The Three.js viewport, chat streaming, live voice, the STL, VBA, Python and SVG generators, the beam math in the simulation view, and every view other than the agent panel. The repo's own audit rates several of these real; this audit makes no claim until a loop task reads them.
+
+## What is missing, by loop
+
+| Missing part | Real version must | Loop |
+|---|---|---|
+| Geometry kernel | Build the part in a real kernel; volume, bounding box and solid validity come from the kernel | L3 |
+| Verification | Read every check value from kernel inspection; delete the constants in finding 3 | L3 |
+| STEP export | Export from the kernel and re-import to match volume and bounding box | L3 |
+| Honest execution states | Replace the timers in finding 2 with model reply, validated typed IR, executor run, kernel check and record; show preview-only when no kernel ran | L5, L4 |
+| Typed text-to-CAD | Model returns typed IR; the validator covers every command type and runs on every plan; a missing dimension is asked for | L5 |
+| Test gate | Typecheck, unit tests and kernel tests run in the cad-AI gate | L2 T3 |
+| False claims removed | Bridge banner, fake STEP header, status page | L4 |
+| Desktop bridge | Real COM bridge with token auth and a loopback-only origin | L9 |
