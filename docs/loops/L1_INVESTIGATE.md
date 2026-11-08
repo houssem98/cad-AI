@@ -66,3 +66,10 @@ Deciding rule, fixed before T1 starts: T0 to T11 are ticked, `npm run gate` exit
   clean-room-lint exit=0
   headings exit=0 (count=3)
   ```
+- 2026-11-08 · L1/T3 · started T3 (retry after the REA server config change)
+- 2026-11-08 · L1/T3 · blocked · gate green · commit loop(L1/T3) retry (this entry's own commit) · the rea MCP server did not connect this session (CONNECT_TIMEOUT after 30000 ms), so no REA tool is callable and analyze_javascript_application was not run; two tool searches found nothing. The config already carries the 4096 MB heap and 60-minute timeout, so the heap fix is untested, not failed. No other agent task is open in L1: T5 needs T3, T6 needs T5, T7 and T12 are human, T8 to T11 need those. No later loop can start, since L2 needs L1. Stall rule: a dependency the repo cannot provide · Direction: still the goal; nothing weakened, nothing touched in the reference install · Next: human restarts the rea server (check it starts with the larger heap), then T3; no further tick scheduled
+
+  ```
+  tool search: no matching deferred tools · rea (CONNECT_TIMEOUT): MCP server rea connection timed out after 30000ms
+  gate exit=0
+  ```
