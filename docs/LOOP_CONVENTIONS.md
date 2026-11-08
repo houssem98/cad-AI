@@ -26,6 +26,10 @@ Read every tick together with the active ledger. The global rules in `~/.claude/
 
 If the rtk hook mangles `npm` output, run the same command through `rtk proxy` and quote the raw output. Never `cd` before the gate. After a browser or Electron check, stop only the processes that tick started.
 
+## Product codebase
+
+Product code lives in `cad-AI/`: the human's own app (React 19, TypeScript, Vite, an Express server, Gemini) in a separate git repo, remote origin github.com/houssem98/cad-AI, which this repo gitignores. Build loops (L2 T3 onward) change it in place, per I13, and never start a second codebase. The starting list of missing parts is `docs/cad-agent/CAD_AI_TRUTH_AUDIT.md`. A part leaves that list only when kernel or test evidence is quoted in a Journal, never because a cad-AI document says it is done. Commits to cad-AI follow the Commits rules below, made inside `cad-AI/` with its own git; pushing to its remote is an escalation. I7 applies to cad-AI product code from L2 T3, when the gate grows to cover it.
+
 ## Commits
 
 After a task is ticked, stage only the files that task changed, commit locally with the message `loop(L<n>/T<n>): <what changed>`, and put the short hash in the Journal entry. Never push, never amend, never rebase. Adding a remote is an escalation.
