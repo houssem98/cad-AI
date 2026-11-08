@@ -7,3 +7,4 @@ reverse mec agent .md
 .env*
 .claude/scheduled_tasks.lock
 cad-AI/
+.kilo/
