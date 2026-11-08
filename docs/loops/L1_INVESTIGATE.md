@@ -24,7 +24,7 @@ Deciding rule, fixed before T1 starts: T0 to T11 are ticked, `npm run gate` exit
 - [x] T6 Runtime capture. needs: T5. Scope c, and only if T2 shows REA can start the app without changing a fuse (I8). capture_electron_scenario per runnable module, with click and wait actions taken from the T3 renderer graph: windows, IPC sequence, child processes such as the sidecar spawn, blocked external effects. Write `docs/cad-agent/research/OBSERVATION_LOG.md` (new), one row per capture with its REA evidence id. Evidence: graph-lint and clean-room-lint exit 0 and the file has at least one capture row; if a fuse blocks it, the fuse line from T2 quoted, status skipped.
 - [x] T7 (human) Walkthrough. needs: T0. Run each module T6 could not (sign-in, SolidWorks, judgement calls) once in the reference app with non-confidential samples; modules needing SolidWorks are recorded "not runnable here". Save screenshots as `.rea/screens/<module>-<n>.png` and one line per run in `.rea/walkthrough.txt`: module, input, what happened, duration. Evidence: the human's Journal line with the count of runs.
 - [x] T8 Journeys. needs: T1, T6, T7. In our own words, write `docs/cad-agent/research/USER_JOURNEYS.md` (new) and complete `docs/cad-agent/research/OBSERVATION_LOG.md` (new) with the walkthrough rows and a screenshot inventory (file name under `.rea/`, what it shows; images stay out of the repo). Upgrade matrix labels where runtime or walkthrough evidence confirms them. Evidence: graph-lint and clean-room-lint exit 0.
-- [ ] T9 Unknowns. needs: T2, T5, T8. Run the audit_residual_unknowns workflow, then write `docs/cad-agent/research/TECHNICAL_UNKNOWNS.md` (new): every UNKNOWN, what would resolve it, whether our build needs it; then the roadmap's closing summary (totals per label, missing features in our repo, priorities checked against the roadmap's P0 to P3 table). Evidence: graph-lint exits 0 and `grep -E "^Totals: [0-9]+ CONFIRMED, [0-9]+ INFERRED, [0-9]+ UNKNOWN" docs/cad-agent/research/TECHNICAL_UNKNOWNS.md` exits 0.
+- [x] T9 Unknowns. needs: T2, T5, T8. Run the audit_residual_unknowns workflow, then write `docs/cad-agent/research/TECHNICAL_UNKNOWNS.md` (new): every UNKNOWN, what would resolve it, whether our build needs it; then the roadmap's closing summary (totals per label, missing features in our repo, priorities checked against the roadmap's P0 to P3 table). Evidence: graph-lint exits 0 and `grep -E "^Totals: [0-9]+ CONFIRMED, [0-9]+ INFERRED, [0-9]+ UNKNOWN" docs/cad-agent/research/TECHNICAL_UNKNOWNS.md` exits 0.
 - [ ] T10 Parity spec. needs: T9. Write `docs/cad-agent/research/PARITY_SPEC.md` (new): a finite list of observable behaviors our product must match, one per line `- P<n> <behavior> · source: <matrix row> · owner: L<n>/T<n>`, behavior only, never reference internals or identifiers. L8 T2 grades it. Evidence: graph-lint and clean-room-lint exit 0 and `! grep -E '^- P[0-9]+ ' docs/cad-agent/research/PARITY_SPEC.md | grep -vq 'owner: L[0-9]'` exits 0.
 - [ ] T11 Independent check. needs: T10. A council on the research docs with the clean-room and research items of the attack list, plus: a matrix row or chain hop whose evidence id does not show what it claims; a parity claim that describes internals. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
 - [ ] T12 (human) Signoff. needs: T11. Evidence: the signoff line in the Journal.
@@ -119,6 +119,21 @@ Deciding rule, fixed before T1 starts: T0 to T11 are ticked, `npm run gate` exit
   graph-lint: 22 docs · 155 citations (60 file, 1 line range, 80 literal, 14 planned)
   graph-lint: clean
   clean-room-lint: 26 tracked files · 0 fingerprints · 241 identifiers
+  clean-room-lint: clean
+  gate-guard: clean · HEAD..working tree
+  gate exit=0
+  ```
+- 2026-11-08 · L1/T9 · started T9
+- 2026-11-08 · L1/T9 · passed · gate green · commit loop(L1/T9) (this entry's own commit) · failing check first: the file was absent, grep exit=2. REA list_unknowns returned 0 entries, since L1 kept its unknowns in the docs, and the audit_residual_unknowns workflow was rendered; its probes need registry entries, so the list was built from the six research docs. Wrote `docs/cad-agent/research/TECHNICAL_UNKNOWNS.md`: 18 unknowns, each with what would answer it and whether our build needs it. None blocks a build loop; only U6, the SolidWorks call order, touches L9, which takes it from public API docs. Also a hop-label table (15 modules × 5 hops, labelled by three rules fixed before counting), the roadmap's closing summary, missing features in cad-AI by P0 to P3 (cad-AI lines re-read this tick), and the priority check. The one conflict found: roadmap P0 SolidWorks connectivity sits last, in L9, outside the L8 target. A script checks that the Totals line matches the table's cells · Direction: still the goal; the unknowns are mostly internals our clean-room build does not need · Next: T10 Parity spec
+
+  ```
+  Totals: 12 CONFIRMED, 33 INFERRED, 30 UNKNOWN, over 75 chain hops (15 modules × 5 hops).
+  T9 evidence exit=0
+  rows 15 counted {"CONFIRMED":12,"INFERRED":33,"UNKNOWN":30} line 12/33/30 consistent
+  totals check exit=0
+  graph-lint: 23 docs · 167 citations (67 file, 1 line range, 87 literal, 12 planned)
+  graph-lint: clean
+  clean-room-lint: 28 tracked files · 0 fingerprints · 241 identifiers
   clean-room-lint: clean
   gate-guard: clean · HEAD..working tree
   gate exit=0
