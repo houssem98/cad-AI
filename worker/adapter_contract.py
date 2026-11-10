@@ -53,9 +53,15 @@ def check_adapter(adapter):
     problems += ["manifest claims %s documents" % d for d in m.get("documents", []) if d not in DOCUMENT_KINDS]
     if not adapter.health().get("ok"):
         problems.append("health() is not ok")
+    exported = None  # an adapter imports a file path; the executor resolves artifact ids to paths before this point
     for case in CASES:
+        case = copy.deepcopy(case)
+        if case["type"] == "import" and exported:
+            case["params"]["artifact"] = exported
         claimed = ops.get(case["type"]) == "supported" and (case["type"] != "export" or case["params"]["format"] in m.get("exports", []))
         out = adapter.run(copy.deepcopy(case))
+        if case["type"] == "export" and out.get("status") == "succeeded":
+            exported = (out.get("result") or {}).get("path", exported)
         label = "%s %s" % (case["id"], case["type"])
         merged = {**case, **{k: out.get(k) for k in ("status", "result", "verification", "error")}}
         problems += ["%s: result breaks the schema at %s" % (label, path) for path, _ in validate_operation(merged)]

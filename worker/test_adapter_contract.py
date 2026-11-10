@@ -7,15 +7,15 @@ from adapter_kernel import KernelAdapter
 from operation_schema import validate_operation
 
 ADAPTERS = [
-    pytest.param(lambda: DoubleAdapter(), id="double-full"),
-    pytest.param(lambda: DoubleAdapter(lacks={"fillet", "import"}), id="double-partial"),
-    pytest.param(lambda: KernelAdapter(), id="kernel"),
+    pytest.param(lambda d: DoubleAdapter(), id="double-full"),
+    pytest.param(lambda d: DoubleAdapter(lacks={"fillet", "import"}), id="double-partial"),
+    pytest.param(lambda d: KernelAdapter(artifact_dir=d), id="kernel"),
 ]
 
 
 @pytest.mark.parametrize("make", ADAPTERS)
-def test_adapter_meets_the_contract(make):
-    assert check_adapter(make()) == []
+def test_adapter_meets_the_contract(make, tmp_path):
+    assert check_adapter(make(str(tmp_path))) == []
 
 
 def test_contract_cases_are_valid_operations():

@@ -1,13 +1,14 @@
-import { randomUUID } from 'node:crypto';
-import { mkdirSync } from 'node:fs';
+import { createHash, randomUUID } from 'node:crypto';
+import { mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { CadStore, type Doc, type OpRow } from './cadStore';
+import { CadStore, type Artifact, type Doc, type OpRow } from './cadStore';
 import { CadWorker, WorkerError } from './cadWorker';
 import { validateProposal } from './operationSchema';
 
 // docs/cad-agent/architecture/EXECUTION_AND_VERIFICATION.md is the lifecycle this file implements.
 const MM: Record<string, number> = { mm: 1, cm: 10, m: 1000, in: 25.4 };
 const CONSEQUENTIAL = new Set(['modify_dimension']);
+const CREATES = new Set(['new_part', 'import']);
 const defaultDeadline = (type: string) => (type === 'import' || type === 'export' ? 120_000 : 30_000);
 
 export type Decision = 'approved' | 'denied' | 'auto';
@@ -39,7 +40,9 @@ export class Executor {
 
   static async open(opts: ExecutorOptions): Promise<Executor> {
     mkdirSync(join(opts.dataDir, 'checkpoints'), { recursive: true });
-    const ex = new Executor(new CadStore(opts.dbPath), new CadWorker(opts.workerArgs), opts);
+    mkdirSync(join(opts.dataDir, 'artifacts'), { recursive: true });
+    const worker = new CadWorker([...(opts.workerArgs ?? []), '--artifacts', join(opts.dataDir, 'artifacts')]);
+    const ex = new Executor(new CadStore(opts.dbPath), worker, opts);
     await ex.reloadAll();
     for (const row of ex.store.unfinished()) {
       const rev = ex.store.document(row.docId)?.revision ?? 0;
@@ -77,6 +80,14 @@ export class Executor {
     if (schema.length) return this.finish(row, 'failed', { ...base, validation: { schema }, error: { code: 'validation_failed', message: 'refused by the operation schema', details: { errors: schema } } });
     const pre = this.preconditions(proposal, row, rev);
     if (pre) return this.finish(row, 'failed', { ...base, validation: { schema, preconditions: pre }, error: { code: 'precondition_failed', message: pre } });
+    // An adapter imports a file path; the model names an artifact id, and only ids this store issued resolve.
+    let params = toMm(proposal.params);
+    if (proposal.type === 'import') {
+      const source = this.store.artifact(String(proposal.params.artifact));
+      const missing = `artifact ${proposal.params.artifact} does not exist`;
+      if (!source) return this.finish(row, 'failed', { ...base, validation: { schema, preconditions: missing }, error: { code: 'precondition_failed', message: missing } });
+      params = { ...params, artifact: source.path };
+    }
     const manifest = await this.manifest();
     const lacks = manifest.operations[proposal.type] !== 'supported' || (proposal.type === 'export' && !manifest.exports.includes(proposal.params.format));
     if (lacks) return this.finish(row, 'unsupported', { ...base, validation: { schema }, error: { code: 'unsupported', message: `${proposal.type} is not supported by the ${manifest.adapter} adapter` } });
@@ -90,7 +101,7 @@ export class Executor {
       if (again) return this.finish(row, 'failed', { ...base, approval, validation: { schema, preconditions: again }, error: { code: 'precondition_failed', message: again } });
     }
 
-    const op = { ...proposal, params: toMm(proposal.params), status: 'running' };
+    const op = { ...proposal, params, status: 'running' };
     const deadline = Date.now() + (this.opts.deadlineMs ?? defaultDeadline)(proposal.type);
     this.store.setStatus(row.rowId, 'running');
     let command: object | null = null;
@@ -107,8 +118,13 @@ export class Executor {
       await this.worker.request({ kind: 'save', document: row.docId, path: checkpoint });
       const prev = this.store.document(row.docId);
       const doc: Doc = { id: row.docId, kind: prev?.kind ?? 'part', adapter: manifest.adapter, revision: rev + 1, checkpoint, state: 'ok' };
-      const artifacts = res.result?.artifact ? [String(res.result.artifact)] : [];
-      return this.finish(row, 'succeeded', { ...base, revAfter: rev + 1, approval, command, result: res.result, validation: { schema, preconditions: 'passed', inspection: inspection.verification }, artifacts }, doc);
+      const files: Artifact[] = [];
+      if (proposal.type === 'export' && res.result?.path) {
+        const data = readFileSync(res.result.path); // the record's hash is the executor's own, not the worker's claim
+        files.push({ id: randomUUID(), kind: String(res.result.format), path: String(res.result.path), sha256: createHash('sha256').update(data).digest('hex'), bytes: data.length });
+      }
+      const artifacts = files.map((a) => ({ id: a.id, sha256: a.sha256 }));
+      return this.finish(row, 'succeeded', { ...base, revAfter: rev + 1, approval, command, result: res.result, validation: { schema, preconditions: 'passed', inspection: inspection.verification, export: res.verification ?? null }, artifacts }, doc, files);
     } catch (e) {
       if (!(e instanceof WorkerError)) throw e;
       await this.reloadAll();
@@ -121,7 +137,8 @@ export class Executor {
   private preconditions(p: any, row: OpRow, rev: number): string | null {
     const doc = this.store.document(row.docId);
     if (doc?.state === 'unknown') return 'the document state is unknown; reopen it';
-    if (p.type === 'new_part' ? doc : !doc) return p.type === 'new_part' ? 'the document already exists' : 'the document does not exist';
+    const creates = CREATES.has(p.type);
+    if (creates ? doc : !doc) return creates ? 'the document already exists' : 'the document does not exist';
     if ((doc?.revision ?? 0) !== rev) return 'the document changed since validation';
     if (this.store.hasSucceeded(row.docId, row.opId)) return `operation id ${row.opId} is already used in this document`;
     for (const c of p.preconditions) {
@@ -154,13 +171,13 @@ export class Executor {
     }
   }
 
-  private finish(row: OpRow, status: string, f: { started: string; rev: number; revAfter: number; validation: object; approval?: object; command?: object | null; result?: unknown; error?: TypedError | null; artifacts?: string[] }, doc?: Doc): Outcome {
+  private finish(row: OpRow, status: string, f: { started: string; rev: number; revAfter: number; validation: object; approval?: object; command?: object | null; result?: unknown; error?: TypedError | null; artifacts?: object[] }, doc?: Doc, files: Artifact[] = []): Outcome {
     try {
       this.store.commit(row, status, {
         revisionBefore: f.rev, revisionAfter: f.revAfter, command: f.command ?? null, result: { status, result: f.result ?? null, started: f.started },
         validation: f.validation, approval: f.approval ?? { required: false, decision: null }, error: f.error ?? null,
         artifacts: f.artifacts ?? [], started: f.started, ended: new Date().toISOString(),
-      }, doc);
+      }, doc, files);
     } catch (e) {
       this.halted = true; // storage_error: no further operation runs until storage works
       console.error('storage_error', e);

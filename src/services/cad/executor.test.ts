@@ -1,4 +1,5 @@
-import { mkdtempSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -92,6 +93,31 @@ describe('executor', { timeout: 30000 }, () => {
     expect(out.status).toBe('cancelled');
     expect(out.record.errorDetails.code).toBe('approval_denied');
     expect(out.record.approval).toEqual({ required: true, decision: 'denied' });
+  });
+
+  it('exports through the kernel with a hashed artifact and refuses a corrupted STEP with a record', async () => {
+    const { ex, dir } = await start(['--adapter', 'kernel']);
+    expect((await ex.execute(EXTRUDE, { requestId: 'r1' })).status).toBe('succeeded');
+    const out = await ex.execute(op('x1', 'export', { format: 'step' }), { requestId: 'r1' });
+    expect(out.status).toBe('succeeded');
+    const [ref] = out.record.artifactReferences;
+    const file = ex.store.artifact(ref.id)!;
+    expect(createHash('sha256').update(readFileSync(file.path)).digest('hex')).toBe(ref.sha256);
+    expect(out.record.validationResult.inspection.valid).toBe(true);
+
+    const bad = join(dir, 'bad.step');
+    writeFileSync(bad, 'ISO-10303-21;\nthis is not a step file\n');
+    ex.store.addArtifact({ id: 'bad', kind: 'step', path: bad, sha256: '', bytes: 0 });
+    const copy = (artifact: string) => ({ ...op('i1', 'import', { artifact }), target: { document: 'doc-2' } });
+    const refused = await ex.execute(copy('bad'), { requestId: 'r1' });
+    expect(refused.status).toBe('failed');
+    expect(refused.record.errorDetails.code).toBe('kernel_error');
+    expect(ex.store.document('doc-2')).toBeUndefined();
+
+    const before = (await ex.health()).ops;
+    const unknown = await ex.execute(copy('nope'), { requestId: 'r1' });
+    expect(unknown.record.errorDetails.code).toBe('precondition_failed');
+    expect((await ex.health()).ops).toBe(before);
   });
 
   it('keeps every roadmap record field and sends the kernel millimetres', async () => {

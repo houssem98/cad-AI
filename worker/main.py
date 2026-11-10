@@ -1,6 +1,7 @@
 """Kernel worker: one JSON object per line on stdin and stdout (docs/cad-agent/architecture/API_CONTRACTS.md)."""
 import argparse
 import json
+import os
 import sys
 
 from adapter import METHODS
@@ -39,14 +40,18 @@ def main():
     p.add_argument("--adapter", choices=["double", "kernel"], default="double")
     p.add_argument("--hang", action="append", default=[], help="double only: hang on this operation type")
     p.add_argument("--fail", action="append", default=[], help="double only: fail on this operation type")
+    p.add_argument("--artifacts", help="folder the kernel writes exported files to")
     a = p.parse_args()
+    # The protocol gets its own copy of stdout; file descriptor 1 then points at stderr, so text the CAD
+    # engine prints from native code (a STEP parse error, for one) can never land in the protocol.
+    protocol = os.fdopen(os.dup(1), "w", encoding="utf-8")
+    os.dup2(2, 1)
+    sys.stdout = sys.stderr
     if a.adapter == "kernel":
         from adapter_kernel import KernelAdapter  # build123d loads only when the kernel is asked for
-        adapter = KernelAdapter()
+        adapter = KernelAdapter(artifact_dir=a.artifacts)
     else:
         adapter = DoubleAdapter(hangs=set(a.hang), fails=set(a.fail))
-    protocol = sys.stdout
-    sys.stdout = sys.stderr  # library output never reaches the protocol channel
     serve(adapter, sys.stdin, protocol)
 
 

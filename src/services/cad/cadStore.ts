@@ -12,13 +12,17 @@ CREATE TABLE IF NOT EXISTS records (
   document_id TEXT NOT NULL, revision_before INTEGER NOT NULL, revision_after INTEGER NOT NULL,
   command_json TEXT NOT NULL, result_json TEXT NOT NULL, validation_json TEXT NOT NULL, approval_json TEXT NOT NULL,
   error_json TEXT NOT NULL, artifacts_json TEXT NOT NULL, started_at TEXT NOT NULL, ended_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS artifacts (
+  id TEXT PRIMARY KEY, kind TEXT NOT NULL, path TEXT NOT NULL, sha256 TEXT NOT NULL, bytes INTEGER NOT NULL, created_at TEXT NOT NULL);
 `;
+
+export interface Artifact { id: string; kind: string; path: string; sha256: string; bytes: number }
 
 export interface OpRow { rowId: string; opId: string; docId: string }
 export interface Doc { id: string; kind: string; adapter: string; revision: number; checkpoint: string | null; state: string }
 export interface RecordInput {
   revisionBefore: number; revisionAfter: number; command: unknown; result: unknown; validation: unknown;
-  approval: unknown; error: unknown; artifacts: string[]; started: string; ended: string;
+  approval: unknown; error: unknown; artifacts: unknown[]; started: string; ended: string;
 }
 
 export class CadStore {
@@ -51,6 +55,15 @@ export class CadStore {
     this.db.prepare('UPDATE operations SET status = ? WHERE row_id = ?').run(status, rowId);
   }
 
+  addArtifact(a: Artifact) {
+    this.db.prepare('INSERT INTO artifacts (id, kind, path, sha256, bytes, created_at) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(a.id, a.kind, a.path, a.sha256, a.bytes, new Date().toISOString());
+  }
+
+  artifact(id: string): Artifact | undefined {
+    return this.db.prepare('SELECT id, kind, path, sha256, bytes FROM artifacts WHERE id = ?').get(id) as unknown as Artifact | undefined;
+  }
+
   hasSucceeded(docId: string, opId: string): boolean {
     return !!this.db.prepare("SELECT 1 FROM operations WHERE document_id = ? AND op_id = ? AND status = 'succeeded'").get(docId, opId);
   }
@@ -61,9 +74,10 @@ export class CadStore {
   }
 
   // The document change, the record and the status land together or not at all.
-  commit(row: OpRow, status: string, rec: RecordInput, doc?: Doc) {
+  commit(row: OpRow, status: string, rec: RecordInput, doc?: Doc, files: Artifact[] = []) {
     this.db.exec('BEGIN');
     try {
+      files.forEach((a) => this.addArtifact(a));
       if (doc) {
         this.db.prepare(`INSERT INTO documents (id, kind, adapter, revision, checkpoint, state, created_at) VALUES (?, ?, ?, ?, ?, 'ok', ?)
           ON CONFLICT(id) DO UPDATE SET revision = excluded.revision, checkpoint = excluded.checkpoint, state = 'ok'`)

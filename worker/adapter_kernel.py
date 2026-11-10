@@ -1,14 +1,18 @@
+import hashlib
 import json
+import uuid
 from pathlib import Path
 
-from build123d import Circle, Cylinder, GeomType, Plane, Polygon, Pos, Rectangle, chamfer, extrude, fillet
+from build123d import (Circle, Cylinder, GeomType, Plane, Polygon, Pos, Rectangle, chamfer, export_brep, export_step,
+                       extrude, fillet, import_brep, import_step)
 
 from adapter import Adapter, PreconditionFailed, outcome
 from adapter_contract import TYPES
 
 PLANES = {"top": Plane.XY, "front": Plane.XZ, "right": Plane.YZ}
-NOT_YET = {"export", "import"}  # L3 T3 adds them with a re-import check
 SOLID_STEPS = {"extrude", "cut", "hole", "fillet", "chamfer"}
+WRITERS = {"step": export_step, "brep": export_brep}
+VOLUME_TOL, BBOX_TOL_MM = 1e-4, 1e-3  # an export counts only when its re-import matches (EXECUTION_AND_VERIFICATION.md)
 
 
 def _mm(length):
@@ -24,16 +28,40 @@ def _edge_key(e):
     return (round(c.X, 6), round(c.Y, 6), round(c.Z, 6), round(e.length, 6))
 
 
+def _verification(part):
+    if part is None:
+        origin = {"x": 0, "y": 0, "z": 0}
+        return {"valid": False, "volume_mm3": 0, "bbox_mm": {"min": origin, "max": origin}, "counts": {"solids": 0, "faces": 0, "edges": 0}}
+    bb, solids = part.bounding_box(), len(part.solids())
+    return {"valid": bool(part.is_valid) and solids > 0, "volume_mm3": part.volume, "bbox_mm": {"min": _xyz(bb.min), "max": _xyz(bb.max)},
+            "counts": {"solids": solids, "faces": len(part.faces()), "edges": len(part.edges())}}
+
+
+def _matches(a, b):
+    if abs(a["volume_mm3"] - b["volume_mm3"]) > VOLUME_TOL * abs(b["volume_mm3"]):
+        return False
+    return all(abs(a["bbox_mm"][end][axis] - b["bbox_mm"][end][axis]) <= BBOX_TOL_MM for end in ("min", "max") for axis in "xyz")
+
+
+def _read(path):
+    """A STEP or BREP file as a shape; a file that parses to no solid is refused (a broken STEP imports as nothing)."""
+    shape = import_step(path) if Path(path).suffix.lower() in (".step", ".stp") else import_brep(path)
+    if not shape.solids():
+        raise ValueError("%s holds no solid" % Path(path).name)
+    return shape
+
+
 class KernelAdapter(Adapter):
     """build123d on OpenCascade. A document is its feature history; every change replays it from the start,
     so a failed operation never leaves the document half changed."""
 
-    def __init__(self):
+    def __init__(self, artifact_dir=None):
         self.docs = {}
+        self.artifact_dir = artifact_dir
 
     def capabilities(self):
-        return {"adapter": "kernel", "version": "1", "documents": ["part"], "exports": [],
-                "operations": {t: "unsupported" if t in NOT_YET else "supported" for t in TYPES}}
+        return {"adapter": "kernel", "version": "1", "documents": ["part"], "exports": sorted(WRITERS),
+                "operations": {t: "supported" for t in TYPES}}
 
     def health(self):
         return {"ok": True}
@@ -51,6 +79,26 @@ class KernelAdapter(Adapter):
 
     def create_part(self, op):
         return self._commit(op, [op])
+
+    import_document = create_part  # the imported file starts the document's history
+
+    def export_document(self, op):
+        part, _ = self._build(self._history(op))
+        if part is None:
+            raise PreconditionFailed("the document has no solid to export")
+        if not self.artifact_dir:
+            raise RuntimeError("the worker was started without an artifact folder")
+        fmt = op["params"]["format"]
+        path = Path(self.artifact_dir) / ("%s.%s" % (uuid.uuid4().hex, fmt))
+        if not WRITERS[fmt](part, str(path)):
+            raise RuntimeError("the kernel did not write %s" % path.name)
+        data = path.read_bytes()
+        result = {"artifact": op["id"], "path": str(path), "format": fmt, "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data)}
+        back = _verification(_read(str(path)))
+        if not _matches(back, _verification(part)):
+            return outcome("failed", result=result, verification=back,
+                           error={"code": "verification_failed", "message": "the re-imported %s differs from the part" % fmt})
+        return outcome("succeeded", result=result, verification=back)
 
     def _append(self, op):
         return self._commit(op, self._history(op) + [op])
@@ -70,20 +118,10 @@ class KernelAdapter(Adapter):
         history = self.docs.get(op["target"]["document"], [])
         part, _ = self._build(history)
         material = next((o["params"]["material"] for o in reversed(history) if o["type"] == "assign_material"), None)
-        features = [o["id"] for o in history]
-        if part is None:
-            origin = {"x": 0, "y": 0, "z": 0}
-            return outcome("succeeded", result={"features": features, "area_mm2": 0, "cylindrical_faces": 0, "material": material},
-                           verification={"valid": False, "volume_mm3": 0, "bbox_mm": {"min": origin, "max": origin},
-                                         "counts": {"solids": 0, "faces": 0, "edges": 0}})
-        bb = part.bounding_box()
-        solids = len(part.solids())
-        return outcome("succeeded",
-                       result={"features": features, "area_mm2": part.area, "material": material,
-                               "cylindrical_faces": len(part.faces().filter_by(GeomType.CYLINDER))},
-                       verification={"valid": bool(part.is_valid) and solids > 0, "volume_mm3": part.volume,
-                                     "bbox_mm": {"min": _xyz(bb.min), "max": _xyz(bb.max)},
-                                     "counts": {"solids": solids, "faces": len(part.faces()), "edges": len(part.edges())}})
+        result = {"features": [o["id"] for o in history], "material": material,
+                  "area_mm2": part.area if part is not None else 0,
+                  "cylindrical_faces": len(part.faces().filter_by(GeomType.CYLINDER)) if part is not None else 0}
+        return outcome("succeeded", result=result, verification=_verification(part))
 
     def save_checkpoint(self, document, path):
         Path(path).write_text(json.dumps(self.docs.get(document, [])), encoding="utf-8")
@@ -100,6 +138,9 @@ class KernelAdapter(Adapter):
             kind, p = o["type"], o["params"]
             if kind == "new_part":
                 part, sketches, snapshots = None, {}, {}
+            elif kind == "import":
+                part, sketches = _read(p["artifact"]), {}
+                snapshots = {o["id"]: part}
             elif kind.startswith("sketch_"):
                 sketches[o["id"]] = self._sketch(kind, p)
             elif kind in SOLID_STEPS:
