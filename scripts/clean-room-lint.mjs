@@ -13,7 +13,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, existsSync } from "node:fs";
 
 const ARTIFACT = /^\.rea\/|\.(asar|dll|exe|pak)$/i;
-const DOC = /^(docs\/|\.claude\/|[^/]+\.md$|\.gitignore$)/;
+const DOC = /^(cad-AI\/)?(docs\/|\.claude\/|[^/]+\.md$|\.gitignore$)/;
 const NAME = /mec\s?agent/i;
 
 export function violations(files, read, prints, ids = []) {
@@ -67,6 +67,8 @@ if (process.argv.includes("--self-check")) {
 let files;
 try {
   files = execFileSync("git", ["ls-files"], { encoding: "utf8" }).split("\n").filter(Boolean);
+  if (existsSync("cad-AI/.git"))
+    files.push(...execFileSync("git", ["-C", "cad-AI", "ls-files"], { encoding: "utf8" }).split("\n").filter(Boolean).map((f) => `cad-AI/${f}`));
 } catch {
   console.error("clean-room-lint: not a git repository (L0 T0 runs git init)");
   process.exit(1);

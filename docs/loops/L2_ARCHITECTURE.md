@@ -11,7 +11,7 @@ Deciding rule, fixed before T2 starts: T0 to T4 are ticked, `npm run gate` exits
 - [x] T0 Re-verify. needs: none. Run graph-lint, re-read the L1 research docs and `docs/cad-agent/CAD_AI_TRUTH_AUDIT.md`, and re-check the audit against cad-AI's current commit. Evidence: graph-lint exits 0.
 - [x] T1 (human) Stack. needs: T0. Decide, and so approve the listed dependencies (I9). The product is cad-AI (`docs/LOOP_CONVENTIONS.md#Product codebase`), so the default is its existing stack, per I13. (1) App: recommended keep cad-AI's React 19, TypeScript, Vite and Express server (`cad-AI/package.json#"express": "^4.21.2"`); live CAD access comes later through a local companion process (L9). (2) First kernel: recommended build123d on OpenCascade in a Python 3.12 worker that the Express server calls, free, headless and STEP-native, so geometry tests run inside the gate; the SolidWorks adapter follows in L9. Alternative: opencascade.js in Node, one language but a large WebAssembly build. (3) Model: recommended keep Gemini (`cad-AI/package.json#"@google/genai": "^3.0.0"`), key in an environment variable; alternative the Claude API. (4) Store: SQLite file. (5) Tests: Vitest, Playwright, pytest. (6) Model API spend cap per loop for evals. Evidence: the decision lines in the Journal.
 - [x] T2 Architecture docs. needs: T1. Write under docs/cad-agent/architecture: `docs/cad-agent/architecture/SYSTEM_ARCHITECTURE.md` (new), `docs/cad-agent/architecture/AGENT_ORCHESTRATION.md` (new), `docs/cad-agent/architecture/CAD_ADAPTERS.md` (new), `docs/cad-agent/architecture/DATABASE_DESIGN.md` (new), `docs/cad-agent/architecture/API_CONTRACTS.md` (new), `docs/cad-agent/architecture/EXECUTION_AND_VERIFICATION.md` (new). Each subsystem: responsibility, interface, data contract, errors, tests; plus the agent state machine, job lifecycle and execution lifecycle. Each design choice cites the research row it answers. Evidence: graph-lint and clean-room-lint exit 0.
-- [ ] T3 Operation protocol. needs: T2. In cad-AI, turn the typed IR in `cad-AI/src/services/cad/cadOperationIR.ts` into one operation schema shared by TypeScript and Python (JSON Schema as the single source) carrying `docs/roadmap/MECAGENT_ROADMAP.md#Every CAD action must have:`. Extend `npm run gate` to run cad-AI's typecheck, unit tests and pytest, and clean-room-lint over cad-AI's tracked files. Evidence: tests: a valid operation passes; a missing target, an unknown type, a missing unit and an extra field are each refused; `npm run gate` exits 0.
+- [x] T3 Operation protocol. needs: T2. In cad-AI, turn the typed IR in `cad-AI/src/services/cad/cadOperationIR.ts` into one operation schema shared by TypeScript and Python (JSON Schema as the single source) carrying `docs/roadmap/MECAGENT_ROADMAP.md#Every CAD action must have:`. Extend `npm run gate` to run cad-AI's typecheck, unit tests and pytest, and clean-room-lint over cad-AI's tracked files. Evidence: tests: a valid operation passes; a missing target, an unknown type, a missing unit and an extra field are each refused; `npm run gate` exits 0.
 - [ ] T4 Independent check. needs: T3. A council on the architecture docs and the schema with the operations, records and adapters items of the attack list. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
 - [ ] T5 (human) Signoff. needs: T4. Evidence: the signoff line in the Journal.
 
@@ -47,4 +47,17 @@ Deciding rule, fixed before T2 starts: T0 to T4 are ticked, `npm run gate` exits
      ✗ cad-AI/public/assets/aistudio/roadmap2_91174d5c.md: product code names the reference product
      ✗ cad-AI/public/assets/aistudio/roamdap_mecaiagent_a1c37327.md: product code names the reference product
   gate exit=1
+  ```
+- 2026-11-10 · L2/T3 · passed · gate green · commit loop(L2/T3) (this entry's own commit; cad-AI commit 9cd9803) · human decision in chat: "move them". The two served files were moved with git mv from cad-AI/public/assets/aistudio/ to cad-AI/docs/roadmap/ (no reference to either in cad-AI), so they no longer ship and nothing was deleted. The T3 work from the blocked entry was then committed in cad-AI: the schema, both validators, the shared case file, both test files, the test script, Vitest, the package lock, resolveJsonModule, and __pycache__/ in cad-AI's .gitignore. Here: the gate now also runs cad-AI typecheck, Vitest and pytest, and clean-room-lint scans cad-AI's tracked files (110 files now, 36 before) · Direction: still the goal; the protocol is real code under the gate · Next: T4 Independent check (council)
+
+  ```
+  graph-lint: 30 docs · 199 citations (91 file, 1 line range, 103 literal, 4 planned)
+  graph-lint: clean
+  clean-room-lint: 110 tracked files · 0 fingerprints · 241 identifiers
+  clean-room-lint: clean
+  gate-guard: clean · HEAD..working tree
+   Test Files  1 passed (1)
+        Tests  5 passed (5)
+  5 passed in 0.04s
+  gate exit=0
   ```
