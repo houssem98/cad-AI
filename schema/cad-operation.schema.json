@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cad-operation",
+  "description": "One CAD operation. Single source for TypeScript and Python. params is checked against $defs.params[type].",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "target", "type", "params", "preconditions", "status", "result", "verification", "error"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "target": { "$ref": "#/$defs/target" },
+    "type": { "enum": ["new_part", "sketch_rectangle", "sketch_circle", "sketch_polyline", "extrude", "cut", "hole", "fillet", "chamfer", "modify_dimension", "assign_material", "inspect", "export", "import"] },
+    "params": { "type": "object" },
+    "preconditions": { "type": "array", "items": { "$ref": "#/$defs/precondition" } },
+    "status": { "enum": ["pending", "validated", "running", "succeeded", "failed", "cancelled", "unsupported"] },
+    "result": { "type": ["object", "null"] },
+    "verification": { "type": ["object", "null"] },
+    "error": { "type": ["object", "null"] }
+  },
+  "$defs": {
+    "target": {
+      "type": "object", "additionalProperties": false, "required": ["document"],
+      "properties": { "document": { "type": "string", "minLength": 1 }, "feature": { "type": "string" }, "entity": { "type": "string" } }
+    },
+    "precondition": {
+      "type": "object", "additionalProperties": false, "required": ["kind"],
+      "properties": { "kind": { "enum": ["document_kind", "feature_exists", "document_revision"] }, "value": { "type": ["string", "number"] } }
+    },
+    "length": {
+      "type": "object", "additionalProperties": false, "required": ["value", "unit"],
+      "properties": { "value": { "type": "number" }, "unit": { "enum": ["mm", "cm", "m", "in"] } }
+    },
+    "angle": {
+      "type": "object", "additionalProperties": false, "required": ["value", "unit"],
+      "properties": { "value": { "type": "number" }, "unit": { "enum": ["deg"] } }
+    },
+    "plane": { "enum": ["front", "top", "right"] },
+    "point": {
+      "type": "object", "additionalProperties": false, "required": ["x", "y"],
+      "properties": { "x": { "$ref": "#/$defs/length" }, "y": { "$ref": "#/$defs/length" } }
+    },
+    "params": {
+      "new_part": { "type": "object", "additionalProperties": false, "required": ["name"], "properties": { "name": { "type": "string", "minLength": 1 } } },
+      "sketch_rectangle": { "type": "object", "additionalProperties": false, "required": ["plane", "width", "height"], "properties": { "plane": { "$ref": "#/$defs/plane" }, "width": { "$ref": "#/$defs/length" }, "height": { "$ref": "#/$defs/length" }, "center": { "$ref": "#/$defs/point" } } },
+      "sketch_circle": { "type": "object", "additionalProperties": false, "required": ["plane", "diameter"], "properties": { "plane": { "$ref": "#/$defs/plane" }, "diameter": { "$ref": "#/$defs/length" }, "center": { "$ref": "#/$defs/point" } } },
+      "sketch_polyline": { "type": "object", "additionalProperties": false, "required": ["plane", "points"], "properties": { "plane": { "$ref": "#/$defs/plane" }, "points": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/point" } } } },
+      "extrude": { "type": "object", "additionalProperties": false, "required": ["sketch", "depth"], "properties": { "sketch": { "type": "string", "minLength": 1 }, "depth": { "$ref": "#/$defs/length" }, "direction": { "enum": ["normal", "reverse", "mid_plane"] } } },
+      "cut": { "type": "object", "additionalProperties": false, "required": ["sketch", "depth"], "properties": { "sketch": { "type": "string", "minLength": 1 }, "depth": { "$ref": "#/$defs/length" }, "through_all": { "type": "boolean" } } },
+      "hole": { "type": "object", "additionalProperties": false, "required": ["diameter", "positions"], "properties": { "diameter": { "$ref": "#/$defs/length" }, "depth": { "$ref": "#/$defs/length" }, "positions": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/point" } }, "through_all": { "type": "boolean" } } },
+      "fillet": { "type": "object", "additionalProperties": false, "required": ["edges", "radius"], "properties": { "edges": { "type": "array", "minItems": 1, "items": { "type": "string" } }, "radius": { "$ref": "#/$defs/length" } } },
+      "chamfer": { "type": "object", "additionalProperties": false, "required": ["edges", "distance"], "properties": { "edges": { "type": "array", "minItems": 1, "items": { "type": "string" } }, "distance": { "$ref": "#/$defs/length" } } },
+      "modify_dimension": { "type": "object", "additionalProperties": false, "required": ["parameter", "value"], "properties": { "parameter": { "type": "string", "minLength": 1 }, "value": { "$ref": "#/$defs/length" } } },
+      "assign_material": { "type": "object", "additionalProperties": false, "required": ["material"], "properties": { "material": { "type": "string", "minLength": 1 } } },
+      "inspect": { "type": "object", "additionalProperties": false, "properties": {} },
+      "export": { "type": "object", "additionalProperties": false, "required": ["format"], "properties": { "format": { "enum": ["step", "brep"] } } },
+      "import": { "type": "object", "additionalProperties": false, "required": ["artifact"], "properties": { "artifact": { "type": "string", "minLength": 1 } } }
+    }
+  }
+}

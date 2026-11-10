@@ -1,0 +1,20 @@
+{
+  "base": {
+    "id": "op-1",
+    "target": { "document": "doc-1" },
+    "type": "extrude",
+    "params": { "sketch": "sk-1", "depth": { "value": 10, "unit": "mm" } },
+    "preconditions": [{ "kind": "document_kind", "value": "part" }],
+    "status": "pending",
+    "result": null,
+    "verification": null,
+    "error": null
+  },
+  "cases": [
+    { "name": "valid operation passes", "patch": {}, "refusedAt": null },
+    { "name": "missing target is refused", "delete": "target", "refusedAt": "/target" },
+    { "name": "unknown type is refused", "patch": { "type": "run_script" }, "refusedAt": "/type" },
+    { "name": "missing unit is refused", "patch": { "params": { "sketch": "sk-1", "depth": { "value": 10 } } }, "refusedAt": "/params/depth/unit" },
+    { "name": "extra field is refused", "patch": { "code": "print(1)" }, "refusedAt": "/code" }
+  ]
+}
