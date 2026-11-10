@@ -1,4 +1,5 @@
 import json
+import math
 from pathlib import Path
 
 SCHEMA = json.loads((Path(__file__).parent.parent / "schema" / "cad-operation.schema.json").read_text(encoding="utf-8"))
@@ -10,6 +11,13 @@ def _type_ok(value, name):
     if name == "number":
         return isinstance(value, (int, float)) and not isinstance(value, bool)
     return isinstance(value, TYPES[name])
+
+
+def _finite(value):
+    try:
+        return math.isfinite(value)
+    except OverflowError:  # an int too large for a float, which JSON.parse would read as Infinity
+        return False
 
 
 def _resolve(node):
@@ -27,6 +35,11 @@ def _check(value, node, path, errs):
             return
     if "enum" in node and value not in node["enum"]:
         errs.append((path, "must be one of " + ", ".join(node["enum"])))
+    if _type_ok(value, "number"):
+        if not _finite(value):
+            errs.append((path, "must be finite"))
+        elif "exclusiveMinimum" in node and not value > node["exclusiveMinimum"]:
+            errs.append((path, "must be greater than %s" % node["exclusiveMinimum"]))
     if isinstance(value, str) and len(value) < node.get("minLength", 0):
         errs.append((path, "too short"))
     if isinstance(value, list):
@@ -49,6 +62,17 @@ def _check(value, node, path, errs):
 def validate_operation(op):
     errs = []
     _check(op, SCHEMA, "", errs)
-    if isinstance(op, dict) and isinstance(op.get("params"), dict) and op.get("type") in DEFS["params"]:
+    if isinstance(op, dict) and isinstance(op.get("params"), dict) and isinstance(op.get("type"), str) and op["type"] in DEFS["params"]:
         _check(op["params"], DEFS["params"][op["type"]], "/params", errs)
+    return errs
+
+
+def validate_proposal(op):
+    errs = validate_operation(op)
+    o = op if isinstance(op, dict) else {}
+    if o.get("status") != "pending":
+        errs.append(("/status", "must be pending in a proposal"))
+    for k in ("result", "verification", "error"):
+        if o.get(k) is not None:
+            errs.append(("/" + k, "set by the executor only"))
     return errs

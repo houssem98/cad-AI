@@ -19,6 +19,10 @@ function check(value: unknown, node: Node, path: string, errs: SchemaError[]) {
     if (!allowed.includes(typeOf(value))) return errs.push({ path, message: `expected ${allowed.join(' or ')}` });
   }
   if (node.enum && !node.enum.includes(value)) errs.push({ path, message: `must be one of ${node.enum.join(', ')}` });
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) errs.push({ path, message: 'must be finite' });
+    else if (node.exclusiveMinimum !== undefined && !(value > node.exclusiveMinimum)) errs.push({ path, message: `must be greater than ${node.exclusiveMinimum}` });
+  }
   if (typeof value === 'string' && node.minLength && value.length < node.minLength) errs.push({ path, message: 'too short' });
   if (Array.isArray(value)) {
     if (node.minItems && value.length < node.minItems) errs.push({ path, message: `needs at least ${node.minItems} items` });
@@ -26,9 +30,9 @@ function check(value: unknown, node: Node, path: string, errs: SchemaError[]) {
   }
   if (typeOf(value) === 'object') {
     const obj = value as Node;
-    for (const k of node.required ?? []) if (!(k in obj)) errs.push({ path: `${path}/${k}`, message: 'required' });
+    for (const k of node.required ?? []) if (!Object.hasOwn(obj, k)) errs.push({ path: `${path}/${k}`, message: 'required' });
     for (const [k, v] of Object.entries(obj)) {
-      if (node.properties?.[k]) check(v, node.properties[k], `${path}/${k}`, errs);
+      if (node.properties && Object.hasOwn(node.properties, k)) check(v, node.properties[k], `${path}/${k}`, errs);
       else if (node.additionalProperties === false) errs.push({ path: `${path}/${k}`, message: 'not allowed' });
     }
   }
@@ -38,7 +42,14 @@ export function validateOperation(op: unknown): SchemaError[] {
   const errs: SchemaError[] = [];
   check(op, schema as Node, '', errs);
   const o = op as Node;
-  const params = defs.params[o?.type];
-  if (params && typeOf(o.params) === 'object') check(o.params, params, '/params', errs);
+  if (typeof o?.type === 'string' && Object.hasOwn(defs.params, o.type) && typeOf(o.params) === 'object') check(o.params, defs.params[o.type], '/params', errs);
+  return errs;
+}
+
+export function validateProposal(op: unknown): SchemaError[] {
+  const errs = validateOperation(op);
+  const o = op as Node;
+  if (o?.status !== 'pending') errs.push({ path: '/status', message: 'must be pending in a proposal' });
+  for (const k of ['result', 'verification', 'error']) if (o?.[k] != null) errs.push({ path: `/${k}`, message: 'set by the executor only' });
   return errs;
 }

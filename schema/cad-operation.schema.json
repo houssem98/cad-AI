@@ -11,10 +11,10 @@
     "type": { "enum": ["new_part", "sketch_rectangle", "sketch_circle", "sketch_polyline", "extrude", "cut", "hole", "fillet", "chamfer", "modify_dimension", "assign_material", "inspect", "export", "import"] },
     "params": { "type": "object" },
     "preconditions": { "type": "array", "items": { "$ref": "#/$defs/precondition" } },
-    "status": { "enum": ["pending", "validated", "running", "succeeded", "failed", "cancelled", "unsupported"] },
+    "status": { "enum": ["pending", "validated", "awaiting_approval", "running", "inspecting", "succeeded", "failed", "cancelled", "unsupported"] },
     "result": { "type": ["object", "null"] },
-    "verification": { "type": ["object", "null"] },
-    "error": { "type": ["object", "null"] }
+    "verification": { "$ref": "#/$defs/verification" },
+    "error": { "$ref": "#/$defs/error" }
   },
   "$defs": {
     "target": {
@@ -22,12 +22,37 @@
       "properties": { "document": { "type": "string", "minLength": 1 }, "feature": { "type": "string" }, "entity": { "type": "string" } }
     },
     "precondition": {
-      "type": "object", "additionalProperties": false, "required": ["kind"],
+      "type": "object", "additionalProperties": false, "required": ["kind", "value"],
       "properties": { "kind": { "enum": ["document_kind", "feature_exists", "document_revision"] }, "value": { "type": ["string", "number"] } }
     },
     "length": {
       "type": "object", "additionalProperties": false, "required": ["value", "unit"],
+      "properties": { "value": { "type": "number", "exclusiveMinimum": 0 }, "unit": { "enum": ["mm", "cm", "m", "in"] } }
+    },
+    "coordinate": {
+      "type": "object", "additionalProperties": false, "required": ["value", "unit"],
       "properties": { "value": { "type": "number" }, "unit": { "enum": ["mm", "cm", "m", "in"] } }
+    },
+    "xyz": {
+      "type": "object", "additionalProperties": false, "required": ["x", "y", "z"],
+      "properties": { "x": { "type": "number" }, "y": { "type": "number" }, "z": { "type": "number" } }
+    },
+    "verification": {
+      "type": ["object", "null"], "additionalProperties": false, "required": ["valid", "volume_mm3", "bbox_mm", "counts"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "volume_mm3": { "type": "number" },
+        "bbox_mm": { "type": "object", "additionalProperties": false, "required": ["min", "max"], "properties": { "min": { "$ref": "#/$defs/xyz" }, "max": { "$ref": "#/$defs/xyz" } } },
+        "counts": { "type": "object", "additionalProperties": false, "required": ["solids", "faces", "edges"], "properties": { "solids": { "type": "number" }, "faces": { "type": "number" }, "edges": { "type": "number" } } }
+      }
+    },
+    "error": {
+      "type": ["object", "null"], "additionalProperties": false, "required": ["code", "message"],
+      "properties": {
+        "code": { "enum": ["validation_failed", "unsupported", "precondition_failed", "approval_denied", "timeout", "cancelled", "kernel_error", "verification_failed", "worker_crashed", "storage_error", "model_error"] },
+        "message": { "type": "string" },
+        "details": { "type": "object" }
+      }
     },
     "angle": {
       "type": "object", "additionalProperties": false, "required": ["value", "unit"],
@@ -36,7 +61,7 @@
     "plane": { "enum": ["front", "top", "right"] },
     "point": {
       "type": "object", "additionalProperties": false, "required": ["x", "y"],
-      "properties": { "x": { "$ref": "#/$defs/length" }, "y": { "$ref": "#/$defs/length" } }
+      "properties": { "x": { "$ref": "#/$defs/coordinate" }, "y": { "$ref": "#/$defs/coordinate" } }
     },
     "params": {
       "new_part": { "type": "object", "additionalProperties": false, "required": ["name"], "properties": { "name": { "type": "string", "minLength": 1 } } },

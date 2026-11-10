@@ -15,6 +15,21 @@
     { "name": "missing target is refused", "delete": "target", "refusedAt": "/target" },
     { "name": "unknown type is refused", "patch": { "type": "run_script" }, "refusedAt": "/type" },
     { "name": "missing unit is refused", "patch": { "params": { "sketch": "sk-1", "depth": { "value": 10 } } }, "refusedAt": "/params/depth/unit" },
-    { "name": "extra field is refused", "patch": { "code": "print(1)" }, "refusedAt": "/code" }
+    { "name": "extra field is refused", "patch": { "code": "print(1)" }, "refusedAt": "/code" },
+    { "name": "extra field named like a built-in key is refused", "patch": { "constructor": "print(1)" }, "refusedAt": "/constructor" },
+    { "name": "built-in key name inside params is refused", "patch": { "params": { "sketch": "sk-1", "depth": { "value": 10, "unit": "mm" }, "toString": "x" } }, "refusedAt": "/params/toString" },
+    { "name": "type that is a list is refused", "patch": { "type": ["extrude"] }, "refusedAt": "/type" },
+    { "name": "zero length is refused", "patch": { "params": { "sketch": "sk-1", "depth": { "value": 0, "unit": "mm" } } }, "refusedAt": "/params/depth/value" },
+    { "name": "negative length is refused", "patch": { "params": { "sketch": "sk-1", "depth": { "value": -5, "unit": "mm" } } }, "refusedAt": "/params/depth/value" },
+    { "name": "infinite length is refused", "patch": { "params": { "sketch": "sk-1", "depth": { "value": 1e999, "unit": "mm" } } }, "refusedAt": "/params/depth/value" },
+    { "name": "negative coordinate is allowed", "patch": { "type": "sketch_rectangle", "params": { "plane": "front", "width": { "value": 20, "unit": "mm" }, "height": { "value": 10, "unit": "mm" }, "center": { "x": { "value": -10, "unit": "mm" }, "y": { "value": 0, "unit": "mm" } } } }, "refusedAt": null },
+    { "name": "precondition without a value is refused", "patch": { "preconditions": [{ "kind": "document_revision" }] }, "refusedAt": "/preconditions/0/value" },
+    { "name": "unknown error code is refused", "patch": { "status": "failed", "error": { "code": "banana", "message": "x" } }, "refusedAt": "/error/code" },
+    { "name": "verification without its fields is refused", "patch": { "status": "succeeded", "verification": {} }, "refusedAt": "/verification/valid" },
+    { "name": "complete verification passes", "patch": { "status": "succeeded", "verification": { "valid": true, "volume_mm3": 1000, "bbox_mm": { "min": { "x": 0, "y": 0, "z": 0 }, "max": { "x": 10, "y": 10, "z": 10 } }, "counts": { "solids": 1, "faces": 6, "edges": 12 } } }, "refusedAt": null },
+    { "name": "awaiting approval is a status", "patch": { "status": "awaiting_approval" }, "refusedAt": null },
+    { "name": "pending proposal passes", "proposal": true, "patch": {}, "refusedAt": null },
+    { "name": "proposal claiming success is refused", "proposal": true, "patch": { "status": "succeeded" }, "refusedAt": "/status" },
+    { "name": "proposal carrying verification is refused", "proposal": true, "patch": { "verification": {} }, "refusedAt": "/verification" }
   ]
 }
