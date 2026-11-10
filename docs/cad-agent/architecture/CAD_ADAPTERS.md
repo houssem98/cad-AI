@@ -28,7 +28,7 @@ Code: `cad-AI/worker/adapter.py`. Its `run()` returns `unsupported` for a type t
 
 ```json
 { "adapter": "kernel", "version": "1", "operations": { "extrude": "supported", "mate": "unsupported", ... },
-  "documents": ["part"], "exports": ["step"] }
+  "documents": ["part"], "exports": ["step", "brep"] }
 ```
 
 There is no units entry: the executor converts to mm before any adapter call, so adapters see mm only.
@@ -39,7 +39,7 @@ The executor checks the manifest before calling. An operation type marked unsupp
 
 | Adapter | Loop | Engine | Notes |
 |---|---|---|---|
-| kernel | L3 | build123d on OpenCascade in the Python worker (`cad-AI/worker/adapter_kernel.py`) | Headless, so it runs in the gate. A document is its feature history, replayed from the start on every change, so modify_dimension rebuilds and a failed operation changes nothing; the checkpoint is that history. Planes: top is XY, front is XZ (normal toward minus Y), right is YZ. Holes run along Z from the part's top face and need exactly one of depth and through_all. Fillet and chamfer follow OpenCascade and propagate along tangent edges. STEP export and import arrive in L3 T3; until then the manifest lists no export |
+| kernel | L3 | build123d on OpenCascade in the Python worker (`cad-AI/worker/adapter_kernel.py`) | Headless, so it runs in the gate. A document is its feature history, replayed from the start on every change, so modify_dimension rebuilds and a failed operation changes nothing; the checkpoint is that history. Planes: top is XY, front is XZ (normal toward minus Y), right is YZ. Holes run along Z from the part's top face and need exactly one of depth and through_all. Fillet and chamfer follow OpenCascade and propagate along tangent edges. STEP and BREP export write the file, re-import it and report success only when volume matches within 0.01 % and the bounding box within 0.001 mm, otherwise `verification_failed`; import refuses a file that parses to no solid, because a broken STEP otherwise imports as nothing, and starts a new document's history |
 | solidworks | L9 | our own .NET sidecar over the same wire protocol, using public SolidWorks API documentation | Needs a licence (L9 T0); finds the running session, classifies the active document, saves native files and STEP (P4) |
 | test double | L3 T1 | in-memory (`cad-AI/worker/adapter_double.py`) | For the contract suite only; it holds no geometry, so inspect reports an invalid, empty body |
 

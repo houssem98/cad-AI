@@ -15,8 +15,7 @@ Durable state for requests, operations, records, jobs, artifacts, automations an
 | events | id, request_id or job_id, seq, type, payload_json, created_at | the SSE stream, replayed on reconnect |
 | operations | row_id (server uuid), op_id (the envelope's id), request_id, document_id, seq, envelope_json, status | every proposal, written before validation; status moves before each adapter call (write-ahead) |
 | records | id, operation_row_id, document_id, revision_before, revision_after, command_json, result_json, validation_json, approval_json, error_json, artifacts_json, started_at, ended_at | append-only; fields per `docs/cad-agent/architecture/EXECUTION_AND_VERIFICATION.md`; written in one transaction with the document change and the status (`cad-AI/src/services/cad/cadStore.ts`) |
-| artifacts | id, kind (step, brep, gltf, svg, pdf, dxf), path, sha256, bytes, expires_at, created_at | files live in a data folder beside the database |
-| record_artifacts | record_id, artifact_id | many to many; until the artifacts table lands (L3 T3), records.artifacts_json lists artifact ids |
+| artifacts | id, kind (step, brep, gltf, svg, pdf, dxf), path, sha256, bytes, expires_at, created_at | files live in a data folder beside the database; the sha256 is computed by the executor, not taken from the worker; each record lists its artifacts' id and sha256 in records.artifacts_json; expires_at lands with L6 |
 | jobs | id, type, state, idempotency_key unique, input_json, worker_pid, heartbeat_at, error_json, created_at | states per `docs/roadmap/MECAGENT_ROADMAP.md#Define job states:` |
 | chats | id, title, auto_accept (default off), created_at, archived_at | history panel (P23); auto_accept is the approval setting |
 | workflows | id, name, version, params_schema_json, operations_json, created_at | automations; operation sequences only (P16; I6) |

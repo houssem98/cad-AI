@@ -11,7 +11,7 @@ Deciding rule, fixed before T1 starts: T0 to T6 are ticked, `npm run gate` exits
 - [x] T0 Re-verify. needs: none. Run graph-lint and refresh citations L2 changed. Evidence: graph-lint exits 0.
 - [x] T1 Adapter contract. needs: T0. The interface in `docs/roadmap/MECAGENT_ROADMAP.md#Define a common CAD adapter interface:` plus a capability manifest; an operation an adapter lacks returns a typed unsupported result. One contract suite parameterized over adapters. Evidence: the suite passes against a test double, and fails against a double that claims an operation it lacks; an adapter called directly with an operation it lacks returns unsupported (`docs/cad-agent/architecture/CAD_ADAPTERS.md`).
 - [x] T2 Geometry operations. needs: T1. New part; sketch (rectangle, circle, polyline); extrude, cut, hole, fillet, chamfer; modify a dimension; assign material; inspect (valid, volume, area, bounding box, face and edge counts, feature list). Evidence: tests: a 120 × 80 × 10 mm plate with four Ø6 through holes is a valid solid whose volume equals the analytic value within 0.01 %, bounding box within 0.001 mm, four cylindrical faces; changing thickness to 12 rebuilds to the new analytic volume.
-- [ ] T3 Export round trip. needs: T2. STEP and native export, re-import and compare. Evidence: tests: export then re-import keeps volume within 0.01 % and the bounding box; a corrupted STEP is refused with an error record.
+- [x] T3 Export round trip. needs: T2. STEP and native export, re-import and compare. Evidence: tests: export then re-import keeps volume within 0.01 % and the bounding box; a corrupted STEP is refused with an error record.
 - [x] T4 Executor and records. needs: T1. Schema validation before any kernel call; per-operation timeout and cancellation; one persisted execution record per operation with every field of `docs/roadmap/MECAGENT_ROADMAP.md#Every CAD operation must produce an execution record containing:`. No path runs model-written code (I6). Evidence: tests: invalid parameters refused before the kernel is called; an operation past its timeout is cancelled and recorded; a failed operation is recorded with its error; an operation type `script` is refused; a refused proposal has a record; after a cancel or a timeout the document's revision and inspection equal its checkpoint; an operation left running at server start is restored and recorded (`docs/cad-agent/architecture/EXECUTION_AND_VERIFICATION.md`).
 - [ ] T5 Headless milestone. needs: T2, T3, T4. A fixed operation sequence, no model: enclosure 120 × 80 × 40 mm, 2 mm shell, four M3 bosses, separate lid. Evidence: test: both parts valid, volumes equal the analytic values within 0.05 %, STEP round trip holds, every operation has a record.
 - [ ] T6 Independent check. needs: T5. A council with the geometry, operations, records and adapters items of the attack list. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
@@ -80,5 +80,20 @@ Deciding rule, fixed before T1 starts: T0 to T6 are ticked, `npm run gate` exits
   gate-guard: clean · HEAD..working tree
         Tests  28 passed (28)
   34 passed in 4.86s
+  gate exit=0
+  ```
+- 2026-11-10 · L3/T3 · started T3
+- 2026-11-10 · L3/T3 · passed · gate green · commit loop(L3/T3) (this entry's own commit; cad-AI commit edf00d9) · kernel export (`cad-AI/worker/adapter_kernel.py`) writes STEP or BREP, re-imports the file and succeeds only when volume matches within 0.01 % and the bounding box within 0.001 mm, else verification_failed; import starts a new document from the file and refuses one with no solid. A probe found two engine behaviours the tests now pin: a corrupted STEP imports as an empty compound without raising, and OpenCascade prints the parse error to the process's native stdout, which would have corrupted the worker protocol; `cad-AI/worker/main.py` now gives the protocol its own copy of stdout and points file descriptor 1 at stderr, and the executor test proves a corrupted STEP ends as kernel_error with a record instead of worker_crashed. The executor resolves an import's artifact id to the stored path (an unknown id is precondition_failed before the worker is called), hashes each exported file itself and stores it in a new artifacts table; import, like new_part, needs a document that does not yet exist. The kernel manifest now claims step and brep, and the contract passes with them. Tests (`cad-AI/worker/test_kernel_export.py` and one executor case) were written first and failed. Design rows updated in CAD_ADAPTERS, API_CONTRACTS and DATABASE_DESIGN (record_artifacts dropped: each record lists artifact id and sha256) · Direction: still the goal; an export now counts only after its own re-import matches · Next: T5 Headless milestone
+
+  ```
+  step succeeded 29901 bytes sha 05cac68cb416 reimport vol 94869.0266 rel_err 1.53e-16 bbox max {'x': 60.0, 'y': 40.0, 'z': 10.0} cyl 4
+  brep succeeded 7038 bytes sha fe224af567bd reimport vol 94869.0266 rel_err 1.53e-16 bbox max {'x': 60.0, 'y': 40.0, 'z': 10.0} cyl 4
+  graph-lint: 30 docs · 212 citations (108 file, 1 line range, 99 literal, 4 planned)
+  graph-lint: clean
+  clean-room-lint: 123 tracked files · 0 fingerprints · 241 identifiers
+  clean-room-lint: clean
+  gate-guard: clean · HEAD..working tree
+        Tests  29 passed (29)
+  38 passed in 6.59s
   gate exit=0
   ```
