@@ -1,6 +1,6 @@
 # Sidecar Protocol
 
-L1 T4, read 2026-11-08 from the installed reference app, version 2.12.1, folder C:\Users\unicentrale\AppData\Local\mecagent-app\app-2.12.1\resources\win-x64. Four REA metadata reads (inspect_managed_members, summary detail), none of which loads or runs the code. No method bodies, no IL and no string literals were read. Everything below is our own description. Type and member names are reference identifiers; distinctive ones are listed in `.rea/identifiers.txt` and must never appear in product code (`docs/LOOP_CONVENTIONS.md#I7 Clean room.`).
+L1 T4, read 2026-11-08 from the installed reference app, version 2.12.1, folder C:\Users\unicentrale\AppData\Local\mecagent-app\app-2.12.1\resources\win-x64. Four REA metadata reads (inspect_managed_members, summary detail), none of which loads or runs the code. No method bodies were decompiled. The records do carry IL-derived call edges (each with an IL offset and opcode) and each assembly's user-string literals; this doc quotes neither. Everything below is our own description. Type and member names are reference identifiers; distinctive ones are listed in `.rea/identifiers.txt` and must never appear in product code (`docs/LOOP_CONVENTIONS.md#I7 Clean room.`).
 
 | Assembly (plain text, outside the repo) | Size | Types | Member refs | Evidence |
 |---|---|---|---|---|

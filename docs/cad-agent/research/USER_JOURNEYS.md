@@ -1,6 +1,6 @@
 # User Journeys
 
-L1 T8, written 2026-11-08. This file describes how a user moves through each module of the reference, in our own words. It has two sources only: the public homepage and user guide, as summarised in `docs/cad-agent/research/PRODUCT_FEATURE_MATRIX.md` (T1), and the static REA reads in `docs/cad-agent/research/ELECTRON_GRAPH.md` (T3), `docs/cad-agent/research/SIDECAR_PROTOCOL.md` (T4) and the matrix's chain cells (T5). There is no runtime layer: T6 runtime capture was skipped because a fuse blocks it, and the human skipped the T7 walkthrough with 0 runs (`docs/cad-agent/research/OBSERVATION_LOG.md`). So no matrix label was upgraded in T8.
+L1 T8, written 2026-11-08. This file describes how a user moves through each module of the reference, in our own words. It has two sources only: the public homepage and user guide, as summarised in `docs/cad-agent/research/PRODUCT_FEATURE_MATRIX.md` (T1), and the static REA reads in `docs/cad-agent/research/ELECTRON_GRAPH.md` (T3), `docs/cad-agent/research/SIDECAR_PROTOCOL.md` (T4) and the matrix's chain cells (T5). There is no runtime layer: T6 runtime capture was skipped because REA's capture needs inspector flags that a disabled fuse makes the app ignore (`docs/loops/L1_INVESTIGATE.md#Target fuse prerequisites`), and the human skipped the T7 walkthrough with 0 runs (`docs/cad-agent/research/OBSERVATION_LOG.md`). So no matrix label was upgraded in T8.
 
 Each step carries a label and its source: "public" is the public pages, "static" is the REA reads of the shipped app. CONFIRMED means the source states it or the shipped code holds it, INFERRED is our reading, and UNKNOWN is what only running the app would show. Static facts prove that code exists, never that a step runs.
 
@@ -26,7 +26,7 @@ Each step carries a label and its source: "public" is the public pages, "static"
 
 1. The user opens a part or assembly in SolidWorks. CONFIRMED, public.
 2. The header shows the active document's name, with a reload control for when it is stale. CONFIRMED, public.
-3. The app reads the active part's details through its bridge and does extra work on the reply. CONFIRMED, static (T5).
+3. The app reads the active part's details through its bridge. CONFIRMED, static (T5). Its wrapper is longer than the others, which suggests extra work on the reply. INFERRED.
 4. Prompts can refer to the current selection, such as a face or components. CONFIRMED, public; how the selection is read is UNKNOWN.
 
 ## 3. Feature tree
@@ -63,7 +63,7 @@ Each step carries a label and its source: "public" is the public pages, "static"
 
 ## 8. CAD-to-Drawing
 
-1. Either the user starts a background task, or runs a four-step project wizard: drawing standard, units and sheets; datums and critical surfaces picked on the 3D model; then material, process and finish per part. CONFIRMED, public.
+1. Either the user starts a background task, or runs a four-step project wizard (the split into steps is unverified): drawing standard, units and sheets; datums and critical surfaces picked on the 3D model; then material, process and finish per part. CONFIRMED, public.
 2. The output is a dimensioned drawing with views, sections and dimensions on the smallest sheet that fits. CONFIRMED, public; the sheet rule is unverified.
 3. The app manages drawing projects, templates and examples, part uploads and a monthly allowance, and has its own drawing window. CONFIRMED, static (T3).
 4. The guide warns that quality depends on a fully defined model and that tolerances need review before release. CONFIRMED, public.
@@ -80,7 +80,7 @@ Each step carries a label and its source: "public" is the public pages, "static"
 
 1. The user switches the header to background mode, picks a task type, attaches files and submits. CONFIRMED, public.
 2. They can leave; the task list shows each task's status, an activity log, a cancel action and a running count. CONFIRMED, public; that tasks continue after the app closes is unverified.
-3. The app receives task updates pushed from its main process and offers retry and download. CONFIRMED, static (T3).
+3. The app listens for task updates and offers retry and download. CONFIRMED, static (T3). That the main process pushes the updates is INFERRED, since no main-side send was found.
 4. Results such as parts, images and STEP files are downloaded and can be opened in SolidWorks; outputs expire on a shown date. CONFIRMED that downloads and open-in-SolidWorks exist, static (T3); the expiry is unverified.
 5. The work itself runs on the vendor's backend. INFERRED, static (T3 task paths).
 

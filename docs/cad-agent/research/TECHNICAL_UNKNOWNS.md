@@ -2,7 +2,7 @@
 
 L1 T9, written 2026-11-08. This file collects every open question from the L1 research, says what would answer each one and whether our build needs the answer, and ends with the roadmap's Phase 1 closing summary. Sources: `docs/cad-agent/research/PRODUCT_FEATURE_MATRIX.md`, `docs/cad-agent/research/ARCHITECTURE_OBSERVED.md`, `docs/cad-agent/research/ELECTRON_GRAPH.md`, `docs/cad-agent/research/SIDECAR_PROTOCOL.md`, `docs/cad-agent/research/USER_JOURNEYS.md` and `docs/cad-agent/research/OBSERVATION_LOG.md`.
 
-REA's residual-unknown registry is empty: list_unknowns returned 0 entries, because L1 kept its unknowns in the research docs and never recorded them in REA. The audit_residual_unknowns workflow was rendered. Its probes (verify, update or record an unknown) act on registry entries, so with an empty registry there was nothing for them to check; the list below is built from the docs instead.
+REA's residual-unknown registry is empty: list_unknowns returned 0 entries (that call was not exported as evidence; only the T9 Journal entry records it), because L1 kept its unknowns in the research docs and never recorded them in REA. The audit_residual_unknowns workflow was rendered. Its probes (verify, update or record an unknown) act on registry entries, so with an empty registry there was nothing for them to check; the list below is built from the docs instead.
 
 ## Unknowns
 
@@ -16,7 +16,7 @@ REA's residual-unknown registry is empty: list_unknowns returned 0 entries, beca
 | U4 | Where crash reports and realtime updates go | Electron graph, hosts | A runtime capture | No |
 | U5 | How a main-process handler passes a request to the sidecar | Matrix, T5 section | A runtime capture, or reading the bodies of the minified handlers | No. Our wiring is designed in L2 T2 |
 | U6 | Which SolidWorks calls run, in what order, with what timeouts, and what happens when SolidWorks is busy or shows a dialog | Sidecar protocol, API surface and lifecycle | A licensed SolidWorks and runtime observation | Partly, for L9, which takes call sequences from the public SolidWorks API documentation and its own tests, not from the reference |
-| U7 | How sketches and features are created, since those calls are not among the referenced members | Sidecar protocol, API surface | The same as U6 | No. L3 and L9 build features from public kernel and SolidWorks API documentation |
+| U7 | How sketches and features are created, since no SolidWorks feature-creating member is among the referenced interop members | Sidecar protocol, API surface | The same as U6 | No. L3 and L9 build features from public kernel and SolidWorks API documentation |
 | U8 | When the agent asks a question instead of building, and what it does with a missing dimension | User journeys 1 and 4 | A walkthrough | No. Our rule I12 decides: a missing dimension is always asked for |
 | U9 | How the agent checks its own result | Matrix row 1; user journeys 1 | A walkthrough or a capture | No. Our rule I3 decides: the kernel's own inspection |
 | U10 | How a STEP rebuild is checked | Matrix row 5; user journeys 5 | A walkthrough | No. L6 T3 sets our bar: volume within 0.1 % and the same bounding box |
@@ -29,7 +29,7 @@ REA's residual-unknown registry is empty: list_unknowns returned 0 entries, beca
 | U17 | How assemblies are checked, for example for interference | Matrix row 6 (not described) | A walkthrough with SolidWorks | No. L7 T3 defines our checks |
 | U18 | Whether the .NET code runs inside the shell's process or in a child process | Architecture, open items | Partly answered: the in-process bridge import is CONFIRMED (T3) and a separate runner process is INFERRED (T4); the runtime split needs a capture | No |
 
-None of the 18 blocks L2 or any build loop. Only U6 touches our work, and L9 answers it from public SolidWorks documentation.
+None of the 18 blocks L2 or any build loop. Only U6 and U16 touch our work: L9 answers U6 from public SolidWorks documentation, and L6 sets our own job lifetime for U16.
 
 ## Chain hop labels
 
@@ -47,11 +47,11 @@ Each matrix row's chain (T5) has five hops: UI, IPC, main handler, sidecar and S
 | 4 Text-to-CAD | UNKNOWN | INFERRED | UNKNOWN | INFERRED | UNKNOWN |
 | 5 STEP-to-CAD | UNKNOWN | INFERRED | UNKNOWN | UNKNOWN | UNKNOWN |
 | 6 Assembly intelligence | UNKNOWN | INFERRED | UNKNOWN | INFERRED | UNKNOWN |
-| 7 Drawing-to-CAD | INFERRED | INFERRED | UNKNOWN | INFERRED | INFERRED |
+| 7 Drawing-to-CAD | INFERRED | INFERRED | INFERRED | INFERRED | INFERRED |
 | 8 CAD-to-Drawing | CONFIRMED | CONFIRMED | UNKNOWN | INFERRED | INFERRED |
 | 9 Macro generation | UNKNOWN | CONFIRMED | UNKNOWN | INFERRED | UNKNOWN |
 | 10 Background Tasks | INFERRED | CONFIRMED | INFERRED | INFERRED | INFERRED |
-| 11 General Knowledge | CONFIRMED | CONFIRMED | INFERRED | INFERRED | INFERRED |
+| 11 General Knowledge | INFERRED | CONFIRMED | INFERRED | INFERRED | INFERRED |
 | 12 Model selection | UNKNOWN | UNKNOWN | INFERRED | INFERRED | INFERRED |
 | 13 File management | UNKNOWN | CONFIRMED | UNKNOWN | INFERRED | INFERRED |
 | 14 Error handling | UNKNOWN | CONFIRMED | UNKNOWN | INFERRED | INFERRED |
@@ -65,11 +65,11 @@ The roadmap's Phase 1 asks for these totals at the end.
 - Existence: all 15 modules are CONFIRMED to exist by the public pages, which is the matrix label column.
 - Mechanism: the 75 hops above.
 
-Totals: 12 CONFIRMED, 33 INFERRED, 30 UNKNOWN, over 75 chain hops (15 modules × 5 hops).
+Totals: 11 CONFIRMED, 35 INFERRED, 29 UNKNOWN, over 75 chain hops (15 modules × 5 hops).
 
-- **Confirmed:** the message-channel wiring for 10 modules, and page-level UI references for 2 (drawings and knowledge).
-- **Inferred:** the sidecar route for 14 modules, the SolidWorks calls for 10, and the backend's role for background tasks, knowledge and model choice.
-- **Unknown:** 11 of the 15 UI hops, 12 of the 15 handler bodies, and the SolidWorks calls for building, macros and assemblies.
+- **Confirmed:** the link from module to channel group for 10 modules (for row 8 only the renderer call is CONFIRMED; no main handler was found), and a page-level UI reference for 1 (drawings).
+- **Inferred:** the sidecar route for 14 modules, the SolidWorks calls for 10, and the backend's role for drawing-to-part tasks, background tasks, knowledge and model choice.
+- **Unknown:** 11 of the 15 UI hops, 11 of the 15 handler bodies, and the SolidWorks calls for building, macros and assemblies.
 
 The weak layers are the UI and the handlers. Both need runtime evidence, which T6 (fuse) and T7 (skipped) did not produce.
 

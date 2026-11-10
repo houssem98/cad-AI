@@ -4,7 +4,7 @@ L1 T6 and T7 record here what was seen with the reference app running. As of 202
 
 ## Captures (T6)
 
-None. T6 was skipped: REA's scenario capture needs the app to honour Node inspector flags, and the reference ships with that fuse disabled (`docs/cad-agent/research/ARCHITECTURE_OBSERVED.md`). Flipping the fuse, adding a debugging launch flag or running the archive under another Electron binary would break I8, so none was tried. The app was not launched.
+None. T6 was skipped: REA's own documentation says its scenario capture needs the app to honour Node inspector flags (quoted in the T6 entry, `docs/loops/L1_INVESTIGATE.md#Target fuse prerequisites`), and the reference ships with that fuse disabled (`docs/cad-agent/research/ARCHITECTURE_OBSERVED.md`). Flipping the fuse, adding a debugging launch flag or running the archive under another Electron binary would break I8, so none was tried. The app was not launched.
 
 ## Walkthrough runs (T7)
 

@@ -15,7 +15,7 @@ L1 T2, read 2026-11-08 from the installed reference app, version 2.12.1, at C:\U
 
 ## Update mechanism
 
-- Squirrel for Windows. CONFIRMED by listing: the install root holds Update.exe, a packages folder and Squirrel logs next to the versioned app-2.12.1 folder (`docs/loops/L0_BASELINE.md#Squirrel updater`). The app updates itself, so every finding here applies to 2.12.1 only.
+- Squirrel for Windows. CONFIRMED by listing: the install root holds Update.exe, a packages folder and Squirrel logs next to the versioned app-2.12.1 folder (`docs/cad-agent/PHASE_00_ENVIRONMENT_AUDIT.md#holding Update.exe`). The app updates itself, so every finding here applies to 2.12.1 only.
 
 ## Third-party dependencies, by name
 
@@ -41,7 +41,7 @@ All eight fuses were read from one complete sentinel in the main executable. CON
 
 ## What this decides for T6
 
-The reference hardens its shell: integrity checking is on, loading is limited to app.asar, and the inspector paths are off. Under I8 we change none of these. T6 may run only if REA's own launch and capture work against the app exactly as installed; if any step would need a fuse, an archive or a launch flag changed, T6 is skipped and quotes this section. Whether REA's capture works without changes is UNKNOWN until T6 tries it.
+The reference hardens its shell: integrity checking is on, loading is limited to app.asar, and the fuse-controlled inspector paths are off (the fuse read does not prove the app never enables the inspector by other means, per the fuse evidence's own limitations). Under I8 we change none of these. T6 may run only if REA's own launch and capture work against the app exactly as installed; if any step would need a fuse, an archive or a launch flag changed, T6 is skipped and quotes this section. Whether REA's capture works without changes was UNKNOWN until T6; T6 then skipped it (`docs/cad-agent/research/OBSERVATION_LOG.md`).
 
 ## Open for later tasks
 

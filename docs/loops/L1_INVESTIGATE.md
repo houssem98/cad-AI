@@ -26,7 +26,7 @@ Deciding rule, fixed before T1 starts: T0 to T11 are ticked, `npm run gate` exit
 - [x] T8 Journeys. needs: T1, T6, T7. In our own words, write `docs/cad-agent/research/USER_JOURNEYS.md` (new) and complete `docs/cad-agent/research/OBSERVATION_LOG.md` (new) with the walkthrough rows and a screenshot inventory (file name under `.rea/`, what it shows; images stay out of the repo). Upgrade matrix labels where runtime or walkthrough evidence confirms them. Evidence: graph-lint and clean-room-lint exit 0.
 - [x] T9 Unknowns. needs: T2, T5, T8. Run the audit_residual_unknowns workflow, then write `docs/cad-agent/research/TECHNICAL_UNKNOWNS.md` (new): every UNKNOWN, what would resolve it, whether our build needs it; then the roadmap's closing summary (totals per label, missing features in our repo, priorities checked against the roadmap's P0 to P3 table). Evidence: graph-lint exits 0 and `grep -E "^Totals: [0-9]+ CONFIRMED, [0-9]+ INFERRED, [0-9]+ UNKNOWN" docs/cad-agent/research/TECHNICAL_UNKNOWNS.md` exits 0.
 - [x] T10 Parity spec. needs: T9. Write `docs/cad-agent/research/PARITY_SPEC.md` (new): a finite list of observable behaviors our product must match, one per line `- P<n> <behavior> · source: <matrix row> · owner: L<n>/T<n>`, behavior only, never reference internals or identifiers. L8 T2 grades it. Evidence: graph-lint and clean-room-lint exit 0 and `! grep -E '^- P[0-9]+ ' docs/cad-agent/research/PARITY_SPEC.md | grep -vq 'owner: L[0-9]'` exits 0.
-- [ ] T11 Independent check. needs: T10. A council on the research docs with the clean-room and research items of the attack list, plus: a matrix row or chain hop whose evidence id does not show what it claims; a parity claim that describes internals. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
+- [x] T11 Independent check. needs: T10. A council on the research docs with the clean-room and research items of the attack list, plus: a matrix row or chain hop whose evidence id does not show what it claims; a parity claim that describes internals. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
 - [ ] T12 (human) Signoff. needs: T11. Evidence: the signoff line in the Journal.
 
 ## Journal
@@ -148,6 +148,21 @@ Deciding rule, fixed before T1 starts: T0 to T11 are ticked, `npm run gate` exit
   graph-lint: 24 docs · 169 citations (69 file, 1 line range, 88 literal, 11 planned)
   graph-lint: clean
   clean-room-lint: 29 tracked files · 0 fingerprints · 241 identifiers
+  clean-room-lint: clean
+  gate-guard: clean · HEAD..working tree
+  gate exit=0
+  ```
+- 2026-11-08 · L1/T11 · started T11 (council: maker Opus; members Sonnet, Sonnet, Haiku; chairman Sonnet)
+- 2026-11-10 · L1/T11 · passed · gate green · commit loop(L1/T11) (this entry's own commit) · the council ran differently from the started line: on the human's instruction ("change opus to 1 sonnet and 2 haiku") the members were Sonnet, Haiku and Haiku, read-only, each reviewing the other two reports shuffled and unlabelled; the chairman was a fresh Sonnet and the maker Opus. Two Opus members launched before the change were stopped before they reported. Raw items 43 (15, 14, 14), merged 43, dropped 3 by majority refutation (D1 product name in research docs, which I7 allows; D2 IPC labels that follow rule 2; D3 part-library literal, which is in run A), kept 40. The maker reproduced each kept item against the docs and the .rea bundles. Fixed 37: C1 to C16 and the maker's own P1, P3 and P11 (18 parity lines whose cited row does not state the behaviour now have source "our design, no reference evidence" with a module pointer, owners kept, line 7 rewritten; the human chose this fix in chat); C17 the T4 records do hold IL-offset call edges and user-string literals, so the "no IL" sentence was wrong; C18 the knowledge-upload hits are string arguments, so row 11's UI hop drops to INFERRED, and the 13 bridge reads sit in five page chunks, the drawing group's in the drawing window; C19 to C22, C24 to C26, C28 to C38 and C40 corrected in place (row 7's handler hop reads "the job runs on the backend, INFERRED", like rows 10 and 11, so it moves to INFERRED). Fixed in part 2: C23 line 70 reworded, but row 8's IPC cell stays CONFIRMED under rule 2; C27 line 83 fixed with C20, lines 76 and 112 rejected because their label is already scoped "as message types". Rejected 1: C39, because the run A docs-path literals for authenticating and authorizing users on a channels service exist and the line already labels its conclusion INFERRED. Hop totals move from 12/33/30 to 11/35/29. For T12: the T4 records hold IL-derived call edges, which the T4 task text ruled out, and the automations pages read bridge members, but row 9's UI hop was not upgraded because the members were not read · Direction: still the goal; the research now says which parity claims rest on the reference and which are our own commitments · Next: T12 Signoff (human); no agent task is left in L1, so no further tick is scheduled
+
+  ```
+  T9 rows 15 {"CONFIRMED":11,"INFERRED":35,"UNKNOWN":29} line 11/35/29 consistent
+  T10 25 lines, 18 our design, 0 of 241 identifiers, ok
+  T9 evidence exit=0
+  T10 evidence exit=0
+  graph-lint: 24 docs · 172 citations (70 file, 1 line range, 91 literal, 10 planned)
+  graph-lint: clean
+  clean-room-lint: 30 tracked files · 0 fingerprints · 241 identifiers
   clean-room-lint: clean
   gate-guard: clean · HEAD..working tree
   gate exit=0
