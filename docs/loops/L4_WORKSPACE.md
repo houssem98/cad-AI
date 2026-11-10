@@ -9,7 +9,7 @@ Deciding rule, fixed before T2 starts: T0 to T5 are ticked, `npm run gate` exits
 ## Tasks
 
 - [x] T0 Re-verify. needs: none. Run graph-lint and refresh citations L2 changed. Evidence: graph-lint exits 0.
-- [ ] T1 (human) Name and direction. needs: T0. The product name (anything but the reference's) and one art direction from the roadmap's Phase 3 brief. Evidence: the decision lines in the Journal.
+- [x] T1 (human) Name and direction. needs: T0. The product name (anything but the reference's) and one art direction from the roadmap's Phase 3 brief. Evidence: the decision lines in the Journal.
 - [ ] T2 Shell. needs: T1. The desktop window with chat, viewport, feature tree, properties, tasks and history panels; every panel renders loading, empty, error, running, completed and cancelled distinctly. Add the Playwright suite to `npm run gate`. Evidence: e2e: each state of each panel renders and its screenshot differs from the others.
 - [ ] T3 Viewport. needs: T2. Render the kernel's tessellation (glTF from the worker, through a tessellate request this task adds to the worker protocol in `docs/cad-agent/architecture/API_CONTRACTS.md`) with orbit, pan and zoom, always labeled as a preview (I3). Evidence: e2e: a fixture part loads, the canvas is not blank, the preview label is present.
 - [ ] T4 Tree and properties. needs: T2. Both bound to the adapter's inspect output. Evidence: e2e against a fixture part: the tree lists its features, and the properties panel shows volume and bounding box taken from the execution record (its inspection's volume_mm3 and bbox_mm, `cad-AI/src/services/cad/cadStore.ts`).
@@ -25,3 +25,4 @@ Deciding rule, fixed before T2 starts: T0 to T5 are ticked, `npm run gate` exits
   graph-lint: clean
   graph-lint exit=0
   ```
+- 2026-11-10 · L4/T1 · passed · gate green · commit loop(L4/T1) (this entry's own commit) · human decision in chat, multiple choice: name "MechForge", the name cad-AI's server already prints (`cad-AI/server.ts#MechForge AI Enterprise server running on port`); direction "A Graphite": dark first, near-black neutral greys, one steel-blue accent, and a light theme that mirrors it, inside the roadmap's Phase 3 brief (neutral industrial palette, dark and light themes, no excessive gradients or glow). In the same answers the human approved installing build123d for L3 and committing the .serena/ line in .gitignore · Direction: still the goal; the shell is styled to the brief, and states come from records · Next: T2 Shell (L3 T2 goes first by driver rule 1)
