@@ -25,7 +25,7 @@ React UI ──HTTP + SSE──▶ Express server ──stdio JSON lines──�
 
 - **UI.** Chat, viewport, feature tree, properties, tasks and history panels (P23, owner L4/T2). It renders only what execution records hold (I12). The viewport is always labelled a preview (`docs/LOOP_CONVENTIONS.md#I3 No kernel evidence, no geometry claim.`).
 - **Server.** Owns the agent loop, schema validation, the executor, records and jobs. The model never reaches a kernel directly (`docs/LOOP_CONVENTIONS.md#I6 Typed operations only.`).
-- **Kernel worker.** A separate Python process the server spawns and talks to over stdin and stdout, one JSON object per line. A crash or hang kills the worker, never the server. This answers our side of U5 (how a handler reaches the CAD side) with our own design.
+- **Kernel worker.** A separate Python process the server spawns and talks to over stdin and stdout, one JSON object per line. The executor's per-operation deadline catches a hang and kills the worker; a crash or hang never takes down the server. This answers our side of U5 (how a handler reaches the CAD side) with our own design.
 - **SolidWorks sidecar (L9).** Same protocol and adapter contract as the kernel worker, so the agent cannot tell them apart except by the capability manifest (rows 1 and 2; U6).
 
 ## Subsystems
@@ -48,7 +48,7 @@ React UI ──HTTP + SSE──▶ Express server ──stdio JSON lines──�
 
 ## Errors
 
-Every boundary returns a typed error, never a thrown string: `validation_failed`, `unsupported`, `timeout`, `cancelled`, `kernel_error`, `worker_crashed`, `model_error`, `approval_denied`. The UI maps each to a distinct error state (P23).
+Every boundary returns a typed error, never a thrown string: `validation_failed`, `unsupported`, `precondition_failed`, `approval_denied`, `timeout`, `cancelled`, `kernel_error`, `verification_failed`, `worker_crashed`, `storage_error`, `model_error`. This is the one list: other docs point here, and the schema's error code enum (`cad-AI/schema/cad-operation.schema.json`) holds the same codes. The UI maps each to a distinct error state (P23).
 
 ## Tests
 

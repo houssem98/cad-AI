@@ -10,15 +10,15 @@ Durable state for requests, operations, records, jobs, artifacts, automations an
 
 | Table | Key columns | Notes |
 |---|---|---|
-| documents | id, kind (part, assembly, drawing), adapter, revision, native_artifact_id, created_at | revision increments on every successful operation |
-| requests | id, chat_id, text, state (agent state machine), spec_json, created_at, finished_at | one per user request |
+| documents | id, kind (part, assembly, drawing), adapter, revision, native_artifact_id, state (ok, unknown), created_at | revision increments on every succeeded operation; native_artifact_id is the checkpoint saved after it, used by Restore |
+| requests | id, chat_id, text, state (agent state machine), spec_json, error_json, created_at, finished_at | one per user request; error_json holds a model or storage error |
 | events | id, request_id or job_id, seq, type, payload_json, created_at | the SSE stream, replayed on reconnect |
-| operations | id, request_id, document_id, seq, envelope_json, status | the validated envelope |
-| records | id, operation_id, command_json, result_json, validation_json, error_json, started_at, ended_at | append-only; fields per `docs/cad-agent/architecture/EXECUTION_AND_VERIFICATION.md` |
+| operations | id, request_id, document_id, seq, envelope_json, status | every proposal, written before validation; status moves before each adapter call (write-ahead) |
+| records | id, operation_id, document_id, revision_before, revision_after, command_json, result_json, validation_json, approval_json, error_json, started_at, ended_at | append-only; fields per `docs/cad-agent/architecture/EXECUTION_AND_VERIFICATION.md` |
 | artifacts | id, kind (step, brep, gltf, svg, pdf, dxf), path, sha256, bytes, expires_at, created_at | files live in a data folder beside the database |
 | record_artifacts | record_id, artifact_id | many to many |
 | jobs | id, type, state, idempotency_key unique, input_json, worker_pid, heartbeat_at, error_json, created_at | states per `docs/roadmap/MECAGENT_ROADMAP.md#Define job states:` |
-| chats | id, title, created_at, archived_at | history panel (P23) |
+| chats | id, title, auto_accept (default off), created_at, archived_at | history panel (P23); auto_accept is the approval setting |
 | workflows | id, name, version, params_schema_json, operations_json, created_at | automations; operation sequences only (P16; I6) |
 | knowledge_docs, knowledge_chunks | id, path, sha256 / id, doc_id, text, embedding | L7 T5; chunks are data, never instructions (P19) |
 
@@ -30,11 +30,11 @@ Durable state for requests, operations, records, jobs, artifacts, automations an
 
 ## Errors
 
-A failed write fails the operation with `kernel_error` kept in memory and the request ends failed; the server never reports success for an unpersisted record.
+A failed write ends the operation with `storage_error` and the request fails; the error goes to requests.error_json if that write works, and to the server log in any case. The executor then accepts no further operation until a write succeeds, and the server never reports success for an unpersisted record.
 
 ## Tests
 
 - Migration up from empty and from the prior version.
-- Restart: a RUNNING job without a heartbeat becomes FAILED or resumes (L6 T1).
+- Restart: a RUNNING job without a heartbeat becomes FAILED or resumes (L6 T1); an operation left running or inspecting is restored and recorded (L3 T4).
 - Replay: events for a request replay in seq order after reconnect.
 - Duplicate idempotency key returns the same job.

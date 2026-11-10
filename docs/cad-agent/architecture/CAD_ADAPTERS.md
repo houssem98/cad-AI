@@ -20,16 +20,18 @@ Run typed operations against a real CAD engine and report what that engine says.
 | export_document(), import_document() | export, import: STEP and native (rows 4, 5; P10, P11) |
 | validate_geometry() | used by VERIFY |
 
-Every method takes an operation envelope (`docs/cad-agent/architecture/API_CONTRACTS.md`) and returns `{ status, result, verification, error }`.
+Every operation method (create, modify, apply, export, import, inspect and validate_geometry) takes an operation envelope (`docs/cad-agent/architecture/API_CONTRACTS.md`) and returns `{ status, result, verification, error }`. The session methods (connect, disconnect, health, capabilities, get_active_document, get_document_metadata) take none and change nothing.
 
 ## Capability manifest
 
 ```json
 { "adapter": "kernel", "version": "1", "operations": { "extrude": "supported", "mate": "unsupported", ... },
-  "documents": ["part"], "units": ["mm", "cm", "m", "in"], "exports": ["step", "brep"] }
+  "documents": ["part"], "exports": ["step"] }
 ```
 
-The executor checks the manifest before calling; an operation marked unsupported returns `unsupported` without touching the engine (I12). The L3 T1 contract suite runs against every adapter and fails a double that claims an operation it lacks.
+There is no units entry: the executor converts to mm before any adapter call, so adapters see mm only.
+
+The executor checks the manifest before calling. An operation type marked unsupported or missing from the manifest, a document kind not listed, or an export format not listed returns `unsupported` without touching the engine (I12). The adapter also returns `unsupported` itself when called with an operation it lacks. A manifest may mark an entry supported only when the contract suite has a passing case for it: the L3 T1 suite fails a manifest that claims an operation, document kind or export with no passing case, and it calls each adapter directly with an operation it lacks. A type outside the schema's enum (today L7's mate) is `validation_failed` until it is added. An unsupported operation is reported, never replanned into another type.
 
 ## Adapters
 
@@ -43,10 +45,10 @@ Feature creation calls for SolidWorks come from the public API documentation, no
 
 ## Errors
 
-`unsupported`, `kernel_error` (engine message kept verbatim in the record), `timeout`, `cancelled`, `precondition_failed` (wrong document kind, missing feature, document changed since planning).
+Codes from the one list in `docs/cad-agent/architecture/SYSTEM_ARCHITECTURE.md`. Adapters return `unsupported`, `kernel_error` (engine message kept verbatim in the record) and `precondition_failed` (wrong document kind, missing feature, unknown identifier, document changed since planning); `timeout` and `cancelled` are set by the executor, which kills the worker.
 
 ## Tests
 
-- Contract suite (L3 T1): same cases against every adapter.
+- Contract suite (L3 T1): same cases against every adapter; every supported manifest entry has a passing case; an operation the adapter lacks returns `unsupported`.
 - Geometry (L3 T2): the 120 × 80 × 10 mm plate with four Ø6 holes matches its analytic volume within 0.01 %.
 - Round trip (L3 T3): STEP export then import keeps volume within 0.01 % and the bounding box; a corrupted STEP is refused with an error record.
