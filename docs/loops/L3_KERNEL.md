@@ -13,7 +13,7 @@ Deciding rule, fixed before T1 starts: T0 to T6 are ticked, `npm run gate` exits
 - [x] T2 Geometry operations. needs: T1. New part; sketch (rectangle, circle, polyline); extrude, cut, hole, fillet, chamfer; modify a dimension; assign material; inspect (valid, volume, area, bounding box, face and edge counts, feature list). Evidence: tests: a 120 × 80 × 10 mm plate with four Ø6 through holes is a valid solid whose volume equals the analytic value within 0.01 %, bounding box within 0.001 mm, four cylindrical faces; changing thickness to 12 rebuilds to the new analytic volume.
 - [x] T3 Export round trip. needs: T2. STEP and native export, re-import and compare. Evidence: tests: export then re-import keeps volume within 0.01 % and the bounding box; a corrupted STEP is refused with an error record.
 - [x] T4 Executor and records. needs: T1. Schema validation before any kernel call; per-operation timeout and cancellation; one persisted execution record per operation with every field of `docs/roadmap/MECAGENT_ROADMAP.md#Every CAD operation must produce an execution record containing:`. No path runs model-written code (I6). Evidence: tests: invalid parameters refused before the kernel is called; an operation past its timeout is cancelled and recorded; a failed operation is recorded with its error; an operation type `script` is refused; a refused proposal has a record; after a cancel or a timeout the document's revision and inspection equal its checkpoint; an operation left running at server start is restored and recorded (`docs/cad-agent/architecture/EXECUTION_AND_VERIFICATION.md`).
-- [ ] T5 Headless milestone. needs: T2, T3, T4. A fixed operation sequence, no model: enclosure 120 × 80 × 40 mm, 2 mm shell, four M3 bosses, separate lid. Evidence: test: both parts valid, volumes equal the analytic values within 0.05 %, STEP round trip holds, every operation has a record.
+- [x] T5 Headless milestone. needs: T2, T3, T4. A fixed operation sequence, no model: enclosure 120 × 80 × 40 mm, 2 mm shell, four M3 bosses, separate lid. Evidence: test: both parts valid, volumes equal the analytic values within 0.05 %, STEP round trip holds, every operation has a record.
 - [ ] T6 Independent check. needs: T5. A council with the geometry, operations, records and adapters items of the attack list. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
 - [ ] T7 (human) Signoff. needs: T6. The human opens the T5 STEP files in any viewer. Evidence: the signoff line in the Journal.
 
@@ -95,5 +95,23 @@ Deciding rule, fixed before T1 starts: T0 to T6 are ticked, `npm run gate` exits
   gate-guard: clean · HEAD..working tree
         Tests  29 passed (29)
   38 passed in 6.59s
+  gate exit=0
+  ```
+- 2026-11-10 · L3/T5 · started T5
+- 2026-11-10 · L3/T5 · passed · gate green · commit loop(L3/T5) (this entry's own commit; cad-AI commit 11c19c8) · the milestone test (`cad-AI/src/services/cad/milestone.test.ts`) runs a fixed typed sequence, no model, through the executor on the kernel worker. The schema has no shell operation and no offset sketch plane, so the 2 mm shell is the 120 × 80 × 40 box, a through cut of 116 × 76, and a fused 2 mm floor; four Ø6 bosses 10 mm tall at (±52, ±32) carry Ø2.5 M3 tap holes 6 mm deep (the hole's depth of 36 is measured from the part's top face, as the kernel row in CAD_ADAPTERS states); the lid is a 2 mm plate with four Ø3.4 clearance holes. Both are one valid solid at the analytic volume to every printed digit (bar 0.05 %), with the bounding box expected; each STEP export re-imports into a new document at the same volume and bounding box; all 30 operations have a succeeded record. The test passed on its first run, because T1 to T4 had already built every step it uses; this task added no product code. The STEP files are copied to cad-AI/milestone-out (ignored by cad-AI's git) for the human's T7 check · Direction: still the goal; the program's first end-to-end claim, request to verified STEP, holds without a model · Next: T6 Independent check (council)
+
+  ```
+  enclosure: 49778.9690 mm3, analytic 49778.9690, STEP back 49778.9690
+  lid: 19127.3664 mm3, analytic 19127.3664, STEP back 19127.3664
+  records: 30 operations, 30 records
+   ✓ headless milestone > builds a valid enclosure and lid at their analytic volumes, round-trips STEP, and records every operation 19136ms
+  graph-lint: 30 docs · 212 citations (108 file, 1 line range, 99 literal, 4 planned)
+  graph-lint: clean
+  clean-room-lint: 124 tracked files · 0 fingerprints · 241 identifiers
+  clean-room-lint: clean
+  gate-guard: clean · HEAD..working tree
+   Test Files  3 passed (3)
+        Tests  30 passed (30)
+  38 passed in 7.58s
   gate exit=0
   ```
