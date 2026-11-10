@@ -10,13 +10,13 @@ Durable state for requests, operations, records, jobs, artifacts, automations an
 
 | Table | Key columns | Notes |
 |---|---|---|
-| documents | id, kind (part, assembly, drawing), adapter, revision, native_artifact_id, state (ok, unknown), created_at | revision increments on every succeeded operation; native_artifact_id is the checkpoint saved after it, used by Restore |
+| documents | id, kind (part, assembly, drawing), adapter, revision, checkpoint, state (ok, unknown), created_at | revision increments on every succeeded operation; checkpoint is the path of the native file saved after it, used by Restore |
 | requests | id, chat_id, text, state (agent state machine), spec_json, error_json, created_at, finished_at | one per user request; error_json holds a model or storage error |
 | events | id, request_id or job_id, seq, type, payload_json, created_at | the SSE stream, replayed on reconnect |
-| operations | id, request_id, document_id, seq, envelope_json, status | every proposal, written before validation; status moves before each adapter call (write-ahead) |
-| records | id, operation_id, document_id, revision_before, revision_after, command_json, result_json, validation_json, approval_json, error_json, started_at, ended_at | append-only; fields per `docs/cad-agent/architecture/EXECUTION_AND_VERIFICATION.md` |
+| operations | row_id (server uuid), op_id (the envelope's id), request_id, document_id, seq, envelope_json, status | every proposal, written before validation; status moves before each adapter call (write-ahead) |
+| records | id, operation_row_id, document_id, revision_before, revision_after, command_json, result_json, validation_json, approval_json, error_json, artifacts_json, started_at, ended_at | append-only; fields per `docs/cad-agent/architecture/EXECUTION_AND_VERIFICATION.md`; written in one transaction with the document change and the status (`cad-AI/src/services/cad/cadStore.ts`) |
 | artifacts | id, kind (step, brep, gltf, svg, pdf, dxf), path, sha256, bytes, expires_at, created_at | files live in a data folder beside the database |
-| record_artifacts | record_id, artifact_id | many to many |
+| record_artifacts | record_id, artifact_id | many to many; until the artifacts table lands (L3 T3), records.artifacts_json lists artifact ids |
 | jobs | id, type, state, idempotency_key unique, input_json, worker_pid, heartbeat_at, error_json, created_at | states per `docs/roadmap/MECAGENT_ROADMAP.md#Define job states:` |
 | chats | id, title, auto_accept (default off), created_at, archived_at | history panel (P23); auto_accept is the approval setting |
 | workflows | id, name, version, params_schema_json, operations_json, created_at | automations; operation sequences only (P16; I6) |

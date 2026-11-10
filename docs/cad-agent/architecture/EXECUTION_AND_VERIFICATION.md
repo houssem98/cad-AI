@@ -4,7 +4,7 @@ L2 T2, written 2026-11-10. The controlled execution layer: schema validation, ap
 
 ## Responsibility
 
-The executor is the only caller of adapters. It decides whether an operation may run, runs it with limits, inspects the result and writes one record per operation.
+Code: `cad-AI/src/services/cad/executor.ts`, with its store in `cad-AI/src/services/cad/cadStore.ts`. The executor is the only caller of adapters. It decides whether an operation may run, runs it with limits, inspects the result and writes one record per operation.
 
 ## Execution lifecycle (per operation)
 
@@ -18,7 +18,7 @@ pending → validated → [awaiting_approval] → running → inspecting → suc
 
 Every status in the diagram is a value of the schema's status enum.
 
-1. **Validate.** The server assigns the operation id and writes the proposal to the operations table as pending, then runs the proposal check, the JSON Schema, units to mm, then preconditions against the current document revision. Nothing reaches the adapter before this passes; a refusal ends failed with a record.
+1. **Validate.** The server gives the proposal a row id (a uuid) and writes it to the operations table as pending, then runs the proposal check, the JSON Schema, units to mm, then preconditions against the current document revision. Nothing reaches the adapter before this passes; a refusal ends failed with a record.
 2. **Capability.** Manifest check; unsupported ends here, with a record.
 3. **Approval.** A consequential type needs an approval event unless the chat's auto-accept setting is on (row 14; P20). Consequential means it changes or removes something that existed before this request: modify_dimension today, and any delete, overwrite or close type when one is added. Auto-accept never covers delete, overwrite or close. The other types only add geometry, which Restore removes; export always writes a new artifact and never overwrites a file; import opens a new document. A denial ends cancelled with `approval_denied`. The record stores the decision: approved, denied or auto.
 4. **Run.** Preconditions and the document revision are checked again just before the call, because the approval wait can be long. One deadline covers run, inspect and verify together: 30 s by default, 120 s for import and export. Cancel or a passed deadline kills the worker, which restarts (P21).

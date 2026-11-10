@@ -10,7 +10,7 @@ L2 T2, written 2026-11-10. Three contracts: the operation protocol (server to ad
 
 | Field | Type | Rule |
 |---|---|---|
-| id | string | required; the server assigns a uuid when it accepts a proposal, replacing any id the model sent, so ids are unique (primary key of the operations table) |
+| id | string | required; names the operation and what it creates within its document, so later operations can refer to it; reusing the id of a succeeded operation in the same document is `precondition_failed`. The server keys storage and approval by its own uuid (operations.row_id), never by this id |
 | target | object: document id, optional feature or entity ref | required; a missing target is refused |
 | type | enum of operation types | required; an unknown type is refused |
 | params | object, schema per type | required; every length has an explicit unit |
@@ -30,7 +30,7 @@ The schema forbids extra fields (`additionalProperties: false`). Lengths are `{ 
 
 ## 2. Worker wire protocol
 
-stdin and stdout, one JSON object per line, UTF-8. Request: `{ "kind": "op", "operation": <envelope> }` or `{ "kind": "cancel", "id": ... }` (only for an operation queued but not started; it gets a result line with status cancelled) or `{ "kind": "health" }`. Response: `{ "kind": "result", "id", "status", "result", "verification", "error" }` or `{ "kind": "progress", "id", "message" }`. The result line is the worker's report; the executor alone writes the envelope's status and verification from it. A running operation is cancelled or timed out by killing the worker, never by a message, because a worker inside a kernel call reads no input. The worker routes all library output to stderr, so stdout carries protocol lines only. stderr is never parsed as protocol; on `worker_crashed` the executor keeps its last 4 KB as engine output in the record. A line that is not valid JSON ends the worker with `worker_crashed`.
+stdin and stdout, one JSON object per line, UTF-8. Request: `{ "kind": "op", "operation": <envelope> }` or `{ "kind": "cancel", "id": ... }` (only for an operation queued but not started; it gets a result line with status cancelled) or `{ "kind": "health" }` or `{ "kind": "capabilities" }`, and for the executor's own steps `{ "kind": "inspect", "document" }`, `{ "kind": "save", "document", "path" }` (write the checkpoint) and `{ "kind": "load", "document", "path" }` (restore it; a null path forgets the document). Response: `{ "kind": "result", "id", "call", "status", "result", "verification", "error" }` (call is the adapter method that ran), `{ "kind": "progress", "id", "message" }`, or one line per other request kind. Code: `cad-AI/worker/main.py` and `cad-AI/src/services/cad/cadWorker.ts`. The result line is the worker's report; the executor alone writes the envelope's status and verification from it. A running operation is cancelled or timed out by killing the worker, never by a message, because a worker inside a kernel call reads no input. The worker routes all library output to stderr, so stdout carries protocol lines only. stderr is never parsed as protocol; on `worker_crashed` the executor keeps its last 4 KB as engine output in the record. A line that is not valid JSON ends the worker with `worker_crashed`.
 
 ## 3. HTTP API (UI to server)
 
