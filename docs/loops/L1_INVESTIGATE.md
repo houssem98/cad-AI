@@ -27,7 +27,7 @@ Deciding rule, fixed before T1 starts: T0 to T11 are ticked, `npm run gate` exit
 - [x] T9 Unknowns. needs: T2, T5, T8. Run the audit_residual_unknowns workflow, then write `docs/cad-agent/research/TECHNICAL_UNKNOWNS.md` (new): every UNKNOWN, what would resolve it, whether our build needs it; then the roadmap's closing summary (totals per label, missing features in our repo, priorities checked against the roadmap's P0 to P3 table). Evidence: graph-lint exits 0 and `grep -E "^Totals: [0-9]+ CONFIRMED, [0-9]+ INFERRED, [0-9]+ UNKNOWN" docs/cad-agent/research/TECHNICAL_UNKNOWNS.md` exits 0.
 - [x] T10 Parity spec. needs: T9. Write `docs/cad-agent/research/PARITY_SPEC.md` (new): a finite list of observable behaviors our product must match, one per line `- P<n> <behavior> · source: <matrix row> · owner: L<n>/T<n>`, behavior only, never reference internals or identifiers. L8 T2 grades it. Evidence: graph-lint and clean-room-lint exit 0 and `! grep -E '^- P[0-9]+ ' docs/cad-agent/research/PARITY_SPEC.md | grep -vq 'owner: L[0-9]'` exits 0.
 - [x] T11 Independent check. needs: T10. A council on the research docs with the clean-room and research items of the attack list, plus: a matrix row or chain hop whose evidence id does not show what it claims; a parity claim that describes internals. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
-- [ ] T12 (human) Signoff. needs: T11. Evidence: the signoff line in the Journal.
+- [x] T12 (human) Signoff. needs: T11. Evidence: the signoff line in the Journal.
 
 ## Journal
 
@@ -167,3 +167,4 @@ Deciding rule, fixed before T1 starts: T0 to T11 are ticked, `npm run gate` exit
   gate-guard: clean · HEAD..working tree
   gate exit=0
   ```
+- 2026-11-10 · L1/T12 · passed · gate green · commit loop(L1/T12) (this entry's own commit) · human signoff in chat: "signoff L1: approve, keep P1/P3/P11, accept T4 IL note, tick L1"; the maker's P1, P3 and P11 relabels stay, and the T4 records' IL-derived call edges are accepted as recorded in `docs/cad-agent/research/SIDECAR_PROTOCOL.md`; the agent ticked T12 and the L1 loop line on the human's instruction (driver rule 4) · Direction: still the goal; investigation done, architecture next · Next: L2 per `docs/LOOP_GRAPH.md`
