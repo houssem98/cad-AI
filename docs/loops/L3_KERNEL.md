@@ -10,7 +10,7 @@ Deciding rule, fixed before T1 starts: T0 to T6 are ticked, `npm run gate` exits
 
 - [x] T0 Re-verify. needs: none. Run graph-lint and refresh citations L2 changed. Evidence: graph-lint exits 0.
 - [x] T1 Adapter contract. needs: T0. The interface in `docs/roadmap/MECAGENT_ROADMAP.md#Define a common CAD adapter interface:` plus a capability manifest; an operation an adapter lacks returns a typed unsupported result. One contract suite parameterized over adapters. Evidence: the suite passes against a test double, and fails against a double that claims an operation it lacks; an adapter called directly with an operation it lacks returns unsupported (`docs/cad-agent/architecture/CAD_ADAPTERS.md`).
-- [ ] T2 Geometry operations. needs: T1. New part; sketch (rectangle, circle, polyline); extrude, cut, hole, fillet, chamfer; modify a dimension; assign material; inspect (valid, volume, area, bounding box, face and edge counts, feature list). Evidence: tests: a 120 × 80 × 10 mm plate with four Ø6 through holes is a valid solid whose volume equals the analytic value within 0.01 %, bounding box within 0.001 mm, four cylindrical faces; changing thickness to 12 rebuilds to the new analytic volume.
+- [x] T2 Geometry operations. needs: T1. New part; sketch (rectangle, circle, polyline); extrude, cut, hole, fillet, chamfer; modify a dimension; assign material; inspect (valid, volume, area, bounding box, face and edge counts, feature list). Evidence: tests: a 120 × 80 × 10 mm plate with four Ø6 through holes is a valid solid whose volume equals the analytic value within 0.01 %, bounding box within 0.001 mm, four cylindrical faces; changing thickness to 12 rebuilds to the new analytic volume.
 - [ ] T3 Export round trip. needs: T2. STEP and native export, re-import and compare. Evidence: tests: export then re-import keeps volume within 0.01 % and the bounding box; a corrupted STEP is refused with an error record.
 - [x] T4 Executor and records. needs: T1. Schema validation before any kernel call; per-operation timeout and cancellation; one persisted execution record per operation with every field of `docs/roadmap/MECAGENT_ROADMAP.md#Every CAD operation must produce an execution record containing:`. No path runs model-written code (I6). Evidence: tests: invalid parameters refused before the kernel is called; an operation past its timeout is cancelled and recorded; a failed operation is recorded with its error; an operation type `script` is refused; a refused proposal has a record; after a cancel or a timeout the document's revision and inspection equal its checkpoint; an operation left running at server start is restored and recorded (`docs/cad-agent/architecture/EXECUTION_AND_VERIFICATION.md`).
 - [ ] T5 Headless milestone. needs: T2, T3, T4. A fixed operation sequence, no model: enclosure 120 × 80 × 40 mm, 2 mm shell, four M3 bosses, separate lid. Evidence: test: both parts valid, volumes equal the analytic values within 0.05 %, STEP round trip holds, every operation has a record.
@@ -64,5 +64,21 @@ Deciding rule, fixed before T1 starts: T0 to T6 are ticked, `npm run gate` exits
   gate-guard: clean · HEAD..working tree
         Tests  28 passed (28)
   29 passed in 0.07s
+  gate exit=0
+  ```
+- 2026-11-10 · L3/T2 · started T2 (the human approved installing build123d in chat, multiple choice: "Approve install (Recommended)")
+- 2026-11-10 · L3/T2 · passed · gate green · commit loop(L3/T2) (this entry's own commit; cad-AI commit 3b66e32) · build123d 0.13.0 installed (pip exit 0) and pinned in `cad-AI/worker/requirements.txt`. The kernel adapter (`cad-AI/worker/adapter_kernel.py`) keeps each document as its feature history and replays it on every change, so modify_dimension rebuilds and a failed operation changes nothing; edges are named feature:edge:n and found again by geometry after a rebuild; unknown sketches, edges or documents are precondition_failed. Tests (`cad-AI/worker/test_kernel_geometry.py`) were written first and failed at import. Kernel measurements: the 120 × 80 × 10 mm plate with four Ø6 through holes is one valid solid of 94869.0266 mm³ against the analytic 94869.0266 (relative error 1.5e-16, bar 1e-4), bounding box exactly ±60, ±40, 0 to 10 (bar 0.001 mm), four cylindrical faces; thickness 12 rebuilds to 113842.8320 mm³, analytic 113842.8320. The kernel also passes the adapter contract, where each step changes volume by its analytic amount (cut −141.372 = π·3²·5, hole −70.686 = π·1.5²·10, fillet −2.146 = (1 − π/4)·1²·10); the chamfer propagates along the tangent edge chain, OpenCascade's standard behaviour, now written in `docs/cad-agent/architecture/CAD_ADAPTERS.md`. Export and import stay unsupported in the manifest until T3. The worker takes `--adapter kernel` · Direction: still the goal; the first geometry claims are the kernel's own measurements · Next: T3 Export round trip
+
+  ```
+  plate t=10 volume 94869.0266 analytic 94869.0266 rel_err 1.53e-16
+  bbox {'min': {'x': -60.0, 'y': -40.0, 'z': 0.0}, 'max': {'x': 60.0, 'y': 40.0, 'z': 10.0}} valid True cyl_faces 4 counts {'solids': 1, 'faces': 10, 'edges': 24}
+  plate t=12 volume 113842.8320 analytic 113842.8320 rel_err 2.56e-16 zmax 12.000000
+  graph-lint: 30 docs · 212 citations (108 file, 1 line range, 99 literal, 4 planned)
+  graph-lint: clean
+  clean-room-lint: 122 tracked files · 0 fingerprints · 241 identifiers
+  clean-room-lint: clean
+  gate-guard: clean · HEAD..working tree
+        Tests  28 passed (28)
+  34 passed in 4.86s
   gate exit=0
   ```

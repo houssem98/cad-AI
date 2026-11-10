@@ -22,7 +22,7 @@ Run typed operations against a real CAD engine and report what that engine says.
 
 Every operation method (create, modify, apply, export, import, inspect and validate_geometry) takes an operation envelope (`docs/cad-agent/architecture/API_CONTRACTS.md`) and returns `{ status, result, verification, error }`. The session methods (connect, disconnect, health, capabilities, get_active_document, get_document_metadata) take none and change nothing.
 
-Code: `cad-AI/worker/adapter.py`. Its `run()` returns `unsupported` for a type the manifest does not claim, an unlisted export format, or a method the adapter leaves unimplemented, and turns any engine exception into `kernel_error` with the engine's message. A sketch, feature or artifact that an operation creates is named with that operation's id, so a later operation refers to it without reading results.
+Code: `cad-AI/worker/adapter.py`. Its `run()` returns `unsupported` for a type the manifest does not claim, an unlisted export format, or a method the adapter leaves unimplemented, and turns any engine exception into `kernel_error` with the engine's message. A sketch, feature or artifact that an operation creates is named with that operation's id, so a later operation refers to it without reading results. An edge is named `<feature id>:edge:<n>`: the n-th edge, in order of centre coordinates, of the solid right after that feature, found again in the current solid as the edge of the same kind lying on it, so the name survives a rebuild; an unknown or vanished edge is `precondition_failed`.
 
 ## Capability manifest
 
@@ -39,7 +39,7 @@ The executor checks the manifest before calling. An operation type marked unsupp
 
 | Adapter | Loop | Engine | Notes |
 |---|---|---|---|
-| kernel | L3 | build123d on OpenCascade in the Python worker | Native format BREP; STEP export and import; headless, so it runs in the gate |
+| kernel | L3 | build123d on OpenCascade in the Python worker (`cad-AI/worker/adapter_kernel.py`) | Headless, so it runs in the gate. A document is its feature history, replayed from the start on every change, so modify_dimension rebuilds and a failed operation changes nothing; the checkpoint is that history. Planes: top is XY, front is XZ (normal toward minus Y), right is YZ. Holes run along Z from the part's top face and need exactly one of depth and through_all. Fillet and chamfer follow OpenCascade and propagate along tangent edges. STEP export and import arrive in L3 T3; until then the manifest lists no export |
 | solidworks | L9 | our own .NET sidecar over the same wire protocol, using public SolidWorks API documentation | Needs a licence (L9 T0); finds the running session, classifies the active document, saves native files and STEP (P4) |
 | test double | L3 T1 | in-memory (`cad-AI/worker/adapter_double.py`) | For the contract suite only; it holds no geometry, so inspect reports an invalid, empty body |
 
