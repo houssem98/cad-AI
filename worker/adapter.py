@@ -16,6 +16,10 @@ METHODS = {
 }
 
 
+class PreconditionFailed(Exception):
+    """An identifier, document or prior feature the operation needs does not exist."""
+
+
 def outcome(status, result=None, verification=None, error=None):
     return {"status": status, "result": result, "verification": verification, "error": error}
 
@@ -38,6 +42,8 @@ class Adapter:
             return getattr(self, METHODS[kind])(op)
         except NotImplementedError:
             return unsupported(kind)
+        except PreconditionFailed as e:
+            return outcome("failed", error={"code": "precondition_failed", "message": str(e)})
         except Exception as e:
             return outcome("failed", error={"code": "kernel_error", "message": str(e)})
 

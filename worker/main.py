@@ -36,11 +36,15 @@ def serve(adapter, lines, out):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--adapter", choices=["double"], default="double")
+    p.add_argument("--adapter", choices=["double", "kernel"], default="double")
     p.add_argument("--hang", action="append", default=[], help="double only: hang on this operation type")
     p.add_argument("--fail", action="append", default=[], help="double only: fail on this operation type")
     a = p.parse_args()
-    adapter = DoubleAdapter(hangs=set(a.hang), fails=set(a.fail))
+    if a.adapter == "kernel":
+        from adapter_kernel import KernelAdapter  # build123d loads only when the kernel is asked for
+        adapter = KernelAdapter()
+    else:
+        adapter = DoubleAdapter(hangs=set(a.hang), fails=set(a.fail))
     protocol = sys.stdout
     sys.stdout = sys.stderr  # library output never reaches the protocol channel
     serve(adapter, sys.stdin, protocol)

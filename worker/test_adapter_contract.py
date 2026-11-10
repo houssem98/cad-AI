@@ -3,11 +3,13 @@ import pytest
 from adapter import Adapter
 from adapter_contract import CASES, TYPES, check_adapter
 from adapter_double import DoubleAdapter
+from adapter_kernel import KernelAdapter
 from operation_schema import validate_operation
 
 ADAPTERS = [
     pytest.param(lambda: DoubleAdapter(), id="double-full"),
     pytest.param(lambda: DoubleAdapter(lacks={"fillet", "import"}), id="double-partial"),
+    pytest.param(lambda: KernelAdapter(), id="kernel"),
 ]
 
 
