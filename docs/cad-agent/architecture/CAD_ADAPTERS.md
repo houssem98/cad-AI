@@ -22,6 +22,8 @@ Run typed operations against a real CAD engine and report what that engine says.
 
 Every operation method (create, modify, apply, export, import, inspect and validate_geometry) takes an operation envelope (`docs/cad-agent/architecture/API_CONTRACTS.md`) and returns `{ status, result, verification, error }`. The session methods (connect, disconnect, health, capabilities, get_active_document, get_document_metadata) take none and change nothing.
 
+Code: `cad-AI/worker/adapter.py`. Its `run()` returns `unsupported` for a type the manifest does not claim, an unlisted export format, or a method the adapter leaves unimplemented, and turns any engine exception into `kernel_error` with the engine's message. A sketch, feature or artifact that an operation creates is named with that operation's id, so a later operation refers to it without reading results.
+
 ## Capability manifest
 
 ```json
@@ -39,7 +41,7 @@ The executor checks the manifest before calling. An operation type marked unsupp
 |---|---|---|---|
 | kernel | L3 | build123d on OpenCascade in the Python worker | Native format BREP; STEP export and import; headless, so it runs in the gate |
 | solidworks | L9 | our own .NET sidecar over the same wire protocol, using public SolidWorks API documentation | Needs a licence (L9 T0); finds the running session, classifies the active document, saves native files and STEP (P4) |
-| test double | L3 T1 | in-memory | For the contract suite only |
+| test double | L3 T1 | in-memory (`cad-AI/worker/adapter_double.py`) | For the contract suite only; it holds no geometry, so inspect reports an invalid, empty body |
 
 Feature creation calls for SolidWorks come from the public API documentation, not the reference (`docs/cad-agent/research/TECHNICAL_UNKNOWNS.md`, U6 and U7).
 
@@ -49,6 +51,6 @@ Codes from the one list in `docs/cad-agent/architecture/SYSTEM_ARCHITECTURE.md`.
 
 ## Tests
 
-- Contract suite (L3 T1): same cases against every adapter; every supported manifest entry has a passing case; an operation the adapter lacks returns `unsupported`.
+- Contract suite (L3 T1): `cad-AI/worker/adapter_contract.py` runs one ordered case per operation type (two for export) against every adapter; every supported manifest entry has a passing case; an operation the adapter lacks returns `unsupported`; a manifest claiming a type the schema lacks fails.
 - Geometry (L3 T2): the 120 × 80 × 10 mm plate with four Ø6 holes matches its analytic volume within 0.01 %.
 - Round trip (L3 T3): STEP export then import keeps volume within 0.01 % and the bounding box; a corrupted STEP is refused with an error record.

@@ -9,7 +9,7 @@ Deciding rule, fixed before T1 starts: T0 to T6 are ticked, `npm run gate` exits
 ## Tasks
 
 - [x] T0 Re-verify. needs: none. Run graph-lint and refresh citations L2 changed. Evidence: graph-lint exits 0.
-- [ ] T1 Adapter contract. needs: T0. The interface in `docs/roadmap/MECAGENT_ROADMAP.md#Define a common CAD adapter interface:` plus a capability manifest; an operation an adapter lacks returns a typed unsupported result. One contract suite parameterized over adapters. Evidence: the suite passes against a test double, and fails against a double that claims an operation it lacks; an adapter called directly with an operation it lacks returns unsupported (`docs/cad-agent/architecture/CAD_ADAPTERS.md`).
+- [x] T1 Adapter contract. needs: T0. The interface in `docs/roadmap/MECAGENT_ROADMAP.md#Define a common CAD adapter interface:` plus a capability manifest; an operation an adapter lacks returns a typed unsupported result. One contract suite parameterized over adapters. Evidence: the suite passes against a test double, and fails against a double that claims an operation it lacks; an adapter called directly with an operation it lacks returns unsupported (`docs/cad-agent/architecture/CAD_ADAPTERS.md`).
 - [ ] T2 Geometry operations. needs: T1. New part; sketch (rectangle, circle, polyline); extrude, cut, hole, fillet, chamfer; modify a dimension; assign material; inspect (valid, volume, area, bounding box, face and edge counts, feature list). Evidence: tests: a 120 × 80 × 10 mm plate with four Ø6 through holes is a valid solid whose volume equals the analytic value within 0.01 %, bounding box within 0.001 mm, four cylindrical faces; changing thickness to 12 rebuilds to the new analytic volume.
 - [ ] T3 Export round trip. needs: T2. STEP and native export, re-import and compare. Evidence: tests: export then re-import keeps volume within 0.01 % and the bounding box; a corrupted STEP is refused with an error record.
 - [ ] T4 Executor and records. needs: T1. Schema validation before any kernel call; per-operation timeout and cancellation; one persisted execution record per operation with every field of `docs/roadmap/MECAGENT_ROADMAP.md#Every CAD operation must produce an execution record containing:`. No path runs model-written code (I6). Evidence: tests: invalid parameters refused before the kernel is called; an operation past its timeout is cancelled and recorded; a failed operation is recorded with its error; an operation type `script` is refused; a refused proposal has a record; after a cancel or a timeout the document's revision and inspection equal its checkpoint; an operation left running at server start is restored and recorded (`docs/cad-agent/architecture/EXECUTION_AND_VERIFICATION.md`).
@@ -27,4 +27,21 @@ Deciding rule, fixed before T1 starts: T0 to T6 are ticked, `npm run gate` exits
   graph-lint exit=0
   gate exit=0
   ModuleNotFoundError: No module named 'build123d'
+  ```
+- 2026-11-10 · L3/T1 · started T1
+- 2026-11-10 · L3/T1 · passed · gate green · commit loop(L3/T1) (this entry's own commit; cad-AI commit 5163396) · built in cad-AI/worker: the base adapter with the roadmap's interface plus health, capabilities and import_document (`cad-AI/worker/adapter.py`), whose `run()` returns a typed unsupported result for a type the manifest does not claim, an unlisted export format or an unimplemented method, and kernel_error for an engine exception; the contract suite (`cad-AI/worker/adapter_contract.py`): manifest shape, one ordered case per operation type (two for export, STEP and BREP), each result merged into its envelope and checked against the schema, a supported entry must succeed, an unclaimed one must return unsupported, inspect must return verification; an in-memory double that holds no geometry, so its inspect reports an invalid, empty body (`cad-AI/worker/adapter_double.py`). The test (`cad-AI/worker/test_adapter_contract.py`) was written first and failed at collection. Design rows added to `docs/cad-agent/architecture/CAD_ADAPTERS.md`, including that a created sketch, feature or artifact takes its operation's id. The fillet and chamfer cases use placeholder edge names that T2 must replace with names the kernel resolves · Direction: still the goal; the contract is the bar the kernel adapter must meet in T2 · Next: T2 Geometry operations, blocked until the human approves installing build123d
+
+  ```
+  full []
+  partial []
+  lying ['c03 extrude: claimed supported but returned unsupported', 'c05 cut: claimed supported but returned unsupported', 'c06 hole: claimed supported but returned unsupported', 'c08 fillet: claimed supported but returned unsupported', 'c09 chamfer: claimed supported but returned unsupported']
+  overclaim ['manifest claims mate, which the schema does not define']
+  graph-lint: 30 docs · 208 citations (102 file, 1 line range, 101 literal, 4 planned)
+  graph-lint: clean
+  clean-room-lint: 114 tracked files · 0 fingerprints · 241 identifiers
+  clean-room-lint: clean
+  gate-guard: clean · HEAD..working tree
+        Tests  20 passed (20)
+  29 passed in 0.07s
+  gate exit=0
   ```
