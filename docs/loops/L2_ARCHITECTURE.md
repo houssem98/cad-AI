@@ -13,7 +13,7 @@ Deciding rule, fixed before T2 starts: T0 to T4 are ticked, `npm run gate` exits
 - [x] T2 Architecture docs. needs: T1. Write under docs/cad-agent/architecture: `docs/cad-agent/architecture/SYSTEM_ARCHITECTURE.md` (new), `docs/cad-agent/architecture/AGENT_ORCHESTRATION.md` (new), `docs/cad-agent/architecture/CAD_ADAPTERS.md` (new), `docs/cad-agent/architecture/DATABASE_DESIGN.md` (new), `docs/cad-agent/architecture/API_CONTRACTS.md` (new), `docs/cad-agent/architecture/EXECUTION_AND_VERIFICATION.md` (new). Each subsystem: responsibility, interface, data contract, errors, tests; plus the agent state machine, job lifecycle and execution lifecycle. Each design choice cites the research row it answers. Evidence: graph-lint and clean-room-lint exit 0.
 - [x] T3 Operation protocol. needs: T2. In cad-AI, turn the typed IR in `cad-AI/src/services/cad/cadOperationIR.ts` into one operation schema shared by TypeScript and Python (JSON Schema as the single source) carrying `docs/roadmap/MECAGENT_ROADMAP.md#Every CAD action must have:`. Extend `npm run gate` to run cad-AI's typecheck, unit tests and pytest, and clean-room-lint over cad-AI's tracked files. Evidence: tests: a valid operation passes; a missing target, an unknown type, a missing unit and an extra field are each refused; `npm run gate` exits 0.
 - [x] T4 Independent check. needs: T3. A council on the architecture docs and the schema with the operations, records and adapters items of the attack list. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
-- [ ] T5 (human) Signoff. needs: T4. Evidence: the signoff line in the Journal.
+- [x] T5 (human) Signoff. needs: T4. Evidence: the signoff line in the Journal.
 
 ## Journal
 - 2026-11-10 · L2/T0 · started T0
@@ -100,3 +100,4 @@ Deciding rule, fixed before T2 starts: T0 to T4 are ticked, `npm run gate` exits
   gate-guard: clean · HEAD..working tree
   gate exit=0
   ```
+- 2026-11-10 · L2/T5 · passed · gate green · commit loop(L2/T5) (this entry's own commit) · human signoff in chat, after the T4 result and the L3 to L9 outlook were reported: "signoff line and  tick the L2 line ans cotinue the loop to L3". The deciding rule holds: T0 to T4 are ticked, `npm run gate` exits 0 with cad-AI typecheck, Vitest and pytest inside it, and this signoff line is in the Journal. On the human's instruction the loop ticked the L2 line in `docs/LOOP_GRAPH.md`. Budget: 11 of 12 entries · Direction: still the goal; the design is fixed and the protocol is under the gate, so geometry work starts · Next: L3 T0 Re-verify

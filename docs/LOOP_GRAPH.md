@@ -23,7 +23,7 @@ Phases come from `docs/roadmap/MECAGENT_ROADMAP.md` (a frozen copy of the human'
 
 - [x] L0 Baseline. ledger: `docs/loops/L0_BASELINE.md` · needs: none. · budget 6 ticks or $8 · `docs/roadmap/MECAGENT_ROADMAP.md#PHASE 0 — ENVIRONMENT AND BASELINE AUDIT`
 - [x] L1 Investigate. ledger: `docs/loops/L1_INVESTIGATE.md` · needs: L0. · budget 30 ticks or $40 · `docs/roadmap/MECAGENT_ROADMAP.md#PHASE 1 — MECAGENT PRODUCT INVESTIGATION`
-- [ ] L2 Architecture. ledger: `docs/loops/L2_ARCHITECTURE.md` · needs: L1. · budget 12 ticks or $15 · `docs/roadmap/MECAGENT_ROADMAP.md#PHASE 2 — TARGET ARCHITECTURE`
+- [x] L2 Architecture. ledger: `docs/loops/L2_ARCHITECTURE.md` · needs: L1. · budget 12 ticks or $15 · `docs/roadmap/MECAGENT_ROADMAP.md#PHASE 2 — TARGET ARCHITECTURE`
 - [ ] L3 Kernel. ledger: `docs/loops/L3_KERNEL.md` · needs: L2. · budget 20 ticks or $25 · `docs/roadmap/MECAGENT_ROADMAP.md#PHASE 4 — REAL CAD ADAPTER`
 - [ ] L4 Workspace. ledger: `docs/loops/L4_WORKSPACE.md` · needs: L2. · budget 20 ticks or $25 · `docs/roadmap/MECAGENT_ROADMAP.md#PHASE 3 — PREMIUM CAD DESKTOP EXPERIENCE`
 - [ ] L5 Agent. ledger: `docs/loops/L5_AGENT.md` · needs: L3, L4. · budget 25 ticks or $40 · `docs/roadmap/MECAGENT_ROADMAP.md#PHASE 5 — AI CAD AGENT`
