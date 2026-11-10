@@ -37,3 +37,14 @@ Deciding rule, fixed before T2 starts: T0 to T4 are ticked, `npm run gate` exits
   clean-room-lint: clean
   clean-room-lint exit=0
   ```
+- 2026-11-10 · L2/T3 · started T3 (no new dependency beyond the T1-approved list: the validator reads the JSON Schema file with our own code; the human did not answer the ajv question)
+- 2026-11-10 · L2/T3 · blocked · gate red: clean-room-lint, 2 cad-AI files · commit loop(L2/T3) blocked (this entry's own commit; the T3 work stays uncommitted in both trees for the next tick to finish) · built, uncommitted: one JSON Schema as single source (cad-AI/schema/cad-operation.schema.json (new)) with every roadmap action field, units on every length and no extra fields; dependency-free validators reading that file in TypeScript (cad-AI/src/services/cad/operationSchema.ts (new)) and Python (cad-AI/worker/operation_schema.py (new)); one shared case file both suites run (cad-AI/schema/operation-cases.json (new)): Vitest 5 passed, pytest 5 passed. cad-AI deps installed with --legacy-peer-deps (its own esbuild and @tailwindcss/vite peer conflict; tsc then exits 0), Vitest added as T1 approved, a package-lock.json created, resolveJsonModule set in its tsconfig. The gate grew: cad-AI typecheck, Vitest and pytest, and clean-room-lint now also scans cad-AI's tracked files, with cad-AI/docs and cad-AI root .md files treated as docs like the root repo's. That scan found 2 files cad-AI serves to users that name the reference product: cad-AI/public/assets/aistudio/roadmap2_91174d5c.md and cad-AI/public/assets/aistudio/roamdap_mecaiagent_a1c37327.md. The loop did not write them, so moving or deleting them is the human's decision (escalation). Tests were written with the code, not before it · Direction: still the goal; the operation protocol works in both languages, and the gate now guards the product · Next: human decides on the 2 files (recommended: move both to cad-AI/docs/roadmap/, out of the served folder), then T3 finishes
+
+  ```
+  PASS (5) FAIL (0)
+  Pytest: 5 passed
+  clean-room-lint: 103 tracked files · 0 fingerprints · 241 identifiers
+     ✗ cad-AI/public/assets/aistudio/roadmap2_91174d5c.md: product code names the reference product
+     ✗ cad-AI/public/assets/aistudio/roamdap_mecaiagent_a1c37327.md: product code names the reference product
+  gate exit=1
+  ```
