@@ -4,6 +4,6 @@
   "type": "module",
   "scripts": {
     "graph": "node scripts/graph-lint.mjs",
-    "gate": "node scripts/graph-lint.mjs && node scripts/clean-room-lint.mjs && node scripts/gate-guard.mjs && npm --prefix cad-AI run lint && npm --prefix cad-AI test && python -m pytest cad-AI/worker -q"
+    "gate": "node scripts/graph-lint.mjs && node scripts/clean-room-lint.mjs && node scripts/gate-guard.mjs && npm --prefix cad-AI run lint && npm --prefix cad-AI test && python -m pytest cad-AI/worker -q && npm --prefix cad-AI run e2e"
   }
 }
