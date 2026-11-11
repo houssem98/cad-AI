@@ -11,7 +11,7 @@ Deciding rule, fixed before T2 starts: T0 to T5 are ticked, `npm run gate` exits
 - [x] T0 Re-verify. needs: none. Run graph-lint and refresh citations L2 changed. Evidence: graph-lint exits 0.
 - [x] T1 (human) Name and direction. needs: T0. The product name (anything but the reference's) and one art direction from the roadmap's Phase 3 brief. Evidence: the decision lines in the Journal.
 - [x] T2 Shell. needs: T1. The desktop window with chat, viewport, feature tree, properties, tasks and history panels; every panel renders loading, empty, error, running, completed and cancelled distinctly. Add the Playwright suite to `npm run gate`. Evidence: e2e: each state of each panel renders and its screenshot differs from the others.
-- [ ] T3 Viewport. needs: T2. Render the kernel's tessellation (glTF from the worker, through a tessellate request this task adds to the worker protocol in `docs/cad-agent/architecture/API_CONTRACTS.md`) with orbit, pan and zoom, always labeled as a preview (I3). Evidence: e2e: a fixture part loads, the canvas is not blank, the preview label is present.
+- [x] T3 Viewport. needs: T2. Render the kernel's tessellation (glTF from the worker, through a tessellate request this task adds to the worker protocol in `docs/cad-agent/architecture/API_CONTRACTS.md`) with orbit, pan and zoom, always labeled as a preview (I3). Evidence: e2e: a fixture part loads, the canvas is not blank, the preview label is present.
 - [ ] T4 Tree and properties. needs: T2. Both bound to the adapter's inspect output. Evidence: e2e against a fixture part: the tree lists its features, and the properties panel shows volume and bounding box taken from the execution record (its inspection's volume_mm3 and bbox_mm, `cad-AI/src/services/cad/cadStore.ts`).
 - [ ] T5 Independent check. needs: T3, T4. A council with the states and clean-room items of the attack list, plus keyboard reachability and icon-only buttons with no name. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
 - [ ] T6 (human) Signoff. needs: T5. Visual quality judged at 1440 × 900 and 1280 × 720. Evidence: the signoff line in the Journal.
@@ -43,4 +43,22 @@ Deciding rule, fixed before T2 starts: T0 to T5 are ticked, `npm run gate` exits
     6 passed (48.5s)
   gate exit=0
   clean-room-lint after the cad-AI commit: 130 tracked files · clean
+  ```
+- 2026-11-11 · L4/T3 · started T3
+- 2026-11-11 · L4/T3 · passed · gate green · commit loop(L4/T3) (this entry's own commit; cad-AI commit 74669ad) · the worker protocol gained a tessellate request (`cad-AI/worker/main.py`; kernel side in `cad-AI/worker/adapter_kernel.py`): build123d's export_gltf writes a binary glTF of the rebuilt solid, which a probe showed is in metres and Y-up (the node rotates the kernel's Z-up), about 83 KB for the plate; a document with no solid is precondition_failed, and the test double, which has no geometry, answers unsupported. `Executor.preview` returns it through the serial queue (`cad-AI/src/services/cad/executor.ts`). The viewport renders it in a new component, `cad-AI/src/components/cad/KernelPreview.tsx`: three's GLTFLoader, OrbitControls (left drag orbits, right drag pans, wheel zooms), a camera fitted to the bounding sphere, a size readout converted back to the kernel's axes and millimetres, and a Preview label that is always on. `cad-AI/src/App.tsx` loads it for ?part=<document id> from GET /api/documents/:id/preview, with the viewport panel loading, then completed or error. Without a part, the old procedural viewport still shows. Tests written first and seen failing: 2 pytest (tessellate GLB bounds 0.12 × 0.08 × 0.01 m; no solid and double refused), 1 vitest ("ex.preview is not a function") and 2 e2e. The e2e global setup (`cad-AI/e2e/global-setup.ts`) builds the 120 × 80 × 10 plate with four Ø6 holes through the real executor and kernel and writes its GLB; the suite (`cad-AI/e2e/viewport.e2e.ts`) serves that file on the route and checks: completed status, size 120.00 × 80.00 × 10.00 mm, over 100 triangles, the Preview label, more than 50 colours with the centre unlike the background, and a changed render after an orbit, a pan and a zoom; a 404 shows the error state with the server's message. Loading the executor under Playwright's Node ESM needed an import attribute on the schema JSON (`cad-AI/src/services/cad/operationSchema.ts`). A screenshot showed the first camera framing too tight; the fitted camera was checked by eye after restarting Vite, since DISABLE_HMR turns off its file watching. Owed: the server does not serve the preview route yet, because it does not own an executor until L5 (row added to `docs/cad-agent/architecture/API_CONTRACTS.md`); the properties and tree panels still show mock values next to the real preview, which T4 binds · Direction: still the goal; the viewport shows kernel geometry and says it is only a preview · Next: T4 Tree and properties
+
+  ```
+  red first: pytest 2 failed, 4 passed · vitest TypeError: ex.preview is not a function · e2e 2 failed (size attribute element not found; status completed, expected error)
+  graph-lint: 30 docs · 210 citations (107 file, 1 line range, 98 literal, 4 planned)
+  graph-lint: clean
+  clean-room-lint: 130 tracked files · 0 fingerprints · 241 identifiers
+  clean-room-lint: clean
+  gate-guard: clean · HEAD..working tree
+   Test Files  4 passed (4)
+        Tests  42 passed (42)
+  52 passed in 7.85s
+  Running 8 tests using 1 worker
+    8 passed (47.9s)
+  gate exit=0
+  clean-room-lint after the cad-AI commit: 133 tracked files · clean
   ```
