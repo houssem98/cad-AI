@@ -7,7 +7,7 @@ Read every tick together with the active ledger. The global rules in `~/.claude/
 ## Invariants
 
 - I1 No fake completion. Tick a task only when its Evidence command exited 0 this tick and the output is quoted in the Journal. Code that looks right is not evidence.
-- I2 The maker does not grade itself. Independent-check tasks run as a council of models other than the maker (Council protocol below); a finding counts only as a reproducible failing test or a corrected row.
+- I2 The maker does not grade itself. Independent-check tasks run as a council of fresh agents that did not build the work (Council protocol below); a finding counts only as a reproducible failing test or a corrected row.
 - I3 No kernel evidence, no geometry claim. A part, feature or export exists only when the adapter's own inspection confirms it: valid solid, volume and bounding box within the task's tolerance, and for exports a re-import that matches. Model text, a log line or a viewport render is not evidence (`docs/roadmap/MECAGENT_ROADMAP.md#Never report successful geometry creation unless the actual CAD application confirms it.`, `docs/roadmap/MECAGENT_ROADMAP.md#A browser 3D preview must never be presented as proof that a native CAD model has been created.`).
 - I4 A gate may grow and never shrinks in the change that claims it green. `node scripts/gate-guard.mjs` runs inside the gate. Removing or weakening an assertion, a tolerance, or an eval case is an escalation that names it and why it no longer grades anything real.
 - I5 Cite what you claim. Every statement about current code in a doc or ledger cites `path#literal` copied from a file read this tick, or a whole `path`. Never write a citation you did not just read. Mark files a task will create with ` (new)`. Files of the reference install live outside the repo: name them in plain text, never in a code span, because graph-lint checks every path-shaped code span.
@@ -67,16 +67,15 @@ The prompt restates the goal every tick and each Journal entry ends with a Direc
 
 ## Judged steps
 
-Prefer checks with exit codes: geometry is measured, not judged. Where a model must judge (independent checks), state the judge models, which differ from the maker, and n ≥ 3; the Council protocol satisfies this. Eval holdouts are read only by their runner script; the maker never opens a holdout case while tuning. Each deciding rule is written in its ledger before the task that tunes against it starts, and never edited after.
+Prefer checks with exit codes: geometry is measured, not judged. Where a model must judge (independent checks), state the judge models and n; the Council protocol satisfies this with two members and a chairman. Eval holdouts are read only by their runner script; the maker never opens a holdout case while tuning. Each deciding rule is written in its ledger before the task that tunes against it starts, and never edited after.
 
 ## Council protocol
 
-1. Members. Three fresh read-only agents on models other than the maker (maker on Opus: two independent Sonnet runs and one Haiku; Fable is not used, no credit), each with the identical prompt: the task's scope, the attack list below, and the instruction to report only disagreements, each with a `path:line` and a verbatim code quote.
-2. Peer review. Each member receives the other two reports, labeled Report A and Report B in shuffled order with model names removed, ranks them, and marks each item confirmed, refuted or unsure with a code quote.
-3. Chairman. One more fresh agent on a non-maker model writes one deduplicated list ordered by severity, with each item's agreement count and any refutation.
-4. Maker. Reproduces each item before acting: a failing test or a corrected row, or a rejection with its reason in the Journal.
+1. Members. Two fresh read-only agents on Opus 5.5, each with the identical prompt: the task's scope, the attack list below, and the instruction to report only disagreements, each with a `path:line` and a verbatim code quote. Independence comes from a fresh context that did not build the work; the human chose one model over several on 2026-11-11 to save tokens, accepting less model diversity. Fable is not used, no credit.
+2. Chairman. One more fresh agent on Opus 5.5 merges both reports into one deduplicated list ordered by severity, with each item's agreement count (1/2 or 2/2); it opens the cited code to settle an item the two reports disagree on, and marks it confirmed or refuted with a quote.
+3. Maker. Reproduces each item before acting: a failing test or a corrected row, or a rejection with its reason in the Journal.
 
-The Journal records member and chairman models, item counts after each stage, and every rejected item with its reason. A council costs about seven agent runs against the loop's budget.
+The Journal records member and chairman models, item counts after each stage, and every rejected item with its reason. A council costs about three agent runs against the loop's budget.
 
 ## Reporting
 

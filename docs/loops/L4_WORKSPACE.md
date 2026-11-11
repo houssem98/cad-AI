@@ -13,7 +13,7 @@ Deciding rule, fixed before T2 starts: T0 to T5 are ticked, `npm run gate` exits
 - [x] T2 Shell. needs: T1. The desktop window with chat, viewport, feature tree, properties, tasks and history panels; every panel renders loading, empty, error, running, completed and cancelled distinctly. Add the Playwright suite to `npm run gate`. Evidence: e2e: each state of each panel renders and its screenshot differs from the others.
 - [x] T3 Viewport. needs: T2. Render the kernel's tessellation (glTF from the worker, through a tessellate request this task adds to the worker protocol in `docs/cad-agent/architecture/API_CONTRACTS.md`) with orbit, pan and zoom, always labeled as a preview (I3). Evidence: e2e: a fixture part loads, the canvas is not blank, the preview label is present.
 - [x] T4 Tree and properties. needs: T2. Both bound to the adapter's inspect output. Evidence: e2e against a fixture part: the tree lists its features, and the properties panel shows volume and bounding box taken from the execution record (its inspection's volume_mm3 and bbox_mm, `cad-AI/src/services/cad/cadStore.ts`).
-- [ ] T5 Independent check. needs: T3, T4. A council with the states and clean-room items of the attack list, plus keyboard reachability and icon-only buttons with no name. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
+- [x] T5 Independent check. needs: T3, T4. A council with the states and clean-room items of the attack list, plus keyboard reachability and icon-only buttons with no name. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
 - [ ] T6 (human) Signoff. needs: T5. Visual quality judged at 1440 × 900 and 1280 × 720. Evidence: the signoff line in the Journal.
 
 ## Journal
@@ -79,4 +79,46 @@ Deciding rule, fixed before T2 starts: T0 to T5 are ticked, `npm run gate` exits
     10 passed (51.5s)
   gate exit=0
   clean-room-lint after the cad-AI commit: 135 tracked files · clean
+  ```
+- 2026-11-11 · L4/T5 · started T5 (council: maker Opus; members Sonnet, Sonnet, Haiku with one identical prompt; chairman Sonnet)
+- 2026-11-11 · L4/T5 · passed · gate green · commit loop(L4/T5) (this entry's own commit; cad-AI commit a575222) · Members: Sonnet, Sonnet and Haiku, read-only, with one identical prompt (scope T2 to T4; the states and clean-room items of the attack list, plus keyboard reachability and icon-only buttons with no name). Stage 1: 15, 13 and 17 items. Stage 2: each member checked the other two reports; 44 of 45 items confirmed, and R1-8's count of 15 unnamed controls on load was refuted in part, because those buttons are named by their title. Stage 3: chairman Sonnet, 23 deduplicated items (9 high, 10 medium, 4 low), listed below. Maker: the failing checks came first (new `cad-AI/e2e/honesty.e2e.ts`, `cad-AI/e2e/a11y.e2e.ts` and `cad-AI/e2e/no-webgl.e2e.ts`; panels, viewport and inspector specs extended; red run 18 failed, 6 passed), then one fix round. Rejected, with reasons: C10, because the preview and inspect routes are documented as owed to L5 in `docs/cad-agent/architecture/API_CONTRACTS.md` and the e2e stubs stand in for them until the server owns the executor; C17, because running and cancelled states come from L5 requests and L6 jobs, and T2's fixture already proves each state renders; C20, because `title` is a valid accessible-name source and this task targets buttons with no name, which C12 covers. Escalated: C23, the reference product's name in the human's own cad-AI docs (`cad-AI/docs/roadmap/roadmap2_91174d5c.md`, `cad-AI/docs/roadmap/01_PRODUCT_GAP_ANALYSIS.md`, `cad-AI/docs/roadmap/00_REPOSITORY_TRUTH_AUDIT.md`, `cad-AI/docs/benchmarks/CAD_EVALUATION_PLAN.md`, and the file name `cad-AI/docs/roadmap/roamdap_mecaiagent_a1c37327.md`); renaming or redacting them is the human's call. The first green attempt found two test faults, fixed without loosening a product claim. The viewport load check raced the first frame drawn after the mesh loads when the suite ran under load (it passed 3 of 3 alone), so it now polls the same centre-is-not-background assertion. Two equal damped Rotate drags ended 9 to 17 of about 373,000 pixels apart, so the Pan test compares views by the share of pixels changed: equal drags under 0.1 %, Pan against Rotate over 5 %, which is stronger than the old any-byte-differs check. Both tests then passed 3 of 3 repeats. Findings 2 and 7 of `docs/cad-agent/CAD_AI_TRUTH_AUDIT.md` cited the false strings T5 removed, so graph-lint failed; they now quote those strings as read at f46cc70 and cite the honest replacements. gate-guard on cad-AI's own diff: clean, with 2 assertions in viewport.e2e.ts rewritten at equal or greater strength. The fixes were not attacked by a second council round. Out of T5's workspace scope and still open: other mock modules (Overview, the Verification Center view, Integrations, the Export modal) still carry false claims, and the palette is not aligned to Graphite · Direction: still the goal; the workspace now claims only what a record backs and labels everything else demo or preview · Next: T6 (human) signoff at 1440 × 900 and 1280 × 720. C23, and whether to add an L4 task for the remaining false claims and the palette, wait on the human
+
+  ```
+  C1  high   honesty  live SolidWorks bridge claimed (ThreeCADViewport.tsx:587, TopNavigation.tsx:221, App.tsx help) · 3/3 · fixed: "No CAD application is connected"
+  C2  high   honesty  chat, history and console claim verification against the loaded record; fabricated log lines · 3/3 · fixed: verdict from the record, demo labels, fake stats and logs removed
+  C3  high   honesty  Approve & Execute is timers that report success and Euler verification (AICADAgentPanel.tsx:286-306) · 2/3 · fixed: demo flow, "Apply to preview", no verification claim
+  C4  high   honesty  report modal says CERTIFIED PASS and 99.8 % with no record (VerificationReportModal.tsx:103) · 1/3 · fixed: rewritten as a demo report
+  C5  high   honesty  default viewport has no Preview label, claims Parasolid B-Rep and an .SLDPRT · 3/3 · fixed: Preview label, demo model
+  C6  high   honesty  CAD Workspace module never receives the record, falls back to invented data · 3/3 · fixed: module wired to the record
+  C7  high   crash    no WebGL or a bad GLB unmounts the app; no error boundary · 2/3 · fixed: PanelFrame boundary, guarded renderer and parse
+  C8  high   a11y     viewport not operable by keyboard · 3/3 · fixed: focusable, labelled, arrows pan, Shift+arrows orbit, +/- zoom
+  C9  high   honesty  a failed /api/chat shows a canned reply as the model; Attach does nothing · 1/3 · fixed: offline-demo sender, Attach disabled with its reason
+  C10 medium test     T3/T4 e2e pass on page.route stubs; server has no /api/documents route · 3/3 · rejected: routes owed to L5
+  C11 medium test     panels completed check cannot tell content from the placeholder · 2/3 · fixed
+  C12 medium a11y     Check button, dimension input, material and role selects, drawing close have no name · 3/3 · fixed
+  C13 medium a11y     help, report and drawing overlays are not dialogs · 3/3 · fixed: Dialog.tsx (role, aria-modal, focus trap, Esc)
+  C14 medium a11y     inspector and console tabs expose no selected state · 1/3 · fixed: tab roles, aria-selected
+  C15 medium honesty  empty record or zero-triangle glTF renders as completed · 2/3 · fixed: empty state from data
+  C16 medium binding  BOM tab ignores the loaded record · 1/3 · fixed: BOM empty with a document loaded
+  C17 medium T2       panel states not driven by app state · 1/3 · rejected: running and cancelled come from L5 and L6
+  C18 medium honesty  Select/Rotate/Pan tools do nothing · 1/3 · fixed: Pan makes a left drag pan
+  C19 medium a11y     Copilot Role select has its focus ring removed · 1/3 · fixed
+  C20 low    a11y     about 30 icon-only buttons named by title alone · 3/3 · rejected: title is a valid name
+  C21 low    wording  "From the execution record" over store values; size readout not marked as mesh · 1/3 · fixed: headings split, "mesh bounds"
+  C22 low    UX       Esc does not cancel a dimension edit · 1/3 · fixed
+  C23 low    docs     reference product's name in the human's cad-AI docs · 2/3 · escalated to the human
+  red first: e2e 18 failed, 6 passed
+  graph-lint: 30 docs · 206 citations (105 file, 1 line range, 96 literal, 4 planned)
+  graph-lint: clean
+  clean-room-lint: 135 tracked files · 0 fingerprints · 241 identifiers
+  clean-room-lint: clean
+  gate-guard: clean · HEAD..working tree
+   Test Files  4 passed (4)
+        Tests  43 passed (43)
+  52 passed in 8.27s
+  Running 24 tests using 1 worker
+    24 passed (1.9m)
+  gate exit=0
+  repeat: a11y Pan/Rotate and viewport load, 3 each · 6 passed
+  clean-room-lint after the cad-AI commit: 140 tracked files · clean
   ```
