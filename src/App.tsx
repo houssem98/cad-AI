@@ -4,7 +4,7 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { NavigationModule, CADModelParameters, OperationHistoryRecord, ProjectInfo } from './types/cad';
+import { NavigationModule, CADModelParameters, OperationHistoryRecord, ProjectInfo, type DocumentView } from './types/cad';
 import {
   INITIAL_CAD_PARAMETERS,
   INITIAL_OPERATION_HISTORY,
@@ -21,7 +21,7 @@ import { AICADAgentPanel } from './components/agent/AICADAgentPanel';
 import { RightInspectorPanel } from './components/inspector/RightInspectorPanel';
 import { BottomConsole } from './components/bottom/BottomConsole';
 import { PanelFrame } from './components/workspace/PanelFrame';
-import { DEFAULT_PANELS, panelViewsFromUrl, type PanelViews } from './components/workspace/panelViews';
+import { DEFAULT_PANELS, panelViewsFromUrl, type PanelId, type PanelView, type PanelViews } from './components/workspace/panelViews';
 
 // Modals
 import { CommandPaletteModal } from './components/modals/CommandPaletteModal';
@@ -56,22 +56,28 @@ export default function App() {
   const [operationHistory, setOperationHistory] = useState<OperationHistoryRecord[]>(INITIAL_OPERATION_HISTORY);
   const [panels, setPanels] = useState<PanelViews>(() => ({ ...DEFAULT_PANELS, ...panelViewsFromUrl(window.location.search, import.meta.env.DEV) }));
   const [preview, setPreview] = useState<ArrayBuffer | null>(null);
-  const previewFailed = useCallback((message: string) => setPanels((p) => ({ ...p, viewport: { status: 'error', message } })), []);
+  const [doc, setDoc] = useState<DocumentView | null>(null);
+  const setStatus = useCallback((ids: PanelId[], view: PanelView) => setPanels((p) => ({ ...p, ...Object.fromEntries(ids.map((id) => [id, view])) })), []);
+  const previewFailed = useCallback((message: string) => setStatus(['viewport'], { status: 'error', message }), [setStatus]);
 
-  // ?part=<document id> opens that document's kernel preview in the viewport.
+  // ?part=<document id> opens that document: its kernel preview, and its feature tree and record in the inspector.
   useEffect(() => {
     const part = new URLSearchParams(window.location.search).get('part');
     if (!part) return;
-    setPanels((p) => ({ ...p, viewport: { status: 'loading' } }));
-    fetch(`/api/documents/${encodeURIComponent(part)}/preview`)
-      .then(async (r) => {
-        if (!r.ok) throw new Error((await r.json().catch(() => null))?.error?.message ?? `the server answered ${r.status}`);
-        if (r.headers.get('content-type') !== 'model/gltf-binary') throw new Error('the server sent no preview mesh');
-        setPreview(await r.arrayBuffer());
-        setPanels((p) => ({ ...p, viewport: { status: 'completed' } }));
-      })
+    const load = async (path: string, type: string, what: string) => {
+      const r = await fetch(`/api/documents/${encodeURIComponent(part)}/${path}`);
+      if (!r.ok) throw new Error((await r.json().catch(() => null))?.error?.message ?? `the server answered ${r.status}`);
+      if (!r.headers.get('content-type')?.startsWith(type)) throw new Error(`the server sent no ${what}`);
+      return r;
+    };
+    setStatus(['viewport', 'properties', 'tree'], { status: 'loading' });
+    load('preview', 'model/gltf-binary', 'preview mesh')
+      .then(async (r) => { setPreview(await r.arrayBuffer()); setStatus(['viewport'], { status: 'completed' }); })
       .catch((e: Error) => previewFailed(e.message));
-  }, [previewFailed]);
+    load('inspect', 'application/json', 'document record')
+      .then(async (r) => { setDoc(await r.json()); setStatus(['properties', 'tree'], { status: 'completed' }); })
+      .catch((e: Error) => setStatus(['properties', 'tree'], { status: 'error', message: e.message }));
+  }, [previewFailed, setStatus]);
 
   // Modals state
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -190,6 +196,7 @@ export default function App() {
                   isOpen={isInspectorOpen}
                   onToggleOpen={toggleInspector}
                   panels={panels}
+                  doc={doc}
                 />
               </div>
 

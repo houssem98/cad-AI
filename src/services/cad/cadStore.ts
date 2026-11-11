@@ -68,6 +68,18 @@ export class CadStore {
     return !!this.db.prepare("SELECT 1 FROM operations WHERE document_id = ? AND op_id = ? AND status = 'succeeded'").get(docId, opId);
   }
 
+  lastInspection(docId: string): { rowId: string; inspection: any } | undefined {
+    const r = this.db.prepare(`SELECT r.operation_row_id AS rowId, r.validation_json AS v FROM records r JOIN operations o ON o.row_id = r.operation_row_id
+      WHERE r.document_id = ? AND o.status = 'succeeded' ORDER BY r.id DESC LIMIT 1`).get(docId) as { rowId: string; v: string } | undefined;
+    return r && { rowId: r.rowId, inspection: JSON.parse(r.v).inspection ?? null };
+  }
+
+  succeededTypes(docId: string): Map<string, string> {
+    const rows = this.db.prepare(`SELECT op_id AS id, json_extract(envelope_json, '$.type') AS type FROM operations
+      WHERE document_id = ? AND status = 'succeeded'`).all(docId) as Array<{ id: string; type: string }>;
+    return new Map(rows.map((r) => [r.id, r.type]));
+  }
+
   hasSucceededType(docId: string, types: string[]): boolean {
     return !!this.db.prepare(`SELECT 1 FROM operations WHERE document_id = ? AND status = 'succeeded'
       AND json_extract(envelope_json, '$.type') IN (${types.map(() => '?').join(', ')})`).get(docId, ...types);

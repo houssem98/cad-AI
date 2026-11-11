@@ -216,6 +216,19 @@ describe('executor', { timeout: 30000 }, () => {
     expect(unknown).toMatchObject({ status: 'failed', error: { code: 'precondition_failed' } });
   });
 
+  it('views a document: features from the adapter inspect, volume and bounding box from the last record', async () => {
+    const { ex } = await start(KERNEL);
+    const done = await ex.execute(EXTRUDE, { requestId: 'r1' });
+    const out = await ex.view('doc-1');
+    expect(out.status).toBe('succeeded');
+    expect(out.view!.features).toEqual([{ id: 'p1', type: 'new_part' }, { id: 's1', type: 'sketch_rectangle' }, { id: 'e1', type: 'extrude' }]);
+    expect(out.view!.inspection).toEqual(done.record.validationResult.inspection);
+    expect(out.view!.inspection!.volume_mm3).toBeCloseTo(40 * 20 * 10, 6);
+    expect(out.view!.revision).toBe(3);
+    expect(out.view!.recordOperation).toBe(done.operationId);
+    expect(await ex.view('nope')).toMatchObject({ status: 'failed', error: { code: 'precondition_failed' } });
+  });
+
   it('fails an export reported without a file, and keeps the measurement of a failed export', async () => {
     const { ex } = await start(KERNEL);
     expect((await ex.execute(EXTRUDE, { requestId: 'r1' })).status).toBe('succeeded');

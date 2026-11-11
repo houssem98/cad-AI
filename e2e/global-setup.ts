@@ -6,6 +6,7 @@ import { Executor } from '../src/services/cad/executor';
 
 // The viewport suite renders a part the real kernel built and tessellated, never a hand-made mesh.
 export const PLATE_GLB = fileURLToPath(new URL('./.fixtures/plate.glb', import.meta.url));
+export const PLATE_VIEW = fileURLToPath(new URL('./.fixtures/plate.view.json', import.meta.url));
 
 const mm = (value: number) => ({ value, unit: 'mm' });
 const op = (id: string, type: string, params: object) => ({
@@ -28,8 +29,11 @@ export default async function globalSetup() {
     }
     const preview = await ex.preview('plate');
     if (preview.status !== 'succeeded') throw new Error(`preview ${preview.status}: ${preview.error?.message}`);
+    const view = await ex.view('plate');
+    if (view.status !== 'succeeded') throw new Error(`view ${view.status}: ${view.error?.message}`);
     mkdirSync(dirname(PLATE_GLB), { recursive: true });
     writeFileSync(PLATE_GLB, preview.glb!);
+    writeFileSync(PLATE_VIEW, JSON.stringify(view.view));
   } finally {
     ex.close();
   }

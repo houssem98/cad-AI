@@ -22,6 +22,18 @@ export type NavigationModule =
   | 'integrations'
   | 'administration';
 
+interface Xyz { x: number; y: number; z: number }
+
+// What GET /api/documents/:id/inspect returns: features from the adapter's inspect, geometry from the last succeeded record.
+export interface DocumentView {
+  id: string;
+  revision: number;
+  material: string | null;
+  features: Array<{ id: string; type: string }>;
+  inspection: { valid: boolean; volume_mm3: number; bbox_mm: { min: Xyz; max: Xyz }; counts: { solids: number; faces: number; edges: number } } | null;
+  recordOperation: string | null;
+}
+
 export interface CADModelParameters {
   length: number;        // e.g. 80 mm
   width: number;         // e.g. 50 mm

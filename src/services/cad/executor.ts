@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { CadStore, type Artifact, type Doc, type OpRow } from './cadStore';
 import { CadWorker, WorkerError } from './cadWorker';
 import { validateProposal } from './operationSchema';
+import type { DocumentView } from '../../types/cad';
 
 // docs/cad-agent/architecture/EXECUTION_AND_VERIFICATION.md is the lifecycle this file implements.
 const MM: Record<string, number> = { mm: 1, cm: 10, m: 1000, in: 25.4 };
@@ -79,6 +80,26 @@ export class Executor {
 
   execute(proposal: any, ctx: { requestId: string; signal?: AbortSignal }): Promise<Outcome> {
     return this.serial(() => this.run(proposal, ctx));
+  }
+
+  // The feature tree from the adapter's inspect, and volume and bounding box from the last succeeded record.
+  view(docId: string): Promise<{ status: string; view?: DocumentView; error?: TypedError }> {
+    return this.serial(async () => {
+      const doc = this.store.document(docId);
+      if (!doc) return { status: 'failed', error: { code: 'precondition_failed', message: `document ${docId} does not exist` } };
+      try {
+        const { result } = await this.look(docId);
+        const types = this.store.succeededTypes(docId);
+        const last = this.store.lastInspection(docId);
+        return { status: 'succeeded', view: { id: docId, revision: doc.revision, material: result.material ?? null,
+          features: result.features.map((id: string) => ({ id, type: types.get(id) ?? 'unknown' })),
+          inspection: last?.inspection ?? null, recordOperation: last?.rowId ?? null } };
+      } catch (e) {
+        if (!(e instanceof WorkerError)) throw e;
+        await this.reloadAll();
+        return { status: 'failed', error: { code: e.code, message: e.message } };
+      }
+    });
   }
 
   // The kernel's tessellation of a document as a GLB, for the viewport. A preview, never evidence (I3).
