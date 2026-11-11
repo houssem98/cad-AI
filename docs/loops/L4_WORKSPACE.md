@@ -12,7 +12,7 @@ Deciding rule, fixed before T2 starts: T0 to T5 are ticked, `npm run gate` exits
 - [x] T1 (human) Name and direction. needs: T0. The product name (anything but the reference's) and one art direction from the roadmap's Phase 3 brief. Evidence: the decision lines in the Journal.
 - [x] T2 Shell. needs: T1. The desktop window with chat, viewport, feature tree, properties, tasks and history panels; every panel renders loading, empty, error, running, completed and cancelled distinctly. Add the Playwright suite to `npm run gate`. Evidence: e2e: each state of each panel renders and its screenshot differs from the others.
 - [x] T3 Viewport. needs: T2. Render the kernel's tessellation (glTF from the worker, through a tessellate request this task adds to the worker protocol in `docs/cad-agent/architecture/API_CONTRACTS.md`) with orbit, pan and zoom, always labeled as a preview (I3). Evidence: e2e: a fixture part loads, the canvas is not blank, the preview label is present.
-- [ ] T4 Tree and properties. needs: T2. Both bound to the adapter's inspect output. Evidence: e2e against a fixture part: the tree lists its features, and the properties panel shows volume and bounding box taken from the execution record (its inspection's volume_mm3 and bbox_mm, `cad-AI/src/services/cad/cadStore.ts`).
+- [x] T4 Tree and properties. needs: T2. Both bound to the adapter's inspect output. Evidence: e2e against a fixture part: the tree lists its features, and the properties panel shows volume and bounding box taken from the execution record (its inspection's volume_mm3 and bbox_mm, `cad-AI/src/services/cad/cadStore.ts`).
 - [ ] T5 Independent check. needs: T3, T4. A council with the states and clean-room items of the attack list, plus keyboard reachability and icon-only buttons with no name. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
 - [ ] T6 (human) Signoff. needs: T5. Visual quality judged at 1440 × 900 and 1280 × 720. Evidence: the signoff line in the Journal.
 
@@ -61,4 +61,22 @@ Deciding rule, fixed before T2 starts: T0 to T5 are ticked, `npm run gate` exits
     8 passed (47.9s)
   gate exit=0
   clean-room-lint after the cad-AI commit: 133 tracked files · clean
+  ```
+- 2026-11-11 · L4/T4 · started T4
+- 2026-11-11 · L4/T4 · passed · gate green · commit loop(L4/T4) (this entry's own commit; cad-AI commit 3097bec) · `Executor.view` (`cad-AI/src/services/cad/executor.ts`) returns the document's revision, material and features (ids from the adapter's inspect, types from the succeeded operations) and the inspection (valid, volume_mm3, bbox_mm, counts) with the operation row id of the last succeeded record (`lastInspection` and `succeededTypes` in `cad-AI/src/services/cad/cadStore.ts`; type `DocumentView` in `cad-AI/src/types/cad.ts`). For ?part=<id>, `cad-AI/src/App.tsx` loads it from GET /api/documents/:id/inspect beside the preview and puts properties and tree into loading, then completed or error. With a document loaded, the inspector's two tabs render `cad-AI/src/components/inspector/RecordInspector.tsx` instead of the mock values. Without one, the old mock content stays. Tests written first and seen failing: 1 vitest ("ex.view is not a function"; it now also checks that the view's inspection equals the record's validationResult.inspection) and 2 e2e (volume element not found; status completed, expected error). The e2e global setup writes the kernel plate's view next to its GLB. `cad-AI/e2e/inspector.e2e.ts` first checks that this fixture is the analytic plate (box 120.00 × 80.00 × 10.00, volume within 1e-4 of 120·80·10 − 4π·3²·10). It then checks the properties panel shows that volume and box and the record's operation id, and no Mounting_Bracket. The tree must list p new part, s rectangle sketch, x extrude, h hole, and a refused inspect must put both panels in their error state. A first run failed because JSX drops the whitespace between the two spans in a tree row; a `{' '}` fixed it. A screenshot of both tabs was checked by eye (volume 94869.03 mm³, 1 · 10 · 24 solids, faces and edges, as L3 T2 measured). The design row for the route is updated in `docs/cad-agent/architecture/API_CONTRACTS.md`; the server still serves neither route until L5 · Direction: still the goal; for a loaded part, the inspector now shows only what the record holds · Next: T5 Independent check (council). The human has not yet answered whether to add an L4 task for removing false claims and aligning the palette; T5's states and clean-room review will run either way
+
+  ```
+  red first: vitest TypeError: ex.view is not a function · e2e 2 failed (expected "94869.03 mm³", element not found; expected error, received completed)
+  graph-lint: 30 docs · 209 citations (106 file, 1 line range, 98 literal, 4 planned)
+  graph-lint: clean
+  clean-room-lint: 133 tracked files · 0 fingerprints · 241 identifiers
+  clean-room-lint: clean
+  gate-guard: clean · HEAD..working tree
+   Test Files  4 passed (4)
+        Tests  43 passed (43)
+  52 passed in 8.39s
+  Running 10 tests using 1 worker
+    10 passed (51.5s)
+  gate exit=0
+  clean-room-lint after the cad-AI commit: 135 tracked files · clean
   ```
