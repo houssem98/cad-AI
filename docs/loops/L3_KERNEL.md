@@ -14,7 +14,7 @@ Deciding rule, fixed before T1 starts: T0 to T6 are ticked, `npm run gate` exits
 - [x] T3 Export round trip. needs: T2. STEP and native export, re-import and compare. Evidence: tests: export then re-import keeps volume within 0.01 % and the bounding box; a corrupted STEP is refused with an error record.
 - [x] T4 Executor and records. needs: T1. Schema validation before any kernel call; per-operation timeout and cancellation; one persisted execution record per operation with every field of `docs/roadmap/MECAGENT_ROADMAP.md#Every CAD operation must produce an execution record containing:`. No path runs model-written code (I6). Evidence: tests: invalid parameters refused before the kernel is called; an operation past its timeout is cancelled and recorded; a failed operation is recorded with its error; an operation type `script` is refused; a refused proposal has a record; after a cancel or a timeout the document's revision and inspection equal its checkpoint; an operation left running at server start is restored and recorded (`docs/cad-agent/architecture/EXECUTION_AND_VERIFICATION.md`).
 - [x] T5 Headless milestone. needs: T2, T3, T4. A fixed operation sequence, no model: enclosure 120 × 80 × 40 mm, 2 mm shell, four M3 bosses, separate lid. Evidence: test: both parts valid, volumes equal the analytic values within 0.05 %, STEP round trip holds, every operation has a record.
-- [ ] T6 Independent check. needs: T5. A council with the geometry, operations, records and adapters items of the attack list. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
+- [x] T6 Independent check. needs: T5. A council with the geometry, operations, records and adapters items of the attack list. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
 - [ ] T7 (human) Signoff. needs: T6. The human opens the T5 STEP files in any viewer. Evidence: the signoff line in the Journal.
 
 ## Journal
@@ -113,5 +113,40 @@ Deciding rule, fixed before T1 starts: T0 to T6 are ticked, `npm run gate` exits
    Test Files  3 passed (3)
         Tests  30 passed (30)
   38 passed in 7.58s
+  gate exit=0
+  ```
+- 2026-11-10 · L3/T6 · started T6 (council: maker Opus; members Sonnet, Sonnet, Haiku with one identical prompt; chairman Sonnet; full protocol including peer review)
+- 2026-11-11 · L3/T6 · passed · gate green · commit loop(L3/T6) (this entry's own commit; cad-AI commit c17ca96) · the earlier tick left only its started line, so the council ran again from the start. Members: Sonnet, Sonnet and Haiku, read-only, with one identical prompt (scope T1 to T5; the geometry, operations, records and adapters items of the attack list). Stage 1: 13, 11 and 14 items (12, 9 and 12 reproduced by probe). Stage 2: each member checked the other two reports under shuffled labels; all 38 items were confirmed by both, none refuted, none unsure. Stage 3: chairman Sonnet, 20 deduplicated items (4 high, 9 medium, 7 low), listed below. Maker: each item was written as a failing test first (11 pytest and 12 vitest cases red), or as a corrected design row, then fixed in one round. Rejected parts, with reasons: C14's code change, because cut, hole and a second material assignment append a history entry and change none, so Restore removes them whole (the doc line that said they "only add geometry" is corrected instead); C12's executor half, because new_part makes only parts and no type makes another kind until L7 (row corrected); C11's deadline on the approval wait, because the user decides how long to think and cancel now ends the wait. One added test (an inspect that hangs past the deadline) passed on its first run: the path already worked, so it adds coverage, not a fix. A multibody part is now UNSUPPORTED and fails verification. Design rows corrected in EXECUTION_AND_VERIFICATION, CAD_ADAPTERS, API_CONTRACTS (no cancel message and no progress line; capabilities also returns calls) and DATABASE_DESIGN (storage_error lasts until restart). gate-guard on cad-AI's own diff: clean, one assertion rewritten at greater strength (toHaveProperty to toBeTruthy plus errorDetails null). The fixes were not attacked by a second council round · Direction: still the goal; the executor now refuses a geometry claim its own inspection does not back, which is I3 enforced in code, not only in tests · Next: T7 (human) signoff: open the T5 STEP files in cad-AI/milestone-out in any viewer
+
+  ```
+  C1  high   geometry   succeeded recorded for an invalid, empty or unchanged solid (executor.ts:115-127) · 3/3 · fixed: verify step, kernel no-op cut/hole check
+  C2  high   records    exceptions escape execute() with no record (approve throws; manifest call outside try) · 3/3 · fixed
+  C3  high   records    pending and awaiting_approval rows unrecorded after restart (cadStore.ts:72) · 3/3 · fixed: recorded cancelled
+  C4  high   operations approval fails open on any answer but 'denied' (executor.ts:98-99) · 2/3 · fixed: only approved or auto run
+  C5  medium records    cadCommand null on timeout, cancel, crash (executor.ts:110) · 3/3 · fixed: calls map from capabilities
+  C6  medium geometry   import never checks stored sha256 (executor.ts:86-89) · 2/3 · fixed: precondition_failed "changed"
+  C7  medium geometry   polyline extrude direction follows winding (adapter_kernel.py:156) · 2/3 · fixed: clockwise reversed
+  C8  medium geometry   two disjoint solids reported valid (adapter_kernel.py:36) · 1/3 · fixed: executor needs exactly one solid
+  C9  medium operations execute not serialised, replies cross (cadWorker.ts:52) · 3/3 · fixed: one request at a time
+  C10 medium records    storage failure returns no code; halted never cleared (executor.ts:74,182-184) · 3/3 · fixed: storage_error returned; row corrected
+  C11 medium operations cancel ignored during approval wait; save without signal (executor.ts:98,118) · 1/3 · fixed; approval deadline rejected
+  C12 medium adapters   contract does not prove document kinds (adapter_contract.py:53) · 3/3 · fixed in contract; executor half rejected
+  C13 medium adapters   contract accepts export with no file or re-import; double does it · 2/3 · fixed: contract and executor; double claims no export or import
+  C14 low    operations CONSEQUENTIAL holds only modify_dimension · 2/3 · rejected, doc row corrected
+  C15 low    record lacks end time; failed export drops its measurement · 3/3 · fixed
+  C16 low    worker runs unvalidated operations (main.py:22-23) · 1/3 · fixed: worker validates
+  C17 low    hole with neither depth nor through_all ends kernel_error (adapter_kernel.py:181) · 1/3 · fixed: precondition_failed
+  C18 low    doc lists a cancel message and progress lines main.py lacks; validated never written · 3/3 · row corrected; validated now written
+  C19 low    weak tests: toHaveProperty, features-only restore, no inspect-deadline test · 2/3 · fixed: stronger assertions, new test
+  C20 low    new_part or import wipes an existing document at adapter level; session methods unimplemented · 1/3 · fixed; session row UNTESTED until L9
+  red first: pytest 11 failed, 39 passed · vitest executor 12 failed, 6 passed
+  graph-lint: 30 docs · 212 citations (108 file, 1 line range, 99 literal, 4 planned)
+  graph-lint: clean
+  clean-room-lint: 124 tracked files · 0 fingerprints · 241 identifiers
+  clean-room-lint: clean
+  gate-guard: clean · HEAD..working tree
+   Test Files  3 passed (3)
+        Tests  39 passed (39)
+  50 passed in 9.25s
   gate exit=0
   ```

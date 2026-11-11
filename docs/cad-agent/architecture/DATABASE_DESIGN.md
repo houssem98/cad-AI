@@ -29,7 +29,7 @@ Durable state for requests, operations, records, jobs, artifacts, automations an
 
 ## Errors
 
-A failed write ends the operation with `storage_error` and the request fails; the error goes to requests.error_json if that write works, and to the server log in any case. The executor then accepts no further operation until a write succeeds, and the server never reports success for an unpersisted record.
+A failed write ends the operation with `storage_error` and the request fails; the error goes to requests.error_json if that write works, and to the server log in any case. The executor then answers every later proposal `storage_error` until the server restarts with working storage, and the server never reports success for an unpersisted record.
 
 ## Tests
 
