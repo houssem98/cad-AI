@@ -4,9 +4,20 @@ import json
 import os
 import sys
 
-from adapter import METHODS, outcome
+from adapter import METHODS, PreconditionFailed, outcome
 from adapter_double import DoubleAdapter
 from operation_schema import validate_operation
+
+
+def tessellate(adapter, document):
+    try:
+        return {"status": "succeeded", "error": None, **adapter.tessellate(document)}
+    except NotImplementedError:
+        return {"status": "unsupported", "error": {"code": "unsupported", "message": "this adapter has no preview mesh"}}
+    except PreconditionFailed as e:
+        return {"status": "failed", "error": {"code": "precondition_failed", "message": str(e)}}
+    except Exception as e:
+        return {"status": "failed", "error": {"code": "kernel_error", "message": str(e)}}
 
 
 def serve(adapter, lines, out):
@@ -27,6 +38,8 @@ def serve(adapter, lines, out):
             reply = {"kind": "result", "id": op.get("id"), "call": METHODS.get(op.get("type")), **body}
         elif kind == "inspect":
             reply = {"kind": "inspected", **adapter.inspect_geometry({"target": {"document": msg["document"]}})}
+        elif kind == "tessellate":
+            reply = {"kind": "tessellated", **tessellate(adapter, msg["document"])}
         elif kind == "save":
             adapter.save_checkpoint(msg["document"], msg["path"])
             reply = {"kind": "saved"}

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { NavigationModule, CADModelParameters, OperationHistoryRecord, ProjectInfo } from './types/cad';
 import {
   INITIAL_CAD_PARAMETERS,
@@ -16,6 +16,7 @@ import {
 import { TopNavigation } from './components/navigation/TopNavigation';
 import { Sidebar } from './components/navigation/Sidebar';
 import { ThreeCADViewport } from './components/cad/ThreeCADViewport';
+import { KernelPreview } from './components/cad/KernelPreview';
 import { AICADAgentPanel } from './components/agent/AICADAgentPanel';
 import { RightInspectorPanel } from './components/inspector/RightInspectorPanel';
 import { BottomConsole } from './components/bottom/BottomConsole';
@@ -53,7 +54,24 @@ export default function App() {
   // CAD Model & Geometry Parameters
   const [parameters, setParameters] = useState<CADModelParameters>(INITIAL_CAD_PARAMETERS);
   const [operationHistory, setOperationHistory] = useState<OperationHistoryRecord[]>(INITIAL_OPERATION_HISTORY);
-  const [panels] = useState<PanelViews>(() => ({ ...DEFAULT_PANELS, ...panelViewsFromUrl(window.location.search, import.meta.env.DEV) }));
+  const [panels, setPanels] = useState<PanelViews>(() => ({ ...DEFAULT_PANELS, ...panelViewsFromUrl(window.location.search, import.meta.env.DEV) }));
+  const [preview, setPreview] = useState<ArrayBuffer | null>(null);
+  const previewFailed = useCallback((message: string) => setPanels((p) => ({ ...p, viewport: { status: 'error', message } })), []);
+
+  // ?part=<document id> opens that document's kernel preview in the viewport.
+  useEffect(() => {
+    const part = new URLSearchParams(window.location.search).get('part');
+    if (!part) return;
+    setPanels((p) => ({ ...p, viewport: { status: 'loading' } }));
+    fetch(`/api/documents/${encodeURIComponent(part)}/preview`)
+      .then(async (r) => {
+        if (!r.ok) throw new Error((await r.json().catch(() => null))?.error?.message ?? `the server answered ${r.status}`);
+        if (r.headers.get('content-type') !== 'model/gltf-binary') throw new Error('the server sent no preview mesh');
+        setPreview(await r.arrayBuffer());
+        setPanels((p) => ({ ...p, viewport: { status: 'completed' } }));
+      })
+      .catch((e: Error) => previewFailed(e.message));
+  }, [previewFailed]);
 
   // Modals state
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -154,11 +172,15 @@ export default function App() {
 
                 {/* 3D Interactive Three.js CAD Viewport */}
                 <PanelFrame panel="viewport" label="Viewport" view={panels.viewport} className="flex-1 min-w-0 h-full relative">
-                  <ThreeCADViewport
-                    parameters={parameters}
-                    onParameterChange={handleUpdateParameters}
-                    onOpenReport={() => setIsVerificationReportOpen(true)}
-                  />
+                  {preview ? (
+                    <KernelPreview glb={preview} onError={previewFailed} />
+                  ) : (
+                    <ThreeCADViewport
+                      parameters={parameters}
+                      onParameterChange={handleUpdateParameters}
+                      onOpenReport={() => setIsVerificationReportOpen(true)}
+                    />
+                  )}
                 </PanelFrame>
 
                 {/* Technical Properties / Feature Tree / BOM Inspector */}

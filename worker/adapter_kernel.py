@@ -1,10 +1,12 @@
+import base64
 import hashlib
 import json
+import tempfile
 import uuid
 from pathlib import Path
 
-from build123d import (Circle, Cylinder, GeomType, Plane, Polygon, Pos, Rectangle, chamfer, export_brep, export_step,
-                       extrude, fillet, import_brep, import_step)
+from build123d import (Circle, Cylinder, GeomType, Plane, Polygon, Pos, Rectangle, chamfer, export_brep, export_gltf,
+                       export_step, extrude, fillet, import_brep, import_step)
 
 from adapter import Adapter, PreconditionFailed, VerificationFailed, outcome
 from adapter_contract import TYPES
@@ -131,6 +133,18 @@ class KernelAdapter(Adapter):
                   "area_mm2": part.area if part is not None else 0,
                   "cylindrical_faces": len(part.faces().filter_by(GeomType.CYLINDER)) if part is not None else 0}
         return outcome("succeeded", result=result, verification=_verification(part))
+
+    def tessellate(self, document):
+        """A GLB of the document's solid for the viewport: a preview, never evidence (I3)."""
+        part, _ = self._build(self._history({"target": {"document": document}}))
+        if part is None:
+            raise PreconditionFailed("the document has no solid to preview")
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "preview.glb"
+            if not export_gltf(part, str(path), binary=True):
+                raise RuntimeError("the kernel did not write the preview")
+            data = path.read_bytes()
+        return {"glb": base64.b64encode(data).decode("ascii"), "bytes": len(data)}
 
     def save_checkpoint(self, document, path):
         Path(path).write_text(json.dumps(self.docs.get(document, [])), encoding="utf-8")

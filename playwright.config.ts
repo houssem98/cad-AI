@@ -5,6 +5,7 @@ const PORT = 5179;
 export default defineConfig({
   testDir: 'e2e',
   testMatch: '**/*.e2e.ts', // a distinct suffix keeps Vitest from collecting these files
+  globalSetup: './e2e/global-setup.ts',
   timeout: 120_000,
   workers: 1,
   reporter: 'list',

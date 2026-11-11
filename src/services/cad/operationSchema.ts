@@ -1,4 +1,4 @@
-import schema from '../../../schema/cad-operation.schema.json';
+import schema from '../../../schema/cad-operation.schema.json' with { type: 'json' };
 
 type Node = Record<string, any>;
 const defs = schema.$defs as Node;

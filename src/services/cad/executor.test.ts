@@ -205,6 +205,17 @@ describe('executor', { timeout: 30000 }, () => {
     expect(bow.record.targetDocument.revisionAfter).toBe(bow.record.targetDocument.revisionBefore);
   });
 
+  it('previews a kernel part as a GLB and refuses a document it does not hold', async () => {
+    const { ex } = await start(KERNEL);
+    expect((await ex.execute(EXTRUDE, { requestId: 'r1' })).status).toBe('succeeded');
+    const out = await ex.preview('doc-1');
+    expect(out.status).toBe('succeeded');
+    expect(out.glb!.subarray(0, 4).toString('latin1')).toBe('glTF');
+    expect(out.glb!.readUInt32LE(8)).toBe(out.glb!.length);
+    const unknown = await ex.preview('nope');
+    expect(unknown).toMatchObject({ status: 'failed', error: { code: 'precondition_failed' } });
+  });
+
   it('fails an export reported without a file, and keeps the measurement of a failed export', async () => {
     const { ex } = await start(KERNEL);
     expect((await ex.execute(EXTRUDE, { requestId: 'r1' })).status).toBe('succeeded');

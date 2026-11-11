@@ -81,6 +81,21 @@ export class Executor {
     return this.serial(() => this.run(proposal, ctx));
   }
 
+  // The kernel's tessellation of a document as a GLB, for the viewport. A preview, never evidence (I3).
+  preview(docId: string): Promise<{ status: string; glb?: Buffer; error?: TypedError }> {
+    return this.serial(async () => {
+      if (!this.store.document(docId)) return { status: 'failed', error: { code: 'precondition_failed', message: `document ${docId} does not exist` } };
+      try {
+        const r = await this.worker.request({ kind: 'tessellate', document: docId });
+        return r.status === 'succeeded' ? { status: 'succeeded', glb: Buffer.from(r.glb, 'base64') } : { status: r.status, error: r.error };
+      } catch (e) {
+        if (!(e instanceof WorkerError)) throw e;
+        await this.reloadAll();
+        return { status: 'failed', error: { code: e.code, message: e.message } };
+      }
+    });
+  }
+
   // The worker answers one request at a time, so every public call waits for the one before it.
   private serial<T>(f: () => Promise<T>): Promise<T> {
     const next = this.tail.then(f);
