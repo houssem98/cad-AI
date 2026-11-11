@@ -17,16 +17,20 @@ function Row({ name, children, testId }: { name: string; children: React.ReactNo
   );
 }
 
-// Every value here comes from the document's last succeeded execution record, never from the model or the preview.
+// Document values come from the store and the adapter's inspect; geometry comes from the last succeeded execution record.
+// Nothing here comes from the model or the preview.
 export function RecordProperties({ doc }: { doc: DocumentView }) {
   const i = doc.inspection;
   return (
     <div className="space-y-2">
-      <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">From the execution record</div>
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Document</div>
       <dl className="rounded-lg border border-[#202c42] bg-[#12192a] px-3 py-2 text-xs">
         <Row name="Document">{doc.id}</Row>
         <Row name="Revision">{doc.revision}</Row>
         <Row name="Material">{doc.material ?? 'none assigned'}</Row>
+      </dl>
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">From the last succeeded record</div>
+      <dl className="rounded-lg border border-[#202c42] bg-[#12192a] px-3 py-2 text-xs">
         {i ? (
           <>
             <Row name="Valid solid">{i.valid ? 'yes' : 'no'}</Row>

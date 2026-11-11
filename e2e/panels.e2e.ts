@@ -11,11 +11,13 @@ for (const [panel, tab] of PANELS) {
     const shots = new Map<string, Buffer>();
     for (const state of STATES) {
       await page.goto(`/?panels=${panel}:${state}`);
-      if (tab) await page.getByRole('button', { name: tab, exact: true }).click();
+      if (tab) await page.getByRole('tab', { name: tab, exact: true }).click();
       const frame = page.locator(`[data-panel="${panel}"]`);
       await expect(frame).toHaveAttribute('data-status', state);
       await expect(frame).toBeVisible();
       if (state !== 'completed') await expect(frame.getByRole(state === 'error' ? 'alert' : 'status')).toBeVisible();
+      // Completed shows the panel's own content, not a state body; only tasks, which has no content yet, shows one.
+      if (state === 'completed' && panel !== 'tasks') await expect(frame.locator('[data-state-body]')).toHaveCount(0);
       shots.set(state, await frame.screenshot({ animations: 'disabled' }));
     }
     for (const a of STATES) {

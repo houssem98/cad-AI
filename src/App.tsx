@@ -21,6 +21,7 @@ import { AICADAgentPanel } from './components/agent/AICADAgentPanel';
 import { RightInspectorPanel } from './components/inspector/RightInspectorPanel';
 import { BottomConsole } from './components/bottom/BottomConsole';
 import { PanelFrame } from './components/workspace/PanelFrame';
+import { Dialog } from './components/workspace/Dialog';
 import { DEFAULT_PANELS, panelViewsFromUrl, type PanelId, type PanelView, type PanelViews } from './components/workspace/panelViews';
 
 // Modals
@@ -59,6 +60,7 @@ export default function App() {
   const [doc, setDoc] = useState<DocumentView | null>(null);
   const setStatus = useCallback((ids: PanelId[], view: PanelView) => setPanels((p) => ({ ...p, ...Object.fromEntries(ids.map((id) => [id, view])) })), []);
   const previewFailed = useCallback((message: string) => setStatus(['viewport'], { status: 'error', message }), [setStatus]);
+  const previewEmpty = useCallback(() => setStatus(['viewport'], { status: 'empty', message: 'the part has no geometry to show' }), [setStatus]);
 
   // ?part=<document id> opens that document: its kernel preview, and its feature tree and record in the inspector.
   useEffect(() => {
@@ -75,7 +77,12 @@ export default function App() {
       .then(async (r) => { setPreview(await r.arrayBuffer()); setStatus(['viewport'], { status: 'completed' }); })
       .catch((e: Error) => previewFailed(e.message));
     load('inspect', 'application/json', 'document record')
-      .then(async (r) => { setDoc(await r.json()); setStatus(['properties', 'tree'], { status: 'completed' }); })
+      .then(async (r) => {
+        const d: DocumentView = await r.json();
+        setDoc(d);
+        setStatus(['properties'], d.inspection ? { status: 'completed' } : { status: 'empty', message: 'no succeeded record yet' });
+        setStatus(['tree'], d.features.length ? { status: 'completed' } : { status: 'empty', message: 'no features yet' });
+      })
       .catch((e: Error) => setStatus(['properties', 'tree'], { status: 'error', message: e.message }));
   }, [previewFailed, setStatus]);
 
@@ -123,6 +130,13 @@ export default function App() {
   const handleAddOperation = (op: OperationHistoryRecord) => {
     setOperationHistory((prev) => [op, ...prev]);
   };
+
+  // Both workspace modules show the same viewport: the kernel preview when a part is open, else the labelled demo model.
+  const viewport = preview ? (
+    <KernelPreview glb={preview} onError={previewFailed} onEmpty={previewEmpty} />
+  ) : (
+    <ThreeCADViewport parameters={parameters} onParameterChange={handleUpdateParameters} onOpenReport={() => setIsVerificationReportOpen(true)} />
+  );
 
   return (
     <div className="flex flex-col w-screen h-screen bg-[#080c14] text-slate-200 overflow-hidden font-sans">
@@ -178,15 +192,7 @@ export default function App() {
 
                 {/* 3D Interactive Three.js CAD Viewport */}
                 <PanelFrame panel="viewport" label="Viewport" view={panels.viewport} className="flex-1 min-w-0 h-full relative">
-                  {preview ? (
-                    <KernelPreview glb={preview} onError={previewFailed} />
-                  ) : (
-                    <ThreeCADViewport
-                      parameters={parameters}
-                      onParameterChange={handleUpdateParameters}
-                      onOpenReport={() => setIsVerificationReportOpen(true)}
-                    />
-                  )}
+                  {viewport}
                 </PanelFrame>
 
                 {/* Technical Properties / Feature Tree / BOM Inspector */}
@@ -210,6 +216,7 @@ export default function App() {
                     onNavigateVerification={() => setCurrentModule('verification-center')}
                     isOpen={isConsoleOpen}
                     onToggleOpen={toggleConsole}
+                    doc={doc}
                   />
                 </PanelFrame>
                 {isConsoleOpen && (
@@ -224,18 +231,16 @@ export default function App() {
           {currentModule === 'cad-workspace' && (
             <div className="flex flex-col h-full w-full overflow-hidden">
               <div className="flex flex-1 min-h-0 w-full overflow-hidden">
-                <div className="flex-1 min-w-0 h-full relative">
-                  <ThreeCADViewport
-                    parameters={parameters}
-                    onParameterChange={handleUpdateParameters}
-                    onOpenReport={() => setIsVerificationReportOpen(true)}
-                  />
-                </div>
+                <PanelFrame panel="viewport" label="Viewport" view={panels.viewport} className="flex-1 min-w-0 h-full relative">
+                  {viewport}
+                </PanelFrame>
                 <RightInspectorPanel
                   parameters={parameters}
                   onUpdateParameters={handleUpdateParameters}
                   isOpen={isInspectorOpen}
                   onToggleOpen={toggleInspector}
+                  panels={panels}
+                  doc={doc}
                 />
               </div>
               <BottomConsole
@@ -244,6 +249,7 @@ export default function App() {
                 onNavigateVerification={() => setCurrentModule('verification-center')}
                 isOpen={isConsoleOpen}
                 onToggleOpen={toggleConsole}
+                doc={doc}
               />
             </div>
           )}
@@ -364,12 +370,12 @@ export default function App() {
 
       {/* Help Modal */}
       {isHelpOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="w-full max-w-lg bg-[#0f1728] border border-[#232f48] rounded-xl p-6 space-y-4 text-xs">
+        <Dialog label="Help" onClose={() => setIsHelpOpen(false)} className="w-full max-w-lg bg-[#0f1728] border border-[#232f48] rounded-xl p-6 space-y-4 text-xs">
             <div className="flex items-center justify-between border-b border-[#1e293b] pb-3">
-              <span className="font-bold text-slate-100 text-sm">MechForge AI — Enterprise Copilot Guide</span>
+              <span className="font-bold text-slate-100 text-sm">MechForge AI — Guide</span>
               <button
                 onClick={() => setIsHelpOpen(false)}
+                aria-label="Close help"
                 className="text-slate-400 hover:text-white"
               >
                 ✕
@@ -377,7 +383,7 @@ export default function App() {
             </div>
             <div className="space-y-2 text-slate-300 leading-relaxed">
               <p>
-                <strong>3D Viewport Controls:</strong> Left-click and drag to rotate/orbit the model. Right-click and drag to pan. Scroll to zoom.
+                <strong>3D Viewport Controls:</strong> Left-click and drag to rotate/orbit the model. Right-click and drag to pan. Scroll to zoom. With the viewport focused, arrow keys pan, Shift and arrow keys orbit, and + and − zoom.
               </p>
               <p>
                 <strong>Interactive Parameter Editing:</strong> Click any dimension in the right Properties panel (e.g. Length, Thickness) to edit its value and watch the 3D model update live.
@@ -386,7 +392,7 @@ export default function App() {
                 <strong>Command Palette:</strong> Press <kbd className="px-1.5 py-0.5 bg-slate-800 rounded font-tech">Ctrl+K</kbd> anywhere to quickly search across modules and trigger CAD actions.
               </p>
               <p>
-                <strong>CAD Integration Bridge:</strong> Connected to local SolidWorks 2024 desktop bridge on port 8892 with deterministic B-Rep verification.
+                <strong>CAD connection:</strong> No CAD application is connected. Parts open with ?part=&lt;document id&gt; come from the built-in kernel; the bracket shown otherwise is a demo model, not a CAD result.
               </p>
             </div>
             <div className="pt-2 flex justify-end">
@@ -397,8 +403,7 @@ export default function App() {
                 Got it
               </button>
             </div>
-          </div>
-        </div>
+        </Dialog>
       )}
     </div>
   );

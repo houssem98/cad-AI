@@ -148,8 +148,10 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
     <div className="w-[280px] lg:w-[300px] h-full bg-[#080d17] border-l border-[#1a2336] flex flex-col flex-shrink-0 select-none z-20 transition-all">
       {/* 1. Header Segmented Tabs with Collapse Button */}
       <div className="flex items-center justify-between px-2 py-1.5 border-b border-[#182338] bg-[#0c1220]">
-        <div className="flex items-center gap-1 p-0.5 bg-[#080d17] border border-[#1a263c] rounded-lg text-xs font-medium flex-1 mr-1">
+        <div role="tablist" aria-label="Inspector" className="flex items-center gap-1 p-0.5 bg-[#080d17] border border-[#1a263c] rounded-lg text-xs font-medium flex-1 mr-1">
           <button
+            role="tab"
+            aria-selected={activeTab === 'properties'}
             onClick={() => setActiveTab('properties')}
             className={`flex-1 py-1 px-2 text-center rounded text-[11px] transition-colors cursor-pointer ${
               activeTab === 'properties'
@@ -161,6 +163,8 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
           </button>
 
           <button
+            role="tab"
+            aria-selected={activeTab === 'featureTree'}
             onClick={() => setActiveTab('featureTree')}
             className={`flex-1 py-1 px-2 text-center rounded text-[11px] transition-colors cursor-pointer ${
               activeTab === 'featureTree'
@@ -172,6 +176,8 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
           </button>
 
           <button
+            role="tab"
+            aria-selected={activeTab === 'bom'}
             onClick={() => setActiveTab('bom')}
             className={`flex-1 py-1 px-2 text-center rounded text-[11px] transition-colors cursor-pointer ${
               activeTab === 'bom'
@@ -204,7 +210,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
             <div className="space-y-3">
               <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between">
                 <span>Part Information</span>
-                <span className="text-[10px] text-blue-400 font-tech">SLDPRT v2024</span>
+                <span className="text-[10px] text-amber-300 font-tech">Demo data</span>
               </div>
 
               <div className="bg-[#12192a] border border-[#202c42] rounded-lg p-3 space-y-2.5">
@@ -217,6 +223,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                   <span className="text-slate-400">Material</span>
                   <div className="relative">
                     <select
+                      aria-label="Material"
                       value={currentMaterial.name}
                       onChange={(e) => handleMaterialChange(e.target.value)}
                       className="appearance-none bg-[#182236] border border-[#2d3d5c] rounded px-2.5 py-1 pr-6 text-slate-200 font-tech text-xs focus:outline-none focus:border-blue-500 cursor-pointer"
@@ -260,12 +267,14 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                         type="number"
                         value={tempDimValue}
                         onChange={(e) => setTempDimValue(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleCommitDimension('length')}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleCommitDimension('length'); if (e.key === 'Escape') setIsEditingDim(null); }}
+                        aria-label="New length in mm"
                         className="w-16 bg-[#182236] border border-blue-500 px-1 py-0.5 text-xs text-white rounded font-tech focus:outline-none"
                         autoFocus
                       />
                       <button
                         onClick={() => handleCommitDimension('length')}
+                        aria-label="Save length"
                         className="p-1 text-emerald-400 hover:bg-slate-800 rounded"
                       >
                         <Check className="w-3 h-3" />
@@ -293,12 +302,14 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                         type="number"
                         value={tempDimValue}
                         onChange={(e) => setTempDimValue(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleCommitDimension('width')}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleCommitDimension('width'); if (e.key === 'Escape') setIsEditingDim(null); }}
+                        aria-label="New width in mm"
                         className="w-16 bg-[#182236] border border-blue-500 px-1 py-0.5 text-xs text-white rounded font-tech focus:outline-none"
                         autoFocus
                       />
                       <button
                         onClick={() => handleCommitDimension('width')}
+                        aria-label="Save width"
                         className="p-1 text-emerald-400 hover:bg-slate-800 rounded"
                       >
                         <Check className="w-3 h-3" />
@@ -326,12 +337,14 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                         type="number"
                         value={tempDimValue}
                         onChange={(e) => setTempDimValue(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleCommitDimension('thickness')}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleCommitDimension('thickness'); if (e.key === 'Escape') setIsEditingDim(null); }}
+                        aria-label="New thickness in mm"
                         className="w-16 bg-[#182236] border border-blue-500 px-1 py-0.5 text-xs text-white rounded font-tech focus:outline-none"
                         autoFocus
                       />
                       <button
                         onClick={() => handleCommitDimension('thickness')}
+                        aria-label="Save thickness"
                         className="p-1 text-emerald-400 hover:bg-slate-800 rounded"
                       >
                         <Check className="w-3 h-3" />
@@ -359,12 +372,14 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                         type="number"
                         value={tempDimValue}
                         onChange={(e) => setTempDimValue(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleCommitDimension('holeDiameter')}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleCommitDimension('holeDiameter'); if (e.key === 'Escape') setIsEditingDim(null); }}
+                        aria-label="New hole diameter in mm"
                         className="w-16 bg-[#182236] border border-blue-500 px-1 py-0.5 text-xs text-white rounded font-tech focus:outline-none"
                         autoFocus
                       />
                       <button
                         onClick={() => handleCommitDimension('holeDiameter')}
+                        aria-label="Save hole diameter"
                         className="p-1 text-emerald-400 hover:bg-slate-800 rounded"
                       >
                         <Check className="w-3 h-3" />
@@ -427,8 +442,8 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
           {doc ? <RecordTree doc={doc} /> : (
           <div className="space-y-2">
             <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between mb-2">
-              <span>SolidWorks History Tree</span>
-              <span className="text-[10px] text-emerald-400 font-tech">Rebuild OK</span>
+              <span>Demo feature tree</span>
+              <span className="text-[10px] text-amber-300 font-tech">not from a CAD kernel</span>
             </div>
 
             <div className="bg-[#12192a] border border-[#202c42] rounded-lg p-2 space-y-1">
@@ -458,7 +473,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
             </div>
 
             <div className="p-2.5 bg-blue-950/20 border border-blue-800/30 rounded text-[11px] text-slate-400">
-              Parametric feature sequence is bidirectionally linked with the CAD adapter.
+              Demo data. Open a part to see its real feature tree.
             </div>
           </div>
           )}
@@ -466,7 +481,10 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
         )}
 
         {/* TAB 3: BOM (Bill of Materials) */}
-        {activeTab === 'bom' && (
+        {activeTab === 'bom' && doc && (
+          <div className="text-xs text-slate-400">No bill of materials for this document. The kernel records no parts list yet.</div>
+        )}
+        {activeTab === 'bom' && !doc && (
           <div className="space-y-3">
             <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between">
               <span>Structured BOM</span>

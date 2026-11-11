@@ -126,7 +126,7 @@ export interface OperationHistoryRecord {
   id: string;
   time: string;
   action: string;
-  status: 'Success' | 'In Progress' | 'Warning' | 'Error';
+  status: 'Success' | 'In Progress' | 'Warning' | 'Error' | 'Demo';
   details: string;
   durationMs?: number;
 }

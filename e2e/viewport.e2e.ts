@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { PLATE_GLB } from './global-setup';
+import { emptyGlb, servePlate } from './helpers';
 
 const ROUTE = '**/api/documents/plate/preview';
 
@@ -31,9 +32,10 @@ test('a kernel part loads in the viewport as a labelled preview with orbit, pan 
   await expect(frame.getByText('Preview', { exact: true })).toBeVisible();
 
   const canvas = frame.locator('canvas');
-  const loaded = await pixels(page, canvas);
-  expect(loaded.colours).toBeGreaterThan(50);
-  expect(loaded.centre).not.toBe(loaded.corner); // the part, framed at the centre, is not background
+  // The first frame drawn after the mesh loads can trail the size attribute under load, so wait for it.
+  await expect.poll(async () => { const p = await pixels(page, canvas); return p.centre !== p.corner; },
+    { message: 'the part, framed at the centre, is not background' }).toBe(true);
+  expect((await pixels(page, canvas)).colours).toBeGreaterThan(50);
 
   const box = (await canvas.boundingBox())!;
   const cx = box.x + box.width / 2, cy = box.y + box.height / 2;
@@ -52,6 +54,19 @@ test('a kernel part loads in the viewport as a labelled preview with orbit, pan 
   expect(panned.equals(orbited), 'pan changed nothing').toBe(false);
   await page.mouse.wheel(0, -400);
   await expect.poll(async () => (await canvas.screenshot()).equals(panned), { message: 'zoom changed nothing' }).toBe(false);
+});
+
+test('a preview body that is not a GLB puts the viewport in its error state and leaves the app running', async ({ page }) => {
+  await servePlate(page, { glb: 'not a glb' });
+  await page.goto('/?part=plate');
+  await expect(page.locator('[data-panel="viewport"]')).toHaveAttribute('data-status', 'error');
+  await expect(page.locator('[data-panel="chat"]')).toBeVisible();
+});
+
+test('a GLB with no mesh puts the viewport in its empty state', async ({ page }) => {
+  await servePlate(page, { glb: emptyGlb() });
+  await page.goto('/?part=plate');
+  await expect(page.locator('[data-panel="viewport"]')).toHaveAttribute('data-status', 'empty');
 });
 
 test('a part the server cannot preview puts the viewport in its error state', async ({ page }) => {

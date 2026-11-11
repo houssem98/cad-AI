@@ -215,11 +215,10 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
           </button>
         )}
 
-        {/* Local CAD Bridge Pill */}
+        {/* CAD connection status: none exists until the SolidWorks adapter ships */}
         <div className="hidden xl:flex items-center gap-1.5 px-2 py-0.5 bg-[#0e1626] border border-[#1e2a40] rounded-full text-[11px] font-tech text-slate-400 shrink-0">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-slate-300">SolidWorks Bridge</span>
-          <span className="text-[10px] text-cyan-400">14ms</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+          <span className="text-slate-300">No CAD connection</span>
         </div>
 
         {/* Notifications */}
@@ -230,25 +229,12 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
             title="Notifications"
           >
             <Bell className="w-4 h-4" />
-            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-blue-500 ring-2 ring-[#080c14]" />
           </button>
 
           {showNotificationModal && (
             <div className="absolute top-full right-0 mt-2 w-72 bg-[#101728] border border-[#232f48] rounded-xl shadow-2xl p-3 z-50 space-y-2 text-xs">
-              <div className="flex items-center justify-between border-b border-[#1e293b] pb-2 font-semibold text-slate-200">
-                <span>Engineering Alerts</span>
-                <span className="text-[10px] text-blue-400 font-tech">3 unread</span>
-              </div>
-              <div className="space-y-1.5">
-                <div className="p-2 bg-[#141d30] rounded border border-blue-500/20">
-                  <div className="font-medium text-slate-200">Mounting Bracket Regenerated</div>
-                  <div className="text-[10px] text-slate-400">Euler check verified manifold solid.</div>
-                </div>
-                <div className="p-2 bg-[#141d30] rounded border border-slate-700/40">
-                  <div className="font-medium text-slate-200">FEA Mesh Solved (TSK-9401)</div>
-                  <div className="text-[10px] text-slate-400">Von Mises max stress = 184 MPa.</div>
-                </div>
-              </div>
+              <div className="border-b border-[#1e293b] pb-2 font-semibold text-slate-200">Notifications</div>
+              <div className="text-[11px] text-slate-400">No notifications. Operations and jobs will report here once they run.</div>
             </div>
           )}
         </div>

@@ -237,7 +237,7 @@ export const INITIAL_CHAT_MESSAGES: AgentChatMessage[] = [
     progressPercent: 100,
     verificationSummary: {
       passed: true,
-      text: 'Operation completed successfully! Model is ready. Dimensions verified.',
+      text: 'Demo conversation: no CAD operation ran and nothing was verified.',
     },
     suggestedActions: [
       'Increase thickness to 12mm',
@@ -278,7 +278,7 @@ export const INITIAL_OPERATION_HISTORY: OperationHistoryRecord[] = [
     time: '10:25:18',
     action: 'Verify Model',
     status: 'Success',
-    details: 'All checks passed',
+    details: 'demo row',
     durationMs: 95,
   },
 ];
@@ -289,11 +289,11 @@ export const INITIAL_VERIFICATION_CHECKS: VerificationCheckItem[] = [
     category: 'Geometry',
     checkName: 'Manifold Solid Boundary Check',
     expected: 'Watertight, 0 open non-manifold edges',
-    actual: '0 non-manifold edges, manifold genus 1',
+    actual: 'not measured (demo)',
     status: 'passed',
-    evidence: 'B-Rep Euler characteristic V - E + F = 2, volume = 44.40 cm³',
+    evidence: 'valid solid, one body, volume and bounding box from the kernel',
     timestamp: '10:25:18',
-    system: 'Parasolid Kernel Bridge',
+    system: 'Kernel inspection',
   },
   {
     id: 'chk-2',
@@ -324,7 +324,7 @@ export const INITIAL_VERIFICATION_CHECKS: VerificationCheckItem[] = [
     expected: 'Hole center distance >= 1.5 × Ø (12mm)',
     actual: 'Edge margin = 14.0 mm',
     status: 'passed',
-    evidence: 'ASME Y14.5 compliance verified',
+    evidence: 'edge margin rule from ASME Y14.5',
     timestamp: '10:25:18',
     system: 'Standards Checker',
   },
@@ -335,9 +335,9 @@ export const INITIAL_VERIFICATION_CHECKS: VerificationCheckItem[] = [
     expected: 'Rebuild without errors or warnings',
     actual: '0 errors, 0 warnings (clean rebuild)',
     status: 'passed',
-    evidence: 'SolidWorks API SwApp.ActiveDoc.ForceRebuild3',
+    evidence: 'adapter rebuild status',
     timestamp: '10:25:18',
-    system: 'SolidWorks Adapter',
+    system: 'CAD adapter',
   },
 ];
 

@@ -22,20 +22,38 @@ interface Props {
 
 // One panel of the workspace. Completed shows the panel's content; every other state replaces it.
 export function PanelFrame({ panel, label, view, className = '', stateClassName = '', children }: Props) {
-  const { status, message } = view;
-  const content = status === 'completed' && children;
   return (
-    <section aria-label={label} aria-busy={status === 'loading' || status === 'running'} data-panel={panel} data-status={status}
-      className={content ? className : `${className} ${stateClassName}`}>
-      {content || <StateBody label={label} status={status} message={message} />}
-    </section>
+    <Boundary panel={panel} label={label} view={view} className={className} stateClassName={stateClassName}>
+      {children}
+    </Boundary>
   );
+}
+
+// A panel whose content throws (no WebGL, a malformed mesh) shows its own error state; the rest of the app keeps running.
+class Boundary extends React.Component<Props, { crash: string | null }> {
+  state = { crash: null as string | null };
+
+  static getDerivedStateFromError(e: Error) {
+    return { crash: e.message || String(e) };
+  }
+
+  render() {
+    const { panel, label, view, className = '', stateClassName = '', children } = this.props;
+    const { status, message } = this.state.crash ? { status: 'error' as const, message: this.state.crash } : view;
+    const content = status === 'completed' && children;
+    return (
+      <section aria-label={label} aria-busy={status === 'loading' || status === 'running'} data-panel={panel} data-status={status}
+        className={content ? className : `${className} ${stateClassName}`}>
+        {content || <StateBody label={label} status={status} message={message} />}
+      </section>
+    );
+  }
 }
 
 function StateBody({ label, status, message }: { label: string; status: PanelStatus; message?: string }) {
   const { title, Icon, tone } = LOOK[status];
   return (
-    <div role={status === 'error' ? 'alert' : 'status'} className="flex h-full w-full items-center justify-center p-4">
+    <div data-state-body role={status === 'error' ? 'alert' : 'status'} className="flex h-full w-full items-center justify-center p-4">
       <div className={`flex max-w-[260px] flex-col items-center gap-2 rounded-lg border px-4 py-5 text-center text-xs ${tone}`}>
         <Icon aria-hidden className={`h-5 w-5 ${status === 'loading' ? 'animate-spin' : ''}`} />
         <span className="font-semibold">{title}</span>

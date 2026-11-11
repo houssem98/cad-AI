@@ -4,18 +4,8 @@
  */
 
 import React, { useState } from 'react';
-import {
-  CheckCircle2,
-  Clock,
-  ArrowRight,
-  ShieldCheck,
-  Terminal,
-  Activity,
-  Check,
-  AlertTriangle,
-  ExternalLink,
-} from 'lucide-react';
-import { OperationHistoryRecord, VerificationCheckItem } from '../../types/cad';
+import { CheckCircle2, ArrowRight, Check, CircleDashed } from 'lucide-react';
+import { OperationHistoryRecord, VerificationCheckItem, type DocumentView } from '../../types/cad';
 import { INITIAL_OPERATION_HISTORY, INITIAL_VERIFICATION_CHECKS } from '../../data/mockCadData';
 
 interface BottomConsoleProps {
@@ -25,6 +15,21 @@ interface BottomConsoleProps {
   onNavigateVerification?: () => void;
   isOpen?: boolean;
   onToggleOpen?: () => void;
+  doc?: DocumentView | null;
+}
+
+type Tab = 'history' | 'verification' | 'progress' | 'logs';
+const TABS: Array<[Tab, string]> = [['history', 'Operation History'], ['verification', 'Verification Results'], ['progress', 'Task Progress'], ['logs', 'Logs']];
+
+// Only a record says a part was checked; without one the console says nothing was verified.
+function verdict(doc?: DocumentView | null) {
+  const i = doc?.inspection;
+  if (!i) return { ok: false, title: 'No verification has run', detail: 'Open a part to see its execution record' };
+  return {
+    ok: i.valid,
+    title: i.valid ? 'Kernel inspection: valid solid' : 'Kernel inspection: not a valid solid',
+    detail: `${i.counts.solids} solid · ${i.counts.faces} faces · ${i.counts.edges} edges`,
+  };
 }
 
 export const BottomConsole: React.FC<BottomConsoleProps> = ({
@@ -34,21 +39,21 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
   onNavigateVerification,
   isOpen = true,
   onToggleOpen,
+  doc = null,
 }) => {
-  const [activeTab, setActiveTab] = useState<'history' | 'verification' | 'progress' | 'logs'>('history');
+  const [activeTab, setActiveTab] = useState<Tab>('history');
+  const v = verdict(doc);
 
   if (!isOpen) {
     return (
       <div className="h-7 bg-[#080d17] border-t border-[#182338] flex items-center justify-between px-3 text-xs select-none flex-shrink-0 z-20">
         <div className="flex items-center gap-3 text-[11px] font-tech text-slate-400">
           <span className="flex items-center gap-1.5 text-slate-300">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            Verification: All Checks Passed
+            <span className={`w-1.5 h-1.5 rounded-full ${v.ok ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+            {v.title}
           </span>
           <span className="text-slate-600">·</span>
-          <span>{operations.length} CAD Operations</span>
-          <span className="text-slate-600">·</span>
-          <span>ISO 2768-m Invariants Verified</span>
+          <span>{operations.length} demo history rows</span>
         </div>
 
         {onToggleOpen && (
@@ -57,7 +62,7 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
             className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-tech text-blue-400 hover:text-white hover:bg-slate-800 rounded transition-colors cursor-pointer"
           >
             <span>Show Console</span>
-            <span className="text-cyan-400 font-bold">▲</span>
+            <span aria-hidden="true" className="text-cyan-400 font-bold">▲</span>
           </button>
         )}
       </div>
@@ -70,50 +75,20 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
       <div className="flex-1 flex flex-col border-r border-[#182338] min-w-0">
         {/* Tab Headers with Collapse Button */}
         <div className="flex items-center justify-between px-3 py-1.5 border-b border-[#182338] bg-[#0c1220] text-xs">
-          <div className="flex items-center gap-1 p-0.5 bg-[#080d17] border border-[#1a263c] rounded-lg">
-            <button
-              onClick={() => setActiveTab('history')}
-              className={`py-1 px-2.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
-                activeTab === 'history'
-                  ? 'bg-blue-600 text-white font-semibold shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              Operation History ({operations.length})
-            </button>
-
-            <button
-              onClick={() => setActiveTab('verification')}
-              className={`py-1 px-2.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
-                activeTab === 'verification'
-                  ? 'bg-blue-600 text-white font-semibold shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              Verification Results
-            </button>
-
-            <button
-              onClick={() => setActiveTab('progress')}
-              className={`py-1 px-2.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
-                activeTab === 'progress'
-                  ? 'bg-blue-600 text-white font-semibold shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              Task Progress
-            </button>
-
-            <button
-              onClick={() => setActiveTab('logs')}
-              className={`py-1 px-2.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
-                activeTab === 'logs'
-                  ? 'bg-blue-600 text-white font-semibold shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              Logs
-            </button>
+          <div role="tablist" aria-label="Console" className="flex items-center gap-1 p-0.5 bg-[#080d17] border border-[#1a263c] rounded-lg">
+            {TABS.map(([id, label]) => (
+              <button
+                key={id}
+                role="tab"
+                aria-selected={activeTab === id}
+                onClick={() => setActiveTab(id)}
+                className={`py-1 px-2.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                  activeTab === id ? 'bg-blue-600 text-white font-semibold shadow-sm' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                {id === 'history' ? `${label} (${operations.length})` : label}
+              </button>
+            ))}
           </div>
 
           {onToggleOpen && (
@@ -123,16 +98,16 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
               title="Minimize Console"
             >
               <span>Minimize</span>
-              <span className="font-bold">▼</span>
+              <span aria-hidden="true" className="font-bold">▼</span>
             </button>
           )}
         </div>
 
         {/* Content Table */}
         <div className="flex-1 overflow-y-auto p-3">
-          {/* TAB 1: OPERATION HISTORY (Exact Match to Screenshot) */}
           {activeTab === 'history' && (
             <div className="w-full">
+              <div className="mb-2 text-[10px] font-tech uppercase tracking-wider text-amber-300/90">Demo data · these rows are samples, not execution records</div>
               <table className="w-full text-left text-xs font-tech">
                 <thead>
                   <tr className="text-slate-400 border-b border-[#1e293b] pb-1.5 font-medium">
@@ -148,8 +123,8 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
                       <td className="py-2 text-slate-400">{op.time}</td>
                       <td className="py-2 text-slate-200 font-sans font-medium">{op.action}</td>
                       <td className="py-2">
-                        <span className="inline-flex items-center gap-1.5 text-emerald-400">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="inline-flex items-center gap-1.5 text-slate-300">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-slate-400" />
                           <span className="font-sans font-medium text-xs">{op.status}</span>
                         </span>
                       </td>
@@ -161,24 +136,22 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
             </div>
           )}
 
-          {/* TAB 2: VERIFICATION RESULTS */}
           {activeTab === 'verification' && (
             <div className="space-y-2">
+              <div className="text-[11px] text-slate-300">{v.title}{doc?.inspection ? ` · ${v.detail}` : ''}</div>
+              <div className="text-[10px] font-tech uppercase tracking-wider text-amber-300/90">Demo checks · samples of what a verification will list, not results</div>
               {verificationChecks.map((chk) => (
-                <div
-                  key={chk.id}
-                  className="flex items-center justify-between p-2 bg-[#12192a] border border-[#1e293b] rounded text-xs"
-                >
+                <div key={chk.id} className="flex items-center justify-between p-2 bg-[#12192a] border border-[#1e293b] rounded text-xs">
                   <div className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                    <CircleDashed className="w-4 h-4 text-slate-500 flex-shrink-0" />
                     <div>
                       <div className="font-medium text-slate-200">{chk.checkName}</div>
                       <div className="text-[11px] text-slate-400 font-tech">{chk.evidence}</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-tech font-bold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                      {chk.status}
+                    <span className="px-2 py-0.5 rounded text-[10px] font-tech font-bold uppercase bg-slate-700/30 text-slate-300 border border-slate-600/40">
+                      demo
                     </span>
                     <div className="text-[10px] text-slate-500 font-tech mt-0.5">{chk.system}</div>
                   </div>
@@ -187,47 +160,12 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
             </div>
           )}
 
-          {/* TAB 3: TASK PROGRESS */}
           {activeTab === 'progress' && (
-            <div className="space-y-3 font-tech text-xs text-slate-300">
-              <div className="flex items-center justify-between">
-                <span>Task: TSK-9402 [Mounting Bracket Parametric Sweep]</span>
-                <span className="text-emerald-400">100% Completed (8.4s)</span>
-              </div>
-              <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                <div className="bg-blue-500 h-full rounded-full w-full" />
-              </div>
-              <div className="grid grid-cols-4 gap-2 text-[11px] text-slate-400">
-                <div className="p-2 bg-[#12192a] rounded border border-[#1e293b]">
-                  <div className="text-slate-500">Kernel Latency</div>
-                  <div className="text-slate-200 font-bold">14 ms</div>
-                </div>
-                <div className="p-2 bg-[#12192a] rounded border border-[#1e293b]">
-                  <div className="text-slate-500">Euler Check</div>
-                  <div className="text-emerald-400 font-bold">Pass (V-E+F=2)</div>
-                </div>
-                <div className="p-2 bg-[#12192a] rounded border border-[#1e293b]">
-                  <div className="text-slate-500">Memory Spike</div>
-                  <div className="text-slate-200 font-bold">128 MB</div>
-                </div>
-                <div className="p-2 bg-[#12192a] rounded border border-[#1e293b]">
-                  <div className="text-slate-500">Bridge Target</div>
-                  <div className="text-blue-400 font-bold">SolidWorks COM</div>
-                </div>
-              </div>
-            </div>
+            <div className="text-xs text-slate-400">No background jobs. The job engine arrives in a later release.</div>
           )}
 
-          {/* TAB 4: REAL-TIME CAD BRIDGE LOGS */}
           {activeTab === 'logs' && (
-            <div className="font-tech text-[11px] text-slate-400 space-y-1">
-              <div>[10:25:12.104] [INFO] SwBridge: Received command CreateExtrudeBoss payload {`{"dims": [80, 50, 10]}`}</div>
-              <div>[10:25:12.482] [INFO] SwBridge: Feature Base-Extrude created successfully (FeatID: 402)</div>
-              <div>[10:25:14.210] [INFO] SwBridge: Executing HoleWizardInstance 4x Ø8.0mm standard ANSI metric</div>
-              <div>[10:25:16.002] [INFO] SwBridge: Fillet R2 applied across 12 tangent edges</div>
-              <div>[10:25:18.112] [INFO] SwBridge: SwApp.ActiveDoc.ForceRebuild3 &rarr; OK. ReturnCode: 0</div>
-              <div className="text-emerald-400">[10:25:18.140] [VERIFY] Geometric audit verified manifold solid. Hash: 0x9b4a8e2f</div>
-            </div>
+            <div className="text-xs text-slate-400">No worker log is shown here yet. Each operation's execution record holds its engine output.</div>
           )}
         </div>
       </div>
@@ -236,28 +174,20 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
       <div className="w-[240px] md:w-[260px] lg:w-[280px] p-3 flex flex-col justify-between bg-[#0a101d] shrink-0 border-l border-[#182338]">
         <div className="flex items-center justify-between text-xs font-medium text-slate-300">
           <span className="font-semibold text-slate-200">Verification Center</span>
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
+          <span className={`w-2 h-2 rounded-full ${v.ok ? 'bg-emerald-400' : 'bg-slate-500'}`} />
         </div>
 
-        {/* Circular Green Verification Indicator */}
         <div className="flex items-center gap-3 py-1.5">
-          <div className="relative w-12 h-12 rounded-full bg-emerald-950/60 border-2 border-emerald-500/80 flex items-center justify-center shrink-0 shadow-md shadow-emerald-950/40">
-            <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
-              <Check className="w-4 h-4 text-emerald-400 stroke-[3]" />
-            </div>
+          <div className={`relative w-12 h-12 rounded-full border-2 flex items-center justify-center shrink-0 ${v.ok ? 'bg-emerald-950/60 border-emerald-500/80' : 'bg-slate-900 border-slate-600'}`}>
+            {v.ok ? <Check className="w-4 h-4 text-emerald-400 stroke-[3]" /> : <CircleDashed className="w-4 h-4 text-slate-500" />}
           </div>
 
           <div className="min-w-0">
-            <div className="text-sm font-bold text-slate-100 tracking-tight truncate">
-              All Checks Passed
-            </div>
-            <div className="text-[11px] text-slate-400 leading-tight">
-              Euler genus 1 · Manifold solid
-            </div>
+            <div data-testid="verdict" className="text-sm font-bold text-slate-100 tracking-tight">{v.title}</div>
+            <div className="text-[11px] text-slate-400 leading-tight">{v.detail}</div>
           </div>
         </div>
 
-        {/* Action Button: "View Report ->" */}
         <div className="flex justify-end pt-1">
           <button
             onClick={() => {

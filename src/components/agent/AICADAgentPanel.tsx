@@ -29,6 +29,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { AgentChatMessage, CADModelParameters, OperationHistoryRecord } from '../../types/cad';
+import { Dialog } from '../workspace/Dialog';
 import { INITIAL_CHAT_MESSAGES } from '../../data/mockCadData';
 import {
   generateSTEPFile,
@@ -153,13 +154,14 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
         {
           step: 4,
           action: 'Independent ASME Y14.5 Verification',
-          details: 'Euler boundary & clearance audit',
+          details: 'not run in this demo',
           status: 'pending' as const,
         },
       ];
 
-      let replyContent = `I have analyzed your instruction: "${text}". Here is the proposed parametric execution plan. Please review and approve before features are committed to the CAD kernel:`;
+      let replyContent = `Demo plan for "${text}". Applying it changes the preview only; nothing is sent to a CAD kernel:`;
 
+      let fromModel = false;
       try {
         const response = await fetch('/api/chat', {
           method: 'POST',
@@ -173,6 +175,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
 
         if (response.ok) {
           const data = await response.json();
+          fromModel = !data.simulated;
           if (data.reply) {
             replyContent = data.reply;
           }
@@ -192,14 +195,14 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
         id: `msg-${Date.now() + 1}`,
         sender: 'agent',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        senderName: `MechForge AI (${selectedModel})`,
+        senderName: fromModel ? `MechForge AI (${selectedModel})` : 'Offline demo (no model was called)',
         content: replyContent,
         plan: planSteps,
         executionStatus: 'waiting_approval',
         pendingParameters: newParams,
-        targetPartName: 'Mounting_Bracket.SLDPRT',
+        targetPartName: 'Demo bracket',
         suggestedActions: [
-          'Approve plan and rebuild',
+          'Apply plan to the preview',
           'Modify dimensions first',
           'Switch material to Titanium Ti-6Al-4V',
         ],
@@ -223,7 +226,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
           ...m,
           executionStatus: 'executing',
           progressPercent: 25,
-          activeStageName: 'Validating B-Rep Euler topology & sketch planes...',
+          activeStageName: 'Demo: no validation runs',
           plan: m.plan?.map((s, idx) => ({
             ...s,
             status: idx === 0 ? 'executing' : 'pending',
@@ -240,7 +243,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
           return {
             ...m,
             progressPercent: 50,
-            activeStageName: 'Dispatching COM commands to SolidWorks 2024...',
+            activeStageName: 'Demo: nothing is sent to a CAD application',
             plan: m.plan?.map((s, idx) => ({
               ...s,
               status: idx <= 1 ? (idx === 1 ? 'executing' : 'completed') : 'pending',
@@ -258,7 +261,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
           return {
             ...m,
             progressPercent: 75,
-            activeStageName: 'Regenerating feature tree & computing ISO 2768 tolerances...',
+            activeStageName: 'Demo: updating the preview from the parameters',
             plan: m.plan?.map((s, idx) => ({
               ...s,
               status: idx <= 2 ? (idx === 2 ? 'executing' : 'completed') : 'pending',
@@ -281,9 +284,9 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
       onAddOperation({
         id: `op-${Date.now()}`,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        action: `Rebuild Boss/Cut Features (${mergedParams.length}x${mergedParams.width}x${mergedParams.thickness}mm)`,
-        status: 'Success',
-        details: `${mergedParams.material} | Euler genus 1 verified`,
+        action: `Demo preview update (${mergedParams.length}x${mergedParams.width}x${mergedParams.thickness}mm)`,
+        status: 'Demo',
+        details: `${mergedParams.material} | not verified`,
         durationMs: 410,
       });
 
@@ -294,15 +297,15 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
             ...m,
             executionStatus: 'completed',
             progressPercent: 100,
-            activeStageName: 'CAD Model Generated & Verified',
+            activeStageName: 'Demo finished: preview updated',
             deliverablesAvailable: true,
             plan: m.plan?.map((s) => ({
               ...s,
               status: 'completed',
             })),
             verificationSummary: {
-              passed: true,
-              text: 'Operation completed successfully! Model is ready. Dimensions verified.',
+              passed: false,
+              text: 'Demo finished: the preview changed. No CAD operation ran and nothing was verified.',
             },
           };
         })
@@ -503,7 +506,8 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
           <select
             value={selectedRole}
             onChange={(e) => setSelectedRole(e.target.value as any)}
-            className="bg-transparent text-slate-200 font-tech text-[11px] focus:outline-none cursor-pointer"
+            aria-label="Copilot role"
+            className="bg-transparent text-slate-200 font-tech text-[11px] rounded focus:outline-none focus:ring-1 focus:ring-sky-400 cursor-pointer"
           >
             <option value="architect" className="bg-[#101728]">CAD Automation Architect</option>
             <option value="fea" className="bg-[#101728]">FEA & Stress Analyst</option>
@@ -575,10 +579,10 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
                         <div className="flex items-center justify-between text-xs">
                           <div className="flex items-center gap-1.5 text-cyan-300 font-semibold">
                             <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" />
-                            <span>Action Required: Approve CAD Execution</span>
+                            <span>Approve this demo plan</span>
                           </div>
                           <span className="text-[10px] font-tech px-1.5 py-0.5 rounded bg-blue-900/60 text-blue-300 border border-blue-700/60">
-                            Pre-Execution Gate
+                            Demo
                           </span>
                         </div>
 
@@ -586,7 +590,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
                         {msg.pendingParameters && (
                           <div className="bg-[#0b1220] p-2 rounded-lg border border-[#202f4a] font-tech text-[11px] space-y-1 text-slate-300">
                             <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">
-                              Target: {msg.targetPartName || 'Mounting_Bracket.SLDPRT'}
+                              Target: {msg.targetPartName || 'Demo bracket'}
                             </div>
                             {Object.entries(msg.pendingParameters).map(([k, v]) => (
                               <div key={k} className="flex justify-between items-center text-xs">
@@ -595,8 +599,8 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
                               </div>
                             ))}
                             <div className="text-[10px] text-slate-500 pt-0.5 flex justify-between">
-                              <span>Topological Genus:</span>
-                              <span className="text-cyan-400">g = 1 (Manifold Watertight)</span>
+                              <span>Kernel check:</span>
+                              <span className="text-slate-400">none (demo)</span>
                             </div>
                           </div>
                         )}
@@ -607,7 +611,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
                             className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-lg text-xs font-semibold shadow-md shadow-blue-600/30 transition-all cursor-pointer"
                           >
                             <Check className="w-3.5 h-3.5" />
-                            <span>Approve &amp; Execute</span>
+                            <span>Apply to preview</span>
                           </button>
                           <button
                             onClick={() => handleRejectPlan(msg.id)}
@@ -626,7 +630,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
                         <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium">
                           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                           <span>
-                            {msg.executionStatus === 'completed' ? 'Plan approved. Executed.' : 'Plan approved. Executing...'}
+                            {msg.executionStatus === 'completed' ? 'Demo plan applied to the preview.' : 'Applying the demo plan...'}
                           </span>
                         </div>
 
@@ -660,12 +664,12 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
 
                           <div className="space-y-0.5">
                             <div className="text-xs font-semibold text-slate-200">
-                              {msg.progressPercent === 100 ? 'CAD Model Generated' : 'Creating CAD model...'}
+                              {msg.progressPercent === 100 ? 'Preview updated' : 'Updating the preview...'}
                             </div>
                             <div className="text-[11px] text-slate-400">
                               {msg.activeStageName ||
                                 (msg.progressPercent === 100
-                                  ? 'All geometric constraints verified'
+                                  ? 'nothing was verified'
                                   : 'This may take a few moments')}
                             </div>
                           </div>
@@ -681,11 +685,11 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
                             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                           </div>
                           <div className="text-xs font-semibold text-emerald-400">
-                            Operation completed successfully!
+                            Demo finished
                           </div>
                         </div>
                         <div className="text-[11px] text-slate-300 pl-7">
-                          Model is ready. Dimensions verified.
+                          {msg.verificationSummary.text}
                         </div>
                         <div className="pl-7 pt-1 flex items-center gap-2">
                           <button
@@ -713,7 +717,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
                         </div>
 
                         <div className="text-[11px] text-slate-400 leading-snug">
-                          Download conforming CAD artifacts generated directly from the verified B-Rep model:
+                          Files generated from the demo parameters by text templates, not by a CAD kernel:
                         </div>
 
                         {/* Deliverables Action Grid */}
@@ -859,6 +863,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
                   handleSendMessage();
                 }
               }}
+              aria-label="Message"
               placeholder={`Ask ${selectedModel} about your design...`}
               rows={2}
               className="w-full bg-transparent text-slate-100 placeholder-slate-500 text-xs px-3 py-2.5 resize-none focus:outline-none"
@@ -869,14 +874,16 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
                 <button
                   type="button"
                   className="p-1.5 hover:text-slate-200 hover:bg-slate-800 rounded transition-colors"
-                  title="Attach CAD drawing, STEP or PDF specification"
+                  disabled
+                  title="Attach CAD drawing, STEP or PDF (not available yet)"
                 >
                   <Paperclip className="w-3.5 h-3.5" />
                 </button>
                 <button
                   type="button"
                   className="p-1.5 hover:text-slate-200 hover:bg-slate-800 rounded transition-colors"
-                  title="Attach reference image or scan"
+                  disabled
+                  title="Attach reference image or scan (not available yet)"
                 >
                   <ImageIcon className="w-3.5 h-3.5" />
                 </button>
@@ -901,8 +908,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
 
       {/* 2D Technical Drawing Preview Modal */}
       {showDrawingPreviewModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="w-full max-w-4xl h-[85vh] bg-[#0b101d] border border-[#232f48] rounded-xl shadow-2xl flex flex-col overflow-hidden">
+        <Dialog label="Drawing preview" onClose={() => setShowDrawingPreviewModal(false)} className="w-full max-w-4xl h-[85vh] bg-[#0b101d] border border-[#232f48] rounded-xl shadow-2xl flex flex-col overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e293b] bg-[#101728]">
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-cyan-400" />
@@ -923,6 +929,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
                 </button>
                 <button
                   onClick={() => setShowDrawingPreviewModal(false)}
+                  aria-label="Close drawing"
                   className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
@@ -942,8 +949,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
               <span>Tolerance Class: ISO 2768-m (±0.05 mm)</span>
               <span>Scale: 1:1 @ A3 Sheet</span>
             </div>
-          </div>
-        </div>
+        </Dialog>
       )}
     </>
   );

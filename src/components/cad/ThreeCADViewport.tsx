@@ -39,7 +39,7 @@ export type CameraPreset = 'iso' | 'front' | 'top' | 'right' | 'back';
 
 export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
   parameters,
-  activeTab = 'Mounting_Bracket.SLDPRT',
+  activeTab = 'Demo bracket',
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -463,6 +463,10 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
     controls.minDistance = 6;
     controls.maxDistance = 60;
     controls.target.set(0, 2.2, 0);
+    controls.listenToKeyEvents(renderer.domElement); // arrows pan; with Shift they orbit
+    renderer.domElement.tabIndex = 0;
+    renderer.domElement.setAttribute('aria-label', 'Demo model preview. Arrow keys pan, Shift and arrow keys orbit.');
+    renderer.domElement.className = 'outline-none focus-visible:ring-2 focus-visible:ring-sky-400';
     controlsRef.current = controls;
 
     // 8. Build Bracket Model & Dimension Overlay
@@ -499,6 +503,11 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
       renderer.dispose();
     };
   }, []);
+
+  // Pan makes a left drag pan; Select and Rotate leave it orbiting.
+  useEffect(() => {
+    if (controlsRef.current) controlsRef.current.mouseButtons.LEFT = activeTool === 'pan' ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
+  }, [activeTool]);
 
   // Update geometry when parameters or renderMode change
   useEffect(() => {
@@ -579,15 +588,9 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
         </div>
 
         {/* Clean Unboxed Document Metadata (Anti-Slop Zero-Pill) */}
-        <div className="hidden md:flex items-center gap-2 text-[10px] font-tech text-slate-400 shrink-0">
-          <span>Parasolid B-Rep</span>
-          <span aria-hidden="true" className="text-slate-600">·</span>
-          <span className="text-emerald-400 flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            Bridge Connected
-          </span>
-          <span aria-hidden="true" className="text-slate-600">·</span>
-          <span>ISO 2768-m</span>
+        <div className="flex items-center gap-2 text-[10px] font-tech text-slate-400 shrink-0">
+          <span className="rounded border border-slate-600 px-1.5 py-0.5 font-semibold uppercase tracking-wider text-slate-100">Preview</span>
+          <span className="hidden md:inline">demo model drawn from parameters, not built by a CAD kernel</span>
         </div>
       </div>
 

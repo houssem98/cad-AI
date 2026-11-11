@@ -6,21 +6,34 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 interface Props {
   glb: ArrayBuffer;
   onError: (message: string) => void;
+  onEmpty: () => void;
 }
 
+const KEYS_HINT = 'Part preview. Arrow keys pan, Shift and arrow keys orbit, plus and minus zoom.';
+
 // The kernel's tessellation of a part. A render is a preview, never evidence that a CAD model exists (I3).
-export function KernelPreview({ glb, onError }: Props) {
+export function KernelPreview({ glb, onError, onEmpty }: Props) {
   const mount = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState('');
   const [triangles, setTriangles] = useState(0);
 
   useEffect(() => {
     const el = mount.current!;
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+    } catch {
+      onError('this browser cannot draw a 3D preview (no WebGL)');
+      return;
+    }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(el.clientWidth, el.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    el.appendChild(renderer.domElement);
+    const canvas = renderer.domElement;
+    canvas.tabIndex = 0;
+    canvas.setAttribute('aria-label', KEYS_HINT);
+    canvas.className = 'outline-none focus-visible:ring-2 focus-visible:ring-sky-400';
+    el.appendChild(canvas);
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0e1116);
@@ -29,10 +42,18 @@ export function KernelPreview({ glb, onError }: Props) {
     key.position.set(1, 2, 1.5);
     scene.add(key);
     const camera = new THREE.PerspectiveCamera(40, el.clientWidth / el.clientHeight, 0.001, 100);
-    const controls = new OrbitControls(camera, renderer.domElement); // left drag orbits, right drag pans, wheel zooms
+    const controls = new OrbitControls(camera, canvas); // left drag orbits, right drag pans, wheel zooms
+    controls.listenToKeyEvents(canvas); // arrows pan; with Shift they orbit
+    const zoom = (e: KeyboardEvent) => {
+      const f = e.key === '+' || e.key === '=' ? 0.85 : e.key === '-' || e.key === '_' ? 1 / 0.85 : 0;
+      if (!f) return;
+      e.preventDefault();
+      camera.position.sub(controls.target).multiplyScalar(f).add(controls.target);
+    };
+    canvas.addEventListener('keydown', zoom);
 
     let disposed = false;
-    new GLTFLoader().parse(glb, '', (gltf) => {
+    const loaded = (gltf: { scene: THREE.Object3D }) => {
       if (disposed) return;
       const material = new THREE.MeshStandardMaterial({ color: 0x9aa6b5, metalness: 0.15, roughness: 0.55 });
       let count = 0;
@@ -41,6 +62,7 @@ export function KernelPreview({ glb, onError }: Props) {
         o.material = material;
         count += (o.geometry.index?.count ?? o.geometry.attributes.position.count) / 3;
       });
+      if (!count) return onEmpty();
       scene.add(gltf.scene);
       const box = new THREE.Box3().setFromObject(gltf.scene);
       const s = box.getSize(new THREE.Vector3());
@@ -55,7 +77,12 @@ export function KernelPreview({ glb, onError }: Props) {
       camera.near = r / 500;
       camera.far = r * 200;
       camera.updateProjectionMatrix();
-    }, (e) => onError(`the preview mesh could not be read: ${e.message}`));
+    };
+    try {
+      new GLTFLoader().parse(glb, '', loaded, (e) => onError(`the preview mesh could not be read: ${e.message}`));
+    } catch (e) {
+      onError(`the preview mesh could not be read: ${(e as Error).message}`);
+    }
 
     let frame = 0;
     const tick = () => {
@@ -76,24 +103,32 @@ export function KernelPreview({ glb, onError }: Props) {
       disposed = true;
       cancelAnimationFrame(frame);
       resize.disconnect();
+      canvas.removeEventListener('keydown', zoom);
+      controls.stopListenToKeyEvents();
       controls.dispose();
       renderer.dispose();
       el.replaceChildren();
     };
-  }, [glb, onError]);
+  }, [glb, onError, onEmpty]);
 
   return (
     <div className="relative h-full w-full bg-[#0e1116]" data-triangles={triangles} data-size-mm={size}>
       <div ref={mount} className="absolute inset-0" />
-      <div className="pointer-events-none absolute left-3 top-3 flex items-center gap-2 rounded border border-slate-600 bg-slate-900/80 px-2 py-1 text-[11px] text-slate-300">
-        <span className="font-semibold uppercase tracking-wider text-slate-100">Preview</span>
-        <span>kernel mesh; the execution record is the evidence</span>
-      </div>
+      <PreviewLabel note="kernel mesh; the execution record is the evidence" />
       {size && (
         <div className="pointer-events-none absolute bottom-3 left-3 rounded bg-slate-900/80 px-2 py-1 font-tech text-[11px] text-slate-300">
-          {size} mm
+          mesh bounds {size} mm
         </div>
       )}
+    </div>
+  );
+}
+
+export function PreviewLabel({ note }: { note: string }) {
+  return (
+    <div className="pointer-events-none absolute left-3 top-3 z-10 flex items-center gap-2 rounded border border-slate-600 bg-slate-900/80 px-2 py-1 text-[11px] text-slate-300">
+      <span className="font-semibold uppercase tracking-wider text-slate-100">Preview</span>
+      <span>{note}</span>
     </div>
   );
 }
