@@ -6,13 +6,14 @@ from pathlib import Path
 from build123d import (Circle, Cylinder, GeomType, Plane, Polygon, Pos, Rectangle, chamfer, export_brep, export_step,
                        extrude, fillet, import_brep, import_step)
 
-from adapter import Adapter, PreconditionFailed, outcome
+from adapter import Adapter, PreconditionFailed, VerificationFailed, outcome
 from adapter_contract import TYPES
 
 PLANES = {"top": Plane.XY, "front": Plane.XZ, "right": Plane.YZ}
 SOLID_STEPS = {"extrude", "cut", "hole", "fillet", "chamfer"}
 WRITERS = {"step": export_step, "brep": export_brep}
 VOLUME_TOL, BBOX_TOL_MM = 1e-4, 1e-3  # an export counts only when its re-import matches (EXECUTION_AND_VERIFICATION.md)
+REMOVED_MIN_MM3 = 1e-6
 
 
 def _mm(length):
@@ -41,6 +42,12 @@ def _matches(a, b):
     if abs(a["volume_mm3"] - b["volume_mm3"]) > VOLUME_TOL * abs(b["volume_mm3"]):
         return False
     return all(abs(a["bbox_mm"][end][axis] - b["bbox_mm"][end][axis]) <= BBOX_TOL_MM for end in ("min", "max") for axis in "xyz")
+
+
+def _removing(before, after, what):
+    if before.volume - after.volume <= REMOVED_MIN_MM3:
+        raise VerificationFailed("%s removed no material" % what)
+    return after
 
 
 def _read(path):
@@ -78,6 +85,8 @@ class KernelAdapter(Adapter):
         return outcome("succeeded", result={"id": op["id"]})
 
     def create_part(self, op):
+        if op["target"]["document"] in self.docs:
+            raise PreconditionFailed("document %s already exists" % op["target"]["document"])
         return self._commit(op, [op])
 
     import_document = create_part  # the imported file starts the document's history
@@ -153,7 +162,11 @@ class KernelAdapter(Adapter):
     def _sketch(self, kind, p):
         plane = PLANES[p["plane"]]
         if kind == "sketch_polyline":
-            return plane * Polygon(*[(_mm(q["x"]), _mm(q["y"])) for q in p["points"]])
+            pts = [(_mm(q["x"]), _mm(q["y"])) for q in p["points"]]
+            # A clockwise outline makes a face whose normal points against the plane's, so extrude and cut would go backwards.
+            if sum(x0 * y1 - x1 * y0 for (x0, y0), (x1, y1) in zip(pts, pts[1:] + pts[:1])) < 0:
+                pts.reverse()
+            return plane * Polygon(*pts)
         at = plane * Pos(_mm(p["center"]["x"]), _mm(p["center"]["y"])) if "center" in p else plane
         if kind == "sketch_rectangle":
             return at * Rectangle(_mm(p["width"]), _mm(p["height"]))
@@ -174,20 +187,21 @@ class KernelAdapter(Adapter):
     def _cut(self, part, p, sketches, _):
         face = self._profile(p, sketches)
         if p.get("through_all"):
-            return part - extrude(face, amount=part.bounding_box().diagonal + 1, both=True)
-        return part - extrude(face, amount=_mm(p["depth"]))
+            return _removing(part, part - extrude(face, amount=part.bounding_box().diagonal + 1, both=True), "cut")
+        return _removing(part, part - extrude(face, amount=_mm(p["depth"])), "cut")
 
     def _hole(self, part, p, *_):
-        if p.get("through_all") == ("depth" in p):
+        if bool(p.get("through_all")) == ("depth" in p):
             raise PreconditionFailed("a hole needs exactly one of depth and through_all")
         bb, r = part.bounding_box(), _mm(p["diameter"]) / 2
         for q in p["positions"]:
+            x, y = _mm(q["x"]), _mm(q["y"])
             if p.get("through_all"):
-                tool = Pos(_mm(q["x"]), _mm(q["y"]), (bb.min.Z + bb.max.Z) / 2) * Cylinder(r, bb.size.Z + 2)
+                tool = Pos(x, y, (bb.min.Z + bb.max.Z) / 2) * Cylinder(r, bb.size.Z + 2)
             else:
                 d = _mm(p["depth"])
-                tool = Pos(_mm(q["x"]), _mm(q["y"]), bb.max.Z - d / 2 + 0.005) * Cylinder(r, d + 0.01)
-            part = part - tool
+                tool = Pos(x, y, bb.max.Z - d / 2 + 0.005) * Cylinder(r, d + 0.01)
+            part = _removing(part, part - tool, "hole at (%g, %g)" % (x, y))
         return part
 
     def _fillet(self, part, p, _, snapshots):

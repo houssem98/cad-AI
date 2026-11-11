@@ -1,10 +1,12 @@
 import copy
+import hashlib
+from pathlib import Path
 
 from operation_schema import DEFS, SCHEMA, validate_operation
 
 TYPES = SCHEMA["properties"]["type"]["enum"]
 EXPORT_FORMATS = DEFS["params"]["export"]["properties"]["format"]["enum"]
-DOCUMENT_KINDS = {"part", "assembly", "drawing"}
+DOCUMENT_KINDS = {"part"}  # the only kind the cases below build
 
 
 def _mm(v):
@@ -32,7 +34,7 @@ CASES = [
     _op(12, "inspect", {}),
     _op(13, "export", {"format": "step"}),
     _op(14, "export", {"format": "brep"}),
-    _op(15, "import", {"artifact": "c13"}),
+    {**_op(15, "import", {"artifact": "c13"}), "target": {"document": "doc-contract-copy"}},
 ]
 
 
@@ -50,7 +52,9 @@ def check_adapter(adapter):
         elif claim == "supported" and kind not in TYPES:
             problems.append("manifest claims %s, which the schema does not define" % kind)
     problems += ["manifest claims export to %s, which the schema does not define" % f for f in m.get("exports", []) if f not in EXPORT_FORMATS]
-    problems += ["manifest claims %s documents" % d for d in m.get("documents", []) if d not in DOCUMENT_KINDS]
+    problems += ["manifest claims %s documents, which no contract case builds" % d for d in m.get("documents", []) if d not in DOCUMENT_KINDS]
+    if m.get("exports") and ops.get("export") != "supported":
+        problems.append("manifest lists export formats but marks export unsupported")
     if not adapter.health().get("ok"):
         problems.append("health() is not ok")
     exported = None  # an adapter imports a file path; the executor resolves artifact ids to paths before this point
@@ -71,4 +75,11 @@ def check_adapter(adapter):
             problems.append("%s: not claimed but returned %s" % (label, out.get("status")))
         if claimed and case["type"] == "inspect" and out.get("verification") is None:
             problems.append("%s: returned no verification" % label)
+        if claimed and case["type"] == "export" and out.get("status") == "succeeded":
+            r = out.get("result") or {}
+            path = Path(r["path"]) if r.get("path") else None
+            if not path or not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != r.get("sha256"):
+                problems.append("%s: reported an export with no matching file" % label)
+            if out.get("verification") is None:
+                problems.append("%s: reported an export with no re-import measurement" % label)
     return problems

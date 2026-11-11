@@ -68,9 +68,14 @@ export class CadStore {
     return !!this.db.prepare("SELECT 1 FROM operations WHERE document_id = ? AND op_id = ? AND status = 'succeeded'").get(docId, opId);
   }
 
-  unfinished(): OpRow[] {
-    return this.db.prepare("SELECT row_id AS rowId, op_id AS opId, document_id AS docId FROM operations WHERE status IN ('running', 'inspecting')")
-      .all() as unknown as OpRow[];
+  hasSucceededType(docId: string, types: string[]): boolean {
+    return !!this.db.prepare(`SELECT 1 FROM operations WHERE document_id = ? AND status = 'succeeded'
+      AND json_extract(envelope_json, '$.type') IN (${types.map(() => '?').join(', ')})`).get(docId, ...types);
+  }
+
+  unfinished(): Array<OpRow & { status: string }> {
+    return this.db.prepare(`SELECT row_id AS rowId, op_id AS opId, document_id AS docId, status FROM operations
+      WHERE status IN ('pending', 'validated', 'awaiting_approval', 'running', 'inspecting')`).all() as unknown as Array<OpRow & { status: string }>;
   }
 
   // The document change, the record and the status land together or not at all.

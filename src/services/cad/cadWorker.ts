@@ -16,6 +16,7 @@ export class CadWorker {
   private onLine: ((line: string) => void) | null = null;
   private onExit: (() => void) | null = null;
   private stderrTail = '';
+  private alive = false;
 
   constructor(private args: string[] = []) {
     this.start();
@@ -24,10 +25,12 @@ export class CadWorker {
   private start() {
     const proc = spawn(process.env.CAD_PYTHON ?? 'python', [WORKER, ...this.args], { env: { ...process.env, PYTHONIOENCODING: 'utf-8' } });
     this.proc = proc;
+    this.alive = true;
     this.stderrTail = '';
+    proc.stdin.on('error', () => {}); // a write to a worker that has stopped surfaces as its exit
     proc.stderr.on('data', (d) => { if (proc === this.proc) this.stderrTail = (this.stderrTail + d).slice(-4096); });
     createInterface({ input: proc.stdout }).on('line', (line) => { if (proc === this.proc) this.onLine?.(line); });
-    proc.on('exit', () => { if (proc === this.proc) this.onExit?.(); });
+    proc.on('exit', () => { if (proc === this.proc) { this.alive = false; this.onExit?.(); } });
   }
 
   restart() {
@@ -43,7 +46,12 @@ export class CadWorker {
 
   request(msg: object, timeoutMs = 30_000, signal?: AbortSignal): Promise<any> {
     return new Promise((resolve, reject) => {
-      const end = () => { clearTimeout(timer); signal?.removeEventListener('abort', onAbort); this.onLine = this.onExit = null; };
+      if (!this.alive) {
+        const tail = this.stderrTail;
+        this.start();
+        return reject(new WorkerError('worker_crashed', `the worker had stopped: ${tail}`));
+      }
+      const end =() => { clearTimeout(timer); signal?.removeEventListener('abort', onAbort); this.onLine = this.onExit = null; };
       const stop = (code: WorkerError['code'], message: string) => { end(); this.restart(); reject(new WorkerError(code, message)); };
       const onAbort = () => stop('cancelled', 'cancelled by the user');
       const timer = setTimeout(() => stop('timeout', `no answer within ${Math.round(timeoutMs)} ms`), Math.max(0, timeoutMs));

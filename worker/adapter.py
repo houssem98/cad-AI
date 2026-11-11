@@ -20,6 +20,10 @@ class PreconditionFailed(Exception):
     """An identifier, document or prior feature the operation needs does not exist."""
 
 
+class VerificationFailed(Exception):
+    """The engine built the operation, but the result fails the operation's own check (a cut that removed nothing)."""
+
+
 def outcome(status, result=None, verification=None, error=None):
     return {"status": status, "result": result, "verification": verification, "error": error}
 
@@ -44,6 +48,8 @@ class Adapter:
             return unsupported(kind)
         except PreconditionFailed as e:
             return outcome("failed", error={"code": "precondition_failed", "message": str(e)})
+        except VerificationFailed as e:
+            return outcome("failed", error={"code": "verification_failed", "message": str(e)})
         except Exception as e:
             return outcome("failed", error={"code": "kernel_error", "message": str(e)})
 

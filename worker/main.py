@@ -4,8 +4,9 @@ import json
 import os
 import sys
 
-from adapter import METHODS
+from adapter import METHODS, outcome
 from adapter_double import DoubleAdapter
+from operation_schema import validate_operation
 
 
 def serve(adapter, lines, out):
@@ -16,11 +17,14 @@ def serve(adapter, lines, out):
         if kind == "health":
             reply = {"kind": "health", "ops": ops, **adapter.health()}
         elif kind == "capabilities":
-            reply = {"kind": "capabilities", "manifest": adapter.capabilities()}
+            reply = {"kind": "capabilities", "manifest": adapter.capabilities(), "calls": METHODS}
         elif kind == "op":
             ops += 1
             op = msg["operation"]
-            reply = {"kind": "result", "id": op["id"], "call": METHODS.get(op["type"]), **adapter.run(op)}
+            errs = validate_operation(op)
+            body = adapter.run(op) if not errs else outcome("failed", error={
+                "code": "validation_failed", "message": "; ".join("%s %s" % e for e in errs)})
+            reply = {"kind": "result", "id": op.get("id"), "call": METHODS.get(op.get("type")), **body}
         elif kind == "inspect":
             reply = {"kind": "inspected", **adapter.inspect_geometry({"target": {"document": msg["document"]}})}
         elif kind == "save":
@@ -40,6 +44,7 @@ def main():
     p.add_argument("--adapter", choices=["double", "kernel"], default="double")
     p.add_argument("--hang", action="append", default=[], help="double only: hang on this operation type")
     p.add_argument("--fail", action="append", default=[], help="double only: fail on this operation type")
+    p.add_argument("--hang-inspect", action="append", default=[], help="double only: hang on the inspect after this type")
     p.add_argument("--artifacts", help="folder the kernel writes exported files to")
     a = p.parse_args()
     # The protocol gets its own copy of stdout; file descriptor 1 then points at stderr, so text the CAD
@@ -51,7 +56,7 @@ def main():
         from adapter_kernel import KernelAdapter  # build123d loads only when the kernel is asked for
         adapter = KernelAdapter(artifact_dir=a.artifacts)
     else:
-        adapter = DoubleAdapter(hangs=set(a.hang), fails=set(a.fail))
+        adapter = DoubleAdapter(hangs=set(a.hang), fails=set(a.fail), hang_inspect=set(a.hang_inspect))
     serve(adapter, sys.stdin, protocol)
 
 

@@ -1,6 +1,6 @@
 import pytest
 
-from adapter import Adapter
+from adapter import Adapter, outcome
 from adapter_contract import CASES, TYPES, check_adapter
 from adapter_double import DoubleAdapter
 from adapter_kernel import KernelAdapter
@@ -51,7 +51,42 @@ def test_adapter_called_directly_with_an_operation_it_lacks_returns_unsupported(
     assert out["status"] == "unsupported" and out["error"]["code"] == "unsupported"
 
 
+class AssemblyClaimingDouble(DoubleAdapter):
+    def capabilities(self):
+        return {**super().capabilities(), "documents": ["part", "assembly"]}
+
+
+def test_contract_fails_a_manifest_claiming_a_document_kind_no_case_covers():
+    assert any("assembly" in p for p in check_adapter(AssemblyClaimingDouble()))
+
+
+class FormatsWithoutExport(DoubleAdapter):
+    def capabilities(self):
+        return {**super().capabilities(), "exports": ["step"]}
+
+
+def test_contract_fails_export_formats_listed_while_export_is_unsupported():
+    assert any("export formats" in p for p in check_adapter(FormatsWithoutExport()))
+
+
+class FilelessExportDouble(DoubleAdapter):
+    """Claims STEP export but writes no file and measures no re-import."""
+
+    def capabilities(self):
+        m = super().capabilities()
+        return {**m, "exports": ["step"], "operations": {**m["operations"], "export": "supported"}}
+
+    def export_document(self, op):
+        return outcome("succeeded", result={"artifact": op["id"]})
+
+
+def test_contract_fails_an_export_with_no_file_or_reimport():
+    problems = check_adapter(FilelessExportDouble())
+    assert any(p.startswith("c13 export") and "file" in p for p in problems), problems
+    assert any(p.startswith("c13 export") and "re-import" in p for p in problems), problems
+
+
 def test_export_to_an_unlisted_format_returns_unsupported():
     op = next(c for c in CASES if c["type"] == "export" and c["params"]["format"] == "brep")
-    out = DoubleAdapter().run(op)
+    out = FilelessExportDouble().run(op)
     assert out["status"] == "unsupported" and out["error"]["code"] == "unsupported"
