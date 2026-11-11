@@ -152,3 +152,4 @@ Deciding rule, fixed before T1 starts: T0 to T6 are ticked, `npm run gate` exits
   ```
 - 2026-11-11 · L3/T7 · started T7
 - 2026-11-11 · L3/T7 · passed · gate green · commit loop(L3/T7) (this entry's own commit) · the human opened cad-AI/milestone-out/enclosure.step and lid.step (rebuilt by the T6 gate run) and wrote in chat: "T7 ok, looks right". No viewer was named. With T0 to T7 ticked and the gate green, the deciding rule holds; ticking the L3 loop line is the human's (driver rule 4) · Direction: still the goal; the program's first end-to-end claim now has the human's eyes on it as well as the kernel's measurements · Next: L4 Workspace, first unticked agent task
+- 2026-11-11 · L3 · loop line ticked in docs/LOOP_GRAPH.md on the human's instruction (multiple choice: "Tick it for me (Recommended)") · gate green
