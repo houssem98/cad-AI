@@ -19,6 +19,8 @@ import { ThreeCADViewport } from './components/cad/ThreeCADViewport';
 import { AICADAgentPanel } from './components/agent/AICADAgentPanel';
 import { RightInspectorPanel } from './components/inspector/RightInspectorPanel';
 import { BottomConsole } from './components/bottom/BottomConsole';
+import { PanelFrame } from './components/workspace/PanelFrame';
+import { DEFAULT_PANELS, panelViewsFromUrl, type PanelViews } from './components/workspace/panelViews';
 
 // Modals
 import { CommandPaletteModal } from './components/modals/CommandPaletteModal';
@@ -51,6 +53,7 @@ export default function App() {
   // CAD Model & Geometry Parameters
   const [parameters, setParameters] = useState<CADModelParameters>(INITIAL_CAD_PARAMETERS);
   const [operationHistory, setOperationHistory] = useState<OperationHistoryRecord[]>(INITIAL_OPERATION_HISTORY);
+  const [panels] = useState<PanelViews>(() => ({ ...DEFAULT_PANELS, ...panelViewsFromUrl(window.location.search, import.meta.env.DEV) }));
 
   // Modals state
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -134,26 +137,29 @@ export default function App() {
               {/* Upper split: [Left Agent Panel] | [Center 3D Viewport] | [Right Inspector Panel] */}
               <div className="flex flex-1 min-h-0 w-full overflow-hidden">
                 {/* AI CAD Agent Conversation Panel */}
-                <AICADAgentPanel
-                  parameters={parameters}
-                  onUpdateParameters={handleUpdateParameters}
-                  onAddOperation={handleAddOperation}
-                  onOpenLiveVoice={() => setIsLiveVoiceOpen(true)}
-                  isOpen={isAgentOpen}
-                  onToggleOpen={toggleAgent}
-                  onFocusCAD={() => {
-                    // Focus / center CAD viewport
-                  }}
-                />
+                <PanelFrame panel="chat" label="Chat" view={panels.chat} className="flex h-full flex-shrink-0"
+                  stateClassName="w-[310px] lg:w-[340px] border-r border-[#1a2336] bg-[#080d17]">
+                  <AICADAgentPanel
+                    parameters={parameters}
+                    onUpdateParameters={handleUpdateParameters}
+                    onAddOperation={handleAddOperation}
+                    onOpenLiveVoice={() => setIsLiveVoiceOpen(true)}
+                    isOpen={isAgentOpen}
+                    onToggleOpen={toggleAgent}
+                    onFocusCAD={() => {
+                      // Focus / center CAD viewport
+                    }}
+                  />
+                </PanelFrame>
 
                 {/* 3D Interactive Three.js CAD Viewport */}
-                <div className="flex-1 min-w-0 h-full relative">
+                <PanelFrame panel="viewport" label="Viewport" view={panels.viewport} className="flex-1 min-w-0 h-full relative">
                   <ThreeCADViewport
                     parameters={parameters}
                     onParameterChange={handleUpdateParameters}
                     onOpenReport={() => setIsVerificationReportOpen(true)}
                   />
-                </div>
+                </PanelFrame>
 
                 {/* Technical Properties / Feature Tree / BOM Inspector */}
                 <RightInspectorPanel
@@ -161,17 +167,27 @@ export default function App() {
                   onUpdateParameters={handleUpdateParameters}
                   isOpen={isInspectorOpen}
                   onToggleOpen={toggleInspector}
+                  panels={panels}
                 />
               </div>
 
-              {/* Lower split: Operation History & Verification Center Console */}
-              <BottomConsole
-                operations={operationHistory}
-                onOpenReport={() => setIsVerificationReportOpen(true)}
-                onNavigateVerification={() => setCurrentModule('verification-center')}
-                isOpen={isConsoleOpen}
-                onToggleOpen={toggleConsole}
-              />
+              {/* Lower split: Operation History & Verification Center Console, with background tasks beside it */}
+              <div className="flex w-full flex-shrink-0">
+                <PanelFrame panel="history" label="History" view={panels.history} className="min-w-0 flex-1"
+                  stateClassName="h-[185px] border-t border-[#182338] bg-[#080d17]">
+                  <BottomConsole
+                    operations={operationHistory}
+                    onOpenReport={() => setIsVerificationReportOpen(true)}
+                    onNavigateVerification={() => setCurrentModule('verification-center')}
+                    isOpen={isConsoleOpen}
+                    onToggleOpen={toggleConsole}
+                  />
+                </PanelFrame>
+                {isConsoleOpen && (
+                  <PanelFrame panel="tasks" label="Tasks" view={panels.tasks}
+                    className="h-[185px] w-[300px] flex-shrink-0 border-l border-t border-[#182338] bg-[#080d17]" />
+                )}
+              </div>
             </div>
           )}
 

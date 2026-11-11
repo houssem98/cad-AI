@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { CADModelParameters, MaterialOption, CADFeatureNode, BOMItem } from '../../types/cad';
 import { AVAILABLE_MATERIALS, INITIAL_FEATURE_TREE, INITIAL_BOM } from '../../data/mockCadData';
+import { PanelFrame } from '../workspace/PanelFrame';
+import type { PanelViews } from '../workspace/panelViews';
 
 interface RightInspectorPanelProps {
   parameters: CADModelParameters;
@@ -29,7 +31,10 @@ interface RightInspectorPanelProps {
   isOpen?: boolean;
   onToggleOpen?: () => void;
   onClose?: () => void;
+  panels?: Partial<PanelViews>;
 }
+
+const COMPLETED = { status: 'completed' } as const;
 
 export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
   parameters,
@@ -39,6 +44,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
   isOpen = true,
   onToggleOpen,
   onClose,
+  panels = {},
 }) => {
   const [activeTab, setActiveTab] = useState<'properties' | 'featureTree' | 'bom'>('properties');
   const [features, setFeatures] = useState<CADFeatureNode[]>(featureTree);
@@ -189,7 +195,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
       <div className="flex-1 overflow-y-auto p-3 space-y-4 text-xs no-scrollbar">
         {/* TAB 1: PROPERTIES (Matches Screenshot exactly) */}
         {activeTab === 'properties' && (
-          <>
+          <PanelFrame panel="properties" label="Properties" view={panels.properties ?? COMPLETED} className="space-y-4">
             {/* Part Information Section */}
             <div className="space-y-3">
               <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between">
@@ -407,11 +413,12 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                 </div>
               </div>
             </div>
-          </>
+          </PanelFrame>
         )}
 
         {/* TAB 2: FEATURE TREE */}
         {activeTab === 'featureTree' && (
+          <PanelFrame panel="tree" label="Feature tree" view={panels.tree ?? COMPLETED}>
           <div className="space-y-2">
             <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between mb-2">
               <span>SolidWorks History Tree</span>
@@ -448,6 +455,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
               Parametric feature sequence is bidirectionally linked with the CAD adapter.
             </div>
           </div>
+          </PanelFrame>
         )}
 
         {/* TAB 3: BOM (Bill of Materials) */}
