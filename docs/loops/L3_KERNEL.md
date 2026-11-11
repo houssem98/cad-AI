@@ -15,7 +15,7 @@ Deciding rule, fixed before T1 starts: T0 to T6 are ticked, `npm run gate` exits
 - [x] T4 Executor and records. needs: T1. Schema validation before any kernel call; per-operation timeout and cancellation; one persisted execution record per operation with every field of `docs/roadmap/MECAGENT_ROADMAP.md#Every CAD operation must produce an execution record containing:`. No path runs model-written code (I6). Evidence: tests: invalid parameters refused before the kernel is called; an operation past its timeout is cancelled and recorded; a failed operation is recorded with its error; an operation type `script` is refused; a refused proposal has a record; after a cancel or a timeout the document's revision and inspection equal its checkpoint; an operation left running at server start is restored and recorded (`docs/cad-agent/architecture/EXECUTION_AND_VERIFICATION.md`).
 - [x] T5 Headless milestone. needs: T2, T3, T4. A fixed operation sequence, no model: enclosure 120 × 80 × 40 mm, 2 mm shell, four M3 bosses, separate lid. Evidence: test: both parts valid, volumes equal the analytic values within 0.05 %, STEP round trip holds, every operation has a record.
 - [x] T6 Independent check. needs: T5. A council with the geometry, operations, records and adapters items of the attack list. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
-- [ ] T7 (human) Signoff. needs: T6. The human opens the T5 STEP files in any viewer. Evidence: the signoff line in the Journal.
+- [x] T7 (human) Signoff. needs: T6. The human opens the T5 STEP files in any viewer. Evidence: the signoff line in the Journal.
 
 ## Journal
 - 2026-11-10 · L3/T0 · started T0
@@ -150,3 +150,5 @@ Deciding rule, fixed before T1 starts: T0 to T6 are ticked, `npm run gate` exits
   50 passed in 9.25s
   gate exit=0
   ```
+- 2026-11-11 · L3/T7 · started T7
+- 2026-11-11 · L3/T7 · passed · gate green · commit loop(L3/T7) (this entry's own commit) · the human opened cad-AI/milestone-out/enclosure.step and lid.step (rebuilt by the T6 gate run) and wrote in chat: "T7 ok, looks right". No viewer was named. With T0 to T7 ticked and the gate green, the deciding rule holds; ticking the L3 loop line is the human's (driver rule 4) · Direction: still the goal; the program's first end-to-end claim now has the human's eyes on it as well as the kernel's measurements · Next: L4 Workspace, first unticked agent task
