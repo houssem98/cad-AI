@@ -15,7 +15,7 @@ Deciding rule, fixed before T2 starts: T0 to T5 are ticked (and T7 and T8, which
 - [x] T4 Tree and properties. needs: T2. Both bound to the adapter's inspect output. Evidence: e2e against a fixture part: the tree lists its features, and the properties panel shows volume and bounding box taken from the execution record (its inspection's volume_mm3 and bbox_mm, `cad-AI/src/services/cad/cadStore.ts`).
 - [x] T5 Independent check. needs: T3, T4. A council with the states and clean-room items of the attack list, plus keyboard reachability and icon-only buttons with no name. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
 - [ ] T6 (human) Signoff. needs: T5, T7, T8. Visual quality judged at 1440 × 900 and 1280 × 720. Evidence: the signoff line in the Journal.
-- [ ] T7 Layout at 1280 × 720. needs: T5. Added 2026-11-12 by the human. At 1280 × 720 and 1440 × 900, no tab or button label wraps to a second line, the chat's suggestion chips stay inside the chat panel, and every sidebar module can be reached. Evidence: e2e at both sizes: each tab and button label is one line high, no visible element crosses its panel's edge (a row meant to scroll scrolls inside its panel), and each sidebar module is visible or scrolls into view.
+- [x] T7 Layout at 1280 × 720. needs: T5. Added 2026-11-12 by the human. At 1280 × 720 and 1440 × 900, no tab or button label wraps to a second line, the chat's suggestion chips stay inside the chat panel, and every sidebar module can be reached. Evidence: e2e at both sizes: each tab and button label is one line high, no visible element crosses its panel's edge (a row meant to scroll scrolls inside its panel), and each sidebar module is visible or scrolls into view.
 - [ ] T8 Graphite palette. needs: T5. Added 2026-11-12 by the human. The dark direction T1 chose: near-black neutral greys, one steel-blue accent, status colours only for states, no gradients or glow, all from one token set. Evidence: e2e at / and /?part=plate: every visible element's computed text, background and border colour is a neutral grey or one of the tokens (the accent and the success, warning and error colours), and no visible element has a gradient background or a coloured blurred shadow.
 
 ## Journal
@@ -125,3 +125,22 @@ Deciding rule, fixed before T2 starts: T0 to T5 are ticked (and T7 and T8, which
   clean-room-lint after the cad-AI commit: 140 tracked files · clean
   ```
 - 2026-11-12 · L4 · human decision in chat, multiple choice: before the T6 signoff, add T7 Layout at 1280 × 720 (console tab labels wrap to two lines, the chat's suggestion chips overflow, and the sidebar is cut off in the T5 screenshots) and T8 Graphite palette. The remaining false claims outside the workspace (Overview, the Verification Center view, Integrations, the Export modal) were offered and not chosen, so they stay deferred. C23 is left as is: the reference name sits in the human's own planning docs, which the app does not ship. The deciding rule gains T7 and T8, and T6 now needs them. The light theme in T1's direction has no task yet · Direction: still the goal · Next: T7 Layout
+- 2026-11-12 · L4/T7 · started T7
+- 2026-11-12 · L4/T7 · passed · gate green · commit loop(L4/T7) (this entry's own commit; cad-AI commit 845991b) · `cad-AI/e2e/layout.e2e.ts` was written first and checks / and /?part=plate at 1440 × 900 and 1280 × 720. No text run inside a visible button or tab may break onto a second line, and no control's content may be wider or taller than the control. No visible element may cross its panel (header, sidebar or a [data-panel] section) or its nearest clipping ancestor. Only vertical scrolling is allowed: a sideways overflow counts as a fault even inside a scroller. Every sidebar button must scroll into view and pass a trial click. Red first: 5 wrapped labels at 1440 (model selector, Live Voice, two deliverable-card subtitles, the Feature Tree tab) and 3 more at 1280 (the console tabs). After those were fixed, the demo viewport's toolbar and the close button of its document tab were cut off at 1280. A screenshot then showed overflows the first version of the check let pass, because it excused anything inside a scroller and never compared against the panel: the chat header ran past its 340 px panel at both sizes, the suggestion chips scrolled sideways behind a hidden scrollbar, and the Material select poked out of its card. The check was tightened before those fixes, then corrected once where it had flagged a chat avatar scrolled out of view inside the conversation. Fixes in cad-AI: whitespace-nowrap on those labels, truncated card subtitles, a chat header that wraps its controls onto a second row (right-aligned), wrapping suggestion chips, a Material select that shrinks to its card, a wrapping viewport toolbar, and a shorter tab-bar note ("demo model, not built by a CAD kernel", full sentence in its title) that truncates instead of crushing the document tab. The sidebar already scrolls (its scrollbar is hidden), so every module was already reachable. This machine had about 0.4 GB of RAM free: one global setup failed on an OpenBLAS allocation, and a cold dev server took up to 17 s to show the plate. So the new spec waits up to 30 s for the viewport and 10 s per trial click; these are waits, and no assertion was loosened. A 1280 × 720 screenshot was checked by eye after the fixes · Direction: still the goal · Next: T8 Graphite palette
+
+  ```
+  red first: e2e layout 4 failed (wrapped labels: gemini-3.8-flash, Live Voice, STEP AP242 ISO-10303 B-Rep, Python Script pywin32 bridge, Feature Tree; at 1280 also Operation History (4), Verification Results, Task Progress)
+  graph-lint: 30 docs · 206 citations (105 file, 1 line range, 96 literal, 4 planned)
+  graph-lint: clean
+  clean-room-lint: 140 tracked files · 0 fingerprints · 241 identifiers
+  clean-room-lint: clean
+  gate-guard: clean · HEAD..working tree
+   Test Files  4 passed (4)
+        Tests  43 passed (43)
+  52 passed in 8.50s
+  Running 28 tests using 1 worker
+    28 passed (2.2m)
+  gate exit=0
+  gate-guard in cad-AI: clean
+  clean-room-lint after the cad-AI commit: clean
+  ```
