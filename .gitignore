@@ -12,3 +12,4 @@ milestone-out/
 test-results/
 playwright-report/
 e2e/.fixtures/
+data/

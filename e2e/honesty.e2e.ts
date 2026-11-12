@@ -29,10 +29,10 @@ async function walk(page: Page) {
   await page.getByRole('button', { name: 'Documentation & Shortcuts' }).click();
   await noClaims(page, 'help');
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: 'Length 100mm' }).click();
-  await page.getByRole('button', { name: 'Apply to preview' }).click();
-  await expect(page.getByText('Demo finished', { exact: true })).toBeVisible({ timeout: 15_000 });
-  await noClaims(page, 'after a demo run');
+  // A recorded request through the real server (L5 T5 replaced the demo run this step used to make).
+  await page.getByRole('button', { name: 'Plate 100 × 60 × 5 mm' }).click();
+  await expect(page.getByTestId('report').last()).toBeVisible({ timeout: 90_000 });
+  await noClaims(page, 'after an agent run');
 }
 
 test('the default workspace claims nothing that no record backs, and labels its viewport a preview', async ({ page }) => {

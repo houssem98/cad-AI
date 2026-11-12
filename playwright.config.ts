@@ -14,11 +14,13 @@ export default defineConfig({
     viewport: { width: 1440, height: 900 },
     channel: 'chrome', // the installed Chrome, so the suite needs no browser download
   },
+  // The real server: it owns the executor and serves the agent and document routes, on recorded model responses
+  // (MODEL_MODE=record with DEEPSEEK_API_KEY set records a missing one), with a fresh store each run.
   webServer: {
-    command: `npx vite --port ${PORT} --strictPort --host 127.0.0.1`,
+    command: 'npx tsx server.ts',
     url: `http://127.0.0.1:${PORT}`,
     reuseExistingServer: false,
     timeout: 120_000,
-    env: { DISABLE_HMR: 'true' },
+    env: { PORT: String(PORT), DISABLE_HMR: 'true', MODEL_MODE: process.env.MODEL_MODE ?? 'replay', CAD_DATA_DIR: 'e2e/.fixtures/server-data', CAD_DATA_FRESH: '1' },
   },
 });

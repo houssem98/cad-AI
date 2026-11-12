@@ -8,7 +8,26 @@
    },
    {
     "role": "user",
-    "content": "Document \"plate\" exists.\nThe plate is feature x, extruded 10 mm. Make it 8 mm thick by calling modify_dimension with parameter \"x.depth\"."
+    "content": "The document exists.\nThe plate is feature x, extruded 10 mm. Make it 8 mm thick by calling modify_dimension with parameter \"x.depth\"."
+   },
+   {
+    "role": "assistant",
+    "content": "I'll modify the extrusion depth of feature x.",
+    "tool_calls": [
+     {
+      "id": "call_00_Cq71U9a7RW2MytRzIKke8099",
+      "type": "function",
+      "function": {
+       "name": "modify_dimension",
+       "arguments": "{\"id\": \"mod1\", \"params\": {\"parameter\": \"x.depth\", \"value\": {\"value\": 8, \"unit\": \"mm\"}}}"
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_00_Cq71U9a7RW2MytRzIKke8099",
+    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":true,\"volume_mm3\":48000,\"bbox_mm\":{\"min\":{\"x\":-50,\"y\":-30,\"z\":0},\"max\":{\"x\":50,\"y\":30,\"z\":8}},\"counts\":{\"solids\":1,\"faces\":6,\"edges\":12}}}"
    }
   ],
   "tools": [
@@ -946,41 +965,30 @@
   }
  },
  "response": {
-  "id": "5d669f10-15f7-4f1a-89d4-6005c95ffa57",
+  "id": "2c2a645b-6fe9-44e7-9b5c-9b6bde4c5596",
   "object": "chat.completion",
-  "created": 1794491391,
+  "created": 1794493290,
   "model": "deepseek-flash",
   "choices": [
    {
     "index": 0,
     "message": {
      "role": "assistant",
-     "content": "I'll modify the extrusion depth.",
-     "tool_calls": [
-      {
-       "index": 0,
-       "id": "call_00_2eXlwideAKro4fMA4tzD1553",
-       "type": "function",
-       "function": {
-        "name": "modify_dimension",
-        "arguments": "{\"id\": \"mod1\", \"params\": {\"parameter\": \"x.depth\", \"value\": {\"value\": 8, \"unit\": \"mm\"}}}"
-       }
-      }
-     ]
+     "content": "Plate thickness changed to 8 mm (feature x.depth); part is valid, 48000 mm³, bbox 100×60×8 mm."
     },
     "logprobs": null,
-    "finish_reason": "tool_calls"
+    "finish_reason": "stop"
    }
   ],
   "usage": {
-   "prompt_tokens": 3108,
-   "completion_tokens": 84,
-   "total_tokens": 3192,
+   "prompt_tokens": 3282,
+   "completion_tokens": 33,
+   "total_tokens": 3315,
    "prompt_tokens_details": {
-    "cached_tokens": 2944
+    "cached_tokens": 3072
    },
-   "prompt_cache_hit_tokens": 2944,
-   "prompt_cache_miss_tokens": 164
+   "prompt_cache_hit_tokens": 3072,
+   "prompt_cache_miss_tokens": 210
   },
   "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
  }

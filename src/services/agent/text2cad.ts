@@ -19,7 +19,10 @@ export type Text2CadResult =
   | { kind: 'part'; report: Report }
   | { kind: 'asks'; question: string; missing: string[] }
   | { kind: 'failed'; message: string; report: Report };
-export interface Text2CadContext { executor: Executor; document: string; requestId: string; signal?: AbortSignal; complete?: Complete }
+export interface Text2CadContext {
+  executor: Executor; document: string; requestId: string; signal?: AbortSignal; complete?: Complete;
+  onEvent?: (type: 'plan' | 'operation' | 'record', data: object) => void;
+}
 
 const n = (x: number) => +x.toFixed(3);
 
@@ -30,7 +33,7 @@ export async function text2cad(request: string, ctx: Text2CadContext): Promise<T
   const { executor, document } = ctx;
   const verify = async () => {
     const v = executor.store.document(document) ? (await executor.inspect(document)).verification : null;
-    return v?.valid && v.counts.solids === 1 ? null : v ? `the document holds ${v.counts.solids} solids and valid is ${v.valid}` : `document ${document} does not exist`;
+    return v?.valid && v.counts.solids === 1 ? null : v ? `the document holds ${v.counts.solids} solids and valid is ${v.valid}` : 'the document does not exist';
   };
   const res = await runToolLoop(`Build this part: ${request}\nSpec, lengths also in mm: ${JSON.stringify(spec.spec)}`, { ...ctx, complete, verify });
 

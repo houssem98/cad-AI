@@ -8,45 +8,7 @@
    },
    {
     "role": "user",
-    "content": "Document \"plate\" does not exist yet.\nCall new_part, then call sketch_rectangle on the top plane with width 0 mm and height 50 mm."
-   },
-   {
-    "role": "assistant",
-    "content": "I'll create the part first, then attempt the sketch as requested.",
-    "tool_calls": [
-     {
-      "id": "call_00_9oviofJVBmaob8MScXJZ7757",
-      "type": "function",
-      "function": {
-       "name": "new_part",
-       "arguments": "{\"id\": \"part1\", \"params\": {\"name\": \"plate\"}}"
-      }
-     }
-    ]
-   },
-   {
-    "role": "tool",
-    "tool_call_id": "call_00_9oviofJVBmaob8MScXJZ7757",
-    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
-   },
-   {
-    "role": "assistant",
-    "content": null,
-    "tool_calls": [
-     {
-      "id": "call_00_Z1DnjezoYt4WJ0fNJ6El3124",
-      "type": "function",
-      "function": {
-       "name": "sketch_rectangle",
-       "arguments": "{\"id\": \"sk1\", \"params\": {\"plane\": \"top\", \"width\": {\"value\": 0, \"unit\": \"mm\"}, \"height\": {\"value\": 50, \"unit\": \"mm\"}}}"
-      }
-     }
-    ]
-   },
-   {
-    "role": "tool",
-    "tool_call_id": "call_00_Z1DnjezoYt4WJ0fNJ6El3124",
-    "content": "{\"status\":\"failed\",\"error\":{\"code\":\"validation_failed\",\"message\":\"refused by the operation schema\",\"details\":{\"errors\":[{\"path\":\"/params/width/value\",\"message\":\"must be greater than 0\"}]}},\"inspection\":null}"
+    "content": "The document does not exist yet.\nBuild this part: Plate 100 mm by 60 mm by 5 mm.\nSpec, lengths also in mm: {\"part\":\"plate\",\"dimensions\":[{\"name\":\"length\",\"value\":100,\"unit\":\"mm\",\"mm\":100},{\"name\":\"width\",\"value\":60,\"unit\":\"mm\",\"mm\":60},{\"name\":\"thickness\",\"value\":5,\"unit\":\"mm\",\"mm\":5}]}"
    }
   ],
   "tools": [
@@ -984,30 +946,50 @@
   }
  },
  "response": {
-  "id": "181e9afc-db3b-4466-990a-7e9fb55f707b",
+  "id": "0cce82f2-dad9-488e-9827-82e6af7b2fd7",
   "object": "chat.completion",
-  "created": 1794491380,
+  "created": 1794493246,
   "model": "deepseek-flash",
   "choices": [
    {
     "index": 0,
     "message": {
      "role": "assistant",
-     "content": "Created part \"plate\", but the rectangle sketch was refused: width must be greater than 0 mm, so a 0 mm width is not allowed. Tell me a positive width and I'll create the sketch."
+     "content": "",
+     "tool_calls": [
+      {
+       "index": 0,
+       "id": "call_00_xQI2HZZVxf57C7SWvbsh5472",
+       "type": "function",
+       "function": {
+        "name": "new_part",
+        "arguments": "{\"id\": \"p1\", \"params\": {\"name\": \"plate\"}}"
+       }
+      },
+      {
+       "index": 1,
+       "id": "call_01_4Trw4nKt9xFSdorOTCiW8594",
+       "type": "function",
+       "function": {
+        "name": "sketch_rectangle",
+        "arguments": "{\"id\": \"s1\", \"params\": {\"plane\": \"top\", \"width\": {\"value\": 100, \"unit\": \"mm\"}, \"height\": {\"value\": 60, \"unit\": \"mm\"}, \"center\": {\"x\": {\"value\": 0, \"unit\": \"mm\"}, \"y\": {\"value\": 0, \"unit\": \"mm\"}}}}"
+       }
+      }
+     ]
     },
     "logprobs": null,
-    "finish_reason": "stop"
+    "finish_reason": "tool_calls"
    }
   ],
   "usage": {
-   "prompt_tokens": 3417,
-   "completion_tokens": 43,
-   "total_tokens": 3460,
+   "prompt_tokens": 3162,
+   "completion_tokens": 175,
+   "total_tokens": 3337,
    "prompt_tokens_details": {
-    "cached_tokens": 3200
+    "cached_tokens": 2816
    },
-   "prompt_cache_hit_tokens": 3200,
-   "prompt_cache_miss_tokens": 217
+   "prompt_cache_hit_tokens": 2816,
+   "prompt_cache_miss_tokens": 346
   },
   "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
  }

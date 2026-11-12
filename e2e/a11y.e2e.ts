@@ -54,11 +54,14 @@ test('help and report open as dialogs that hold focus and close on Escape', asyn
   }
 });
 
-test('the copilot role select shows focus', async ({ page }) => {
+// The chat's form control must show focus. It was the copilot role select until L5 T5, when the human removed that select.
+test('the chat message box shows focus', async ({ page }) => {
   await page.goto('/');
-  const select = page.getByRole('combobox', { name: 'Copilot role' });
-  await select.focus();
-  expect(await select.evaluate((el) => getComputedStyle(el).boxShadow)).not.toBe('none');
+  const box = page.getByRole('textbox', { name: 'Message' });
+  const frame = box.locator('..');
+  const unfocused = await frame.evaluate((el) => getComputedStyle(el).borderColor);
+  await box.focus();
+  await expect.poll(() => frame.evaluate((el) => getComputedStyle(el).borderColor)).not.toBe(unfocused);
 });
 
 test('the kernel preview can be panned, orbited and zoomed from the keyboard', async ({ page }) => {

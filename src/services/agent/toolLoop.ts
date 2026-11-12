@@ -31,6 +31,7 @@ export interface LoopResult { status: 'done' | 'failed' | 'step_limit'; text?: s
 export interface LoopContext {
   complete: Complete; executor: Executor; document: string; requestId: string; signal?: AbortSignal; maxTurns?: number;
   verify?: () => Promise<string | null>; // the kernel's objection to a "done", or null
+  onEvent?: (type: 'plan' | 'operation' | 'record', data: object) => void; // the live progress the chat panel streams
 }
 
 // Unparsable arguments still go to the executor, so its schema refuses them and the refusal is recorded like any other.
@@ -45,8 +46,9 @@ async function run(call: ToolCall, ctx: LoopContext): Promise<Step> {
 }
 
 export async function runToolLoop(task: string, ctx: LoopContext): Promise<LoopResult> {
-  const exists = ctx.executor.store.document(ctx.document) ? 'exists' : 'does not exist yet';
-  const messages: any[] = [{ role: 'system', content: TOOL_PROMPT }, { role: 'user', content: `Document "${ctx.document}" ${exists}.\n${task}` }];
+  // The document's name stays out of the conversation (the loop targets it), so a request replays the same for any document.
+  const exists = ctx.executor.store.document(ctx.document) ? 'The document exists' : 'The document does not exist yet';
+  const messages: any[] = [{ role: 'system', content: TOOL_PROMPT }, { role: 'user', content: `${exists}.\n${task}` }];
   const steps: Step[] = [];
   let failures = 0;
   for (let turn = 0; turn < (ctx.maxTurns ?? 20); turn++) {
@@ -58,11 +60,14 @@ export async function runToolLoop(task: string, ctx: LoopContext): Promise<LoopR
       messages.push({ role: 'assistant', content: reply.text }, { role: 'user', content: `The kernel says the request is not done: ${problem}. Continue.` });
       continue;
     }
+    ctx.onEvent?.('plan', { text: reply.text, calls: reply.toolCalls.map((t) => ({ name: t.name, arguments: t.arguments })) });
     messages.push({ role: 'assistant', content: reply.text || null,
       tool_calls: reply.toolCalls.map((t) => ({ id: t.id, type: 'function', function: { name: t.name, arguments: t.arguments } })) });
     for (const call of reply.toolCalls) {
+      ctx.onEvent?.('operation', { call: call.id, type: call.name, arguments: call.arguments });
       const step = await run(call, ctx);
       steps.push(step);
+      ctx.onEvent?.('record', { call: call.id, record: step.operationId, type: call.name, ...step.outcome });
       // No row ids or times: what the model sees must replay byte for byte.
       messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify(step.outcome) });
       if (step.outcome.status !== 'succeeded' && ++failures > MAX_REPLANS) return { status: 'failed', steps, problem: step.outcome.error?.message ?? step.outcome.status };

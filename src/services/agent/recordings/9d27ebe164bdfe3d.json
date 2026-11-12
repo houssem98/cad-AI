@@ -8,14 +8,14 @@
    },
    {
     "role": "user",
-    "content": "Document \"plate\" does not exist yet.\nBuild this part: Plate 100 mm by 60 mm by 5 mm.\nSpec, lengths also in mm: {\"part\":\"plate\",\"dimensions\":[{\"name\":\"length\",\"value\":100,\"unit\":\"mm\",\"mm\":100},{\"name\":\"width\",\"value\":60,\"unit\":\"mm\",\"mm\":60},{\"name\":\"thickness\",\"value\":5,\"unit\":\"mm\",\"mm\":5}]}"
+    "content": "The document does not exist yet.\nBuild this part: Plate 100 mm by 60 mm by 5 mm.\nSpec, lengths also in mm: {\"part\":\"plate\",\"dimensions\":[{\"name\":\"length\",\"value\":100,\"unit\":\"mm\",\"mm\":100},{\"name\":\"width\",\"value\":60,\"unit\":\"mm\",\"mm\":60},{\"name\":\"thickness\",\"value\":5,\"unit\":\"mm\",\"mm\":5}]}"
    },
    {
     "role": "assistant",
-    "content": "I'll start by creating the part and sketching the plate profile.",
+    "content": null,
     "tool_calls": [
      {
-      "id": "call_00_7qZCSER3xNRbGyuV3ofC3255",
+      "id": "call_00_xQI2HZZVxf57C7SWvbsh5472",
       "type": "function",
       "function": {
        "name": "new_part",
@@ -23,7 +23,7 @@
       }
      },
      {
-      "id": "call_01_GAwKZnAAPFKDHN4cedsN6515",
+      "id": "call_01_4Trw4nKt9xFSdorOTCiW8594",
       "type": "function",
       "function": {
        "name": "sketch_rectangle",
@@ -34,12 +34,12 @@
    },
    {
     "role": "tool",
-    "tool_call_id": "call_00_7qZCSER3xNRbGyuV3ofC3255",
+    "tool_call_id": "call_00_xQI2HZZVxf57C7SWvbsh5472",
     "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
    },
    {
     "role": "tool",
-    "tool_call_id": "call_01_GAwKZnAAPFKDHN4cedsN6515",
+    "tool_call_id": "call_01_4Trw4nKt9xFSdorOTCiW8594",
     "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
    },
    {
@@ -47,7 +47,7 @@
     "content": null,
     "tool_calls": [
      {
-      "id": "call_00_I1z8Zt77ON4lYwf0JnAv1119",
+      "id": "call_00_XWBipSEo3iEBtWAGuCXU5426",
       "type": "function",
       "function": {
        "name": "extrude",
@@ -58,46 +58,8 @@
    },
    {
     "role": "tool",
-    "tool_call_id": "call_00_I1z8Zt77ON4lYwf0JnAv1119",
-    "content": "{\"status\":\"failed\",\"error\":{\"code\":\"kernel_error\",\"message\":\"double: extrude failed on purpose\"},\"inspection\":null}"
-   },
-   {
-    "role": "assistant",
-    "content": null,
-    "tool_calls": [
-     {
-      "id": "call_00_ZlzkDunDLOKJDeGS2dvG4551",
-      "type": "function",
-      "function": {
-       "name": "inspect",
-       "arguments": "{\"id\": \"i1\", \"params\": {}}"
-      }
-     }
-    ]
-   },
-   {
-    "role": "tool",
-    "tool_call_id": "call_00_ZlzkDunDLOKJDeGS2dvG4551",
-    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
-   },
-   {
-    "role": "assistant",
-    "content": "The extrude failed. Let me retry it.",
-    "tool_calls": [
-     {
-      "id": "call_00_EsmMtIM4hQHcpW1NX0GI4222",
-      "type": "function",
-      "function": {
-       "name": "extrude",
-       "arguments": "{\"id\": \"e2\", \"params\": {\"depth\": {\"unit\": \"mm\", \"value\": 5}, \"sketch\": \"s1\"}}"
-      }
-     }
-    ]
-   },
-   {
-    "role": "tool",
-    "tool_call_id": "call_00_EsmMtIM4hQHcpW1NX0GI4222",
-    "content": "{\"status\":\"failed\",\"error\":{\"code\":\"kernel_error\",\"message\":\"double: extrude failed on purpose\"},\"inspection\":null}"
+    "tool_call_id": "call_00_XWBipSEo3iEBtWAGuCXU5426",
+    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":true,\"volume_mm3\":30000,\"bbox_mm\":{\"min\":{\"x\":-50,\"y\":-30,\"z\":0},\"max\":{\"x\":50,\"y\":30,\"z\":5}},\"counts\":{\"solids\":1,\"faces\":6,\"edges\":12}}}"
    }
   ],
   "tools": [
@@ -1035,41 +997,30 @@
   }
  },
  "response": {
-  "id": "95b15259-e3d9-4945-b86a-64d1e5378aeb",
+  "id": "01f193a9-9714-465e-b3c9-f8fbef953b63",
   "object": "chat.completion",
-  "created": 1794492037,
+  "created": 1794493276,
   "model": "deepseek-flash",
   "choices": [
    {
     "index": 0,
     "message": {
      "role": "assistant",
-     "content": "",
-     "tool_calls": [
-      {
-       "index": 0,
-       "id": "call_00_ly0wpXHRNWuUyP2KEGCj0375",
-       "type": "function",
-       "function": {
-        "name": "inspect",
-        "arguments": "{\"id\": \"i2\", \"params\": {}}"
-       }
-      }
-     ]
+     "content": "Built the plate: 100 × 60 × 5 mm, valid solid (volume 30,000 mm³)."
     },
     "logprobs": null,
-    "finish_reason": "tool_calls"
+    "finish_reason": "stop"
    }
   ],
   "usage": {
-   "prompt_tokens": 3898,
-   "completion_tokens": 53,
-   "total_tokens": 3951,
+   "prompt_tokens": 3670,
+   "completion_tokens": 25,
+   "total_tokens": 3695,
    "prompt_tokens_details": {
-    "cached_tokens": 3712
+    "cached_tokens": 3456
    },
-   "prompt_cache_hit_tokens": 3712,
-   "prompt_cache_miss_tokens": 186
+   "prompt_cache_hit_tokens": 3456,
+   "prompt_cache_miss_tokens": 214
   },
   "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
  }

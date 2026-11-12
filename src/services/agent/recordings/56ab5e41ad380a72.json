@@ -8,14 +8,14 @@
    },
    {
     "role": "user",
-    "content": "Document \"plate\" does not exist yet.\nBuild this part: Plate 100 mm by 60 mm by 5 mm.\nSpec, lengths also in mm: {\"part\":\"plate\",\"dimensions\":[{\"name\":\"length\",\"value\":100,\"unit\":\"mm\",\"mm\":100},{\"name\":\"width\",\"value\":60,\"unit\":\"mm\",\"mm\":60},{\"name\":\"thickness\",\"value\":5,\"unit\":\"mm\",\"mm\":5}]}"
+    "content": "The document does not exist yet.\nBuild this part: Plate 100 mm by 60 mm by 5 mm.\nSpec, lengths also in mm: {\"part\":\"plate\",\"dimensions\":[{\"name\":\"length\",\"value\":100,\"unit\":\"mm\",\"mm\":100},{\"name\":\"width\",\"value\":60,\"unit\":\"mm\",\"mm\":60},{\"name\":\"thickness\",\"value\":5,\"unit\":\"mm\",\"mm\":5}]}"
    },
    {
     "role": "assistant",
-    "content": "I'll start by creating the part and sketching the plate profile.",
+    "content": null,
     "tool_calls": [
      {
-      "id": "call_00_7qZCSER3xNRbGyuV3ofC3255",
+      "id": "call_00_xQI2HZZVxf57C7SWvbsh5472",
       "type": "function",
       "function": {
        "name": "new_part",
@@ -23,7 +23,7 @@
       }
      },
      {
-      "id": "call_01_GAwKZnAAPFKDHN4cedsN6515",
+      "id": "call_01_4Trw4nKt9xFSdorOTCiW8594",
       "type": "function",
       "function": {
        "name": "sketch_rectangle",
@@ -34,12 +34,12 @@
    },
    {
     "role": "tool",
-    "tool_call_id": "call_00_7qZCSER3xNRbGyuV3ofC3255",
+    "tool_call_id": "call_00_xQI2HZZVxf57C7SWvbsh5472",
     "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
    },
    {
     "role": "tool",
-    "tool_call_id": "call_01_GAwKZnAAPFKDHN4cedsN6515",
+    "tool_call_id": "call_01_4Trw4nKt9xFSdorOTCiW8594",
     "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
    },
    {
@@ -47,7 +47,7 @@
     "content": null,
     "tool_calls": [
      {
-      "id": "call_00_I1z8Zt77ON4lYwf0JnAv1119",
+      "id": "call_00_XWBipSEo3iEBtWAGuCXU5426",
       "type": "function",
       "function": {
        "name": "extrude",
@@ -58,7 +58,7 @@
    },
    {
     "role": "tool",
-    "tool_call_id": "call_00_I1z8Zt77ON4lYwf0JnAv1119",
+    "tool_call_id": "call_00_XWBipSEo3iEBtWAGuCXU5426",
     "content": "{\"status\":\"failed\",\"error\":{\"code\":\"kernel_error\",\"message\":\"double: extrude failed on purpose\"},\"inspection\":null}"
    },
    {
@@ -66,7 +66,26 @@
     "content": null,
     "tool_calls": [
      {
-      "id": "call_00_ZlzkDunDLOKJDeGS2dvG4551",
+      "id": "call_00_3sb7ivdtlN2DradL7pZT1212",
+      "type": "function",
+      "function": {
+       "name": "extrude",
+       "arguments": "{\"id\": \"e2\", \"params\": {\"depth\": {\"unit\": \"mm\", \"value\": 5}, \"sketch\": \"s1\", \"direction\": \"normal\"}}"
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_00_3sb7ivdtlN2DradL7pZT1212",
+    "content": "{\"status\":\"failed\",\"error\":{\"code\":\"kernel_error\",\"message\":\"double: extrude failed on purpose\"},\"inspection\":null}"
+   },
+   {
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+     {
+      "id": "call_00_K1OrwFuhODTIobaaQtCH9888",
       "type": "function",
       "function": {
        "name": "inspect",
@@ -77,7 +96,7 @@
    },
    {
     "role": "tool",
-    "tool_call_id": "call_00_ZlzkDunDLOKJDeGS2dvG4551",
+    "tool_call_id": "call_00_K1OrwFuhODTIobaaQtCH9888",
     "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
    }
   ],
@@ -1016,24 +1035,24 @@
   }
  },
  "response": {
-  "id": "9943c4f9-bb18-46fb-84ef-bf2e19b00570",
+  "id": "6b305b23-983f-4c2b-a918-dece783c714e",
   "object": "chat.completion",
-  "created": 1794492036,
+  "created": 1794493252,
   "model": "deepseek-flash",
   "choices": [
    {
     "index": 0,
     "message": {
      "role": "assistant",
-     "content": "The extrude failed. Let me retry it.",
+     "content": "",
      "tool_calls": [
       {
        "index": 0,
-       "id": "call_00_EsmMtIM4hQHcpW1NX0GI4222",
+       "id": "call_00_Ki0f679TeTme0TfhTdl21775",
        "type": "function",
        "function": {
-        "name": "extrude",
-        "arguments": "{\"id\": \"e2\", \"params\": {\"depth\": {\"unit\": \"mm\", \"value\": 5}, \"sketch\": \"s1\"}}"
+        "name": "sketch_rectangle",
+        "arguments": "{\"id\": \"s2\", \"params\": {\"height\": {\"unit\": \"mm\", \"value\": 60}, \"plane\": \"top\", \"width\": {\"unit\": \"mm\", \"value\": 100}}}"
        }
       }
      ]
@@ -1043,14 +1062,14 @@
    }
   ],
   "usage": {
-   "prompt_tokens": 3773,
-   "completion_tokens": 86,
-   "total_tokens": 3859,
+   "prompt_tokens": 3880,
+   "completion_tokens": 90,
+   "total_tokens": 3970,
    "prompt_tokens_details": {
-    "cached_tokens": 3584
+    "cached_tokens": 3712
    },
-   "prompt_cache_hit_tokens": 3584,
-   "prompt_cache_miss_tokens": 189
+   "prompt_cache_hit_tokens": 3712,
+   "prompt_cache_miss_tokens": 168
   },
   "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
  }

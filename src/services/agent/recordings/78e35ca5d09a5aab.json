@@ -8,25 +8,114 @@
    },
    {
     "role": "user",
-    "content": "Document \"plate\" does not exist yet.\nCall new_part, then call sketch_rectangle on the top plane with width 0 mm and height 50 mm."
+    "content": "The document does not exist yet.\nBuild this part: Plate 100 mm by 60 mm by 5 mm.\nSpec, lengths also in mm: {\"part\":\"plate\",\"dimensions\":[{\"name\":\"length\",\"value\":100,\"unit\":\"mm\",\"mm\":100},{\"name\":\"width\",\"value\":60,\"unit\":\"mm\",\"mm\":60},{\"name\":\"thickness\",\"value\":5,\"unit\":\"mm\",\"mm\":5}]}"
    },
    {
     "role": "assistant",
-    "content": "I'll create the part first, then attempt the sketch as requested.",
+    "content": null,
     "tool_calls": [
      {
-      "id": "call_00_9oviofJVBmaob8MScXJZ7757",
+      "id": "call_00_xQI2HZZVxf57C7SWvbsh5472",
       "type": "function",
       "function": {
        "name": "new_part",
-       "arguments": "{\"id\": \"part1\", \"params\": {\"name\": \"plate\"}}"
+       "arguments": "{\"id\": \"p1\", \"params\": {\"name\": \"plate\"}}"
+      }
+     },
+     {
+      "id": "call_01_4Trw4nKt9xFSdorOTCiW8594",
+      "type": "function",
+      "function": {
+       "name": "sketch_rectangle",
+       "arguments": "{\"id\": \"s1\", \"params\": {\"plane\": \"top\", \"width\": {\"value\": 100, \"unit\": \"mm\"}, \"height\": {\"value\": 60, \"unit\": \"mm\"}, \"center\": {\"x\": {\"value\": 0, \"unit\": \"mm\"}, \"y\": {\"value\": 0, \"unit\": \"mm\"}}}}"
       }
      }
     ]
    },
    {
     "role": "tool",
-    "tool_call_id": "call_00_9oviofJVBmaob8MScXJZ7757",
+    "tool_call_id": "call_00_xQI2HZZVxf57C7SWvbsh5472",
+    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_01_4Trw4nKt9xFSdorOTCiW8594",
+    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
+   },
+   {
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+     {
+      "id": "call_00_XWBipSEo3iEBtWAGuCXU5426",
+      "type": "function",
+      "function": {
+       "name": "extrude",
+       "arguments": "{\"id\": \"e1\", \"params\": {\"sketch\": \"s1\", \"depth\": {\"value\": 5, \"unit\": \"mm\"}}}"
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_00_XWBipSEo3iEBtWAGuCXU5426",
+    "content": "{\"status\":\"failed\",\"error\":{\"code\":\"kernel_error\",\"message\":\"double: extrude failed on purpose\"},\"inspection\":null}"
+   },
+   {
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+     {
+      "id": "call_00_3sb7ivdtlN2DradL7pZT1212",
+      "type": "function",
+      "function": {
+       "name": "extrude",
+       "arguments": "{\"id\": \"e2\", \"params\": {\"depth\": {\"unit\": \"mm\", \"value\": 5}, \"sketch\": \"s1\", \"direction\": \"normal\"}}"
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_00_3sb7ivdtlN2DradL7pZT1212",
+    "content": "{\"status\":\"failed\",\"error\":{\"code\":\"kernel_error\",\"message\":\"double: extrude failed on purpose\"},\"inspection\":null}"
+   },
+   {
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+     {
+      "id": "call_00_K1OrwFuhODTIobaaQtCH9888",
+      "type": "function",
+      "function": {
+       "name": "inspect",
+       "arguments": "{\"id\": \"i1\", \"params\": {}}"
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_00_K1OrwFuhODTIobaaQtCH9888",
+    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
+   },
+   {
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+     {
+      "id": "call_00_Ki0f679TeTme0TfhTdl21775",
+      "type": "function",
+      "function": {
+       "name": "sketch_rectangle",
+       "arguments": "{\"id\": \"s2\", \"params\": {\"height\": {\"unit\": \"mm\", \"value\": 60}, \"plane\": \"top\", \"width\": {\"unit\": \"mm\", \"value\": 100}}}"
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_00_Ki0f679TeTme0TfhTdl21775",
     "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
    }
   ],
@@ -965,9 +1054,9 @@
   }
  },
  "response": {
-  "id": "74646b01-a13e-4c02-a23f-34424fbf7d03",
+  "id": "bc6e7521-1584-45a1-b558-6a959ac7859c",
   "object": "chat.completion",
-  "created": 1794491378,
+  "created": 1794493253,
   "model": "deepseek-flash",
   "choices": [
    {
@@ -978,11 +1067,11 @@
      "tool_calls": [
       {
        "index": 0,
-       "id": "call_00_Z1DnjezoYt4WJ0fNJ6El3124",
+       "id": "call_00_A2gokEL7yhfEGlcBfzYU9788",
        "type": "function",
        "function": {
-        "name": "sketch_rectangle",
-        "arguments": "{\"id\": \"sk1\", \"params\": {\"plane\": \"top\", \"width\": {\"value\": 0, \"unit\": \"mm\"}, \"height\": {\"value\": 50, \"unit\": \"mm\"}}}"
+        "name": "extrude",
+        "arguments": "{\"id\": \"e3\", \"params\": {\"depth\": {\"unit\": \"mm\", \"value\": 5}, \"sketch\": \"s2\"}}"
        }
       }
      ]
@@ -992,14 +1081,14 @@
    }
   ],
   "usage": {
-   "prompt_tokens": 3263,
-   "completion_tokens": 91,
-   "total_tokens": 3354,
+   "prompt_tokens": 4056,
+   "completion_tokens": 76,
+   "total_tokens": 4132,
    "prompt_tokens_details": {
-    "cached_tokens": 2944
+    "cached_tokens": 3840
    },
-   "prompt_cache_hit_tokens": 2944,
-   "prompt_cache_miss_tokens": 319
+   "prompt_cache_hit_tokens": 3840,
+   "prompt_cache_miss_tokens": 216
   },
   "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
  }

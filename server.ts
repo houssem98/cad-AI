@@ -17,6 +17,10 @@ import {
   generatePythonCADScript,
   generate2DDrawingSVG,
 } from './src/services/cad/cadGenerators';
+import { mkdirSync, rmSync } from 'node:fs';
+import { Executor, type Decision } from './src/services/cad/executor';
+import { modelClient } from './src/services/model/modelClient';
+import { agentRoutes } from './src/services/agent/routes';
 
 dotenv.config();
 
@@ -354,6 +358,18 @@ wss.on('connection', async (clientWs: WebSocket) => {
 
 // Vite middleware in dev or static files in production
 async function startServer() {
+  // The server owns the executor and the kernel worker (L5 T5); the agent reaches DeepSeek only through the model client.
+  const dataDir = path.resolve(__dirname, process.env.CAD_DATA_DIR ?? 'data');
+  if (process.env.CAD_DATA_FRESH) rmSync(dataDir, { recursive: true, force: true });
+  mkdirSync(dataDir, { recursive: true });
+  let approve = (_op: any): Promise<Decision> => Promise.resolve('denied');
+  const executor = await Executor.open({ dbPath: path.join(dataDir, 'cad.db'), dataDir, workerArgs: ['--adapter', 'kernel'], approve: (op) => approve(op) });
+  const recordings = path.resolve(__dirname, 'src/services/agent/recordings') + path.sep;
+  const mode = (process.env.MODEL_MODE ?? 'live') as 'live' | 'replay' | 'record';
+  const agent = agentRoutes(executor, modelClient({ mode, recordings, spendFile: `${recordings}spend.json`, capUsd: 3, key: process.env.DEEPSEEK_API_KEY }));
+  approve = agent.approve;
+  app.use(agent.router);
+
   if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.resolve(__dirname, 'dist')));
     app.get('*', (req, res) => {
