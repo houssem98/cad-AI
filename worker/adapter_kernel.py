@@ -47,7 +47,17 @@ def _measure(part):
     """The features a grader compares. A hole is a concave cylinder closing a full turn over one stretch of its axis, so a
     cylinder split into faces counts once and two holes on one axis count twice. Rounds are the radii of convex part-turn
     cylinders (fillets); bevels are the widths of planar faces on no axis plane (chamfers, hexagon sides)."""
-    groups, rounds, bevels = {}, [], []
+    holes, rounds, bevels = _holes(part)
+    holes = [{"diameter": round(2 * key[6], 3), "depth": round(hi - lo, 3), "point": list(key[:3]), "direction": list(key[3:6])}
+             for key, lo, hi, _ in holes]
+    return {"holes": len(holes), "hole_list": holes, "rounds": sorted(rounds), "bevels": sorted(bevels)}
+
+
+def _holes(part):
+    """Each hole as (key, lo, hi, axis): key is the axis foot point nearest the origin, the axis direction and the radius,
+    rounded; lo and hi bound the hole along its axis from that foot; axis is (foot, direction, radius) unrounded. Also the
+    rounds and bevels _measure reports."""
+    groups, axes, rounds, bevels = {}, {}, [], []
     for f in part.faces():
         if f.geom_type == GeomType.PLANE:
             n = f.normal_at()
@@ -71,6 +81,7 @@ def _measure(part):
         key = tuple(round(c, 4) for c in (foot.X, foot.Y, foot.Z, d.X, d.Y, d.Z, cyl.Radius()))
         ts = [(Vector(v.X, v.Y, v.Z) - foot).dot(d) for v in f.vertices()]
         groups.setdefault(key, []).append([min(ts), max(ts), turn])
+        axes.setdefault(key, (foot, d, cyl.Radius()))
     holes = []
     for key, stretches in groups.items():
         merged = []
@@ -79,9 +90,8 @@ def _measure(part):
                 merged[-1][1], merged[-1][2] = max(merged[-1][1], hi), merged[-1][2] + turn
             else:
                 merged.append([lo, hi, turn])
-        holes += [{"diameter": round(2 * key[6], 3), "depth": round(hi - lo, 3), "point": list(key[:3]), "direction": list(key[3:6])}
-                  for lo, hi, turn in merged if turn > 2 * math.pi - 1e-6]
-    return {"holes": len(holes), "hole_list": holes, "rounds": sorted(rounds), "bevels": sorted(bevels)}
+        holes += [(key, lo, hi, axes[key]) for lo, hi, turn in merged if turn > 2 * math.pi - 1e-6]
+    return holes, rounds, bevels
 
 
 def _edge_list(part, feature):
@@ -205,6 +215,14 @@ class KernelAdapter(Adapter):
             data = path.read_bytes()
         return {"glb": base64.b64encode(data).decode("ascii"), "bytes": len(data)}
 
+    def rebuild_plan(self, document):
+        """The operations that rebuild the document's solid as editable features (STEP-to-CAD, step2cad.py)."""
+        from step2cad import plan
+        part, _ = self._build(self._history({"target": {"document": document}}))
+        if part is None:
+            raise PreconditionFailed("the document has no solid to rebuild")
+        return {"operations": plan(part, _holes(part)[0])}
+
     def save_checkpoint(self, document, path):
         Path(path).write_text(json.dumps(self.docs.get(document, [])), encoding="utf-8")
 
@@ -233,7 +251,7 @@ class KernelAdapter(Adapter):
         return part, snapshots
 
     def _sketch(self, kind, p):
-        plane = PLANES[p["plane"]]
+        plane = PLANES[p["plane"]].offset(_mm(p["offset"])) if "offset" in p else PLANES[p["plane"]]
         if kind == "sketch_polyline":
             pts = [(_mm(q["x"]), _mm(q["y"])) for q in p["points"]]
             # A clockwise outline makes a face whose normal points against the plane's, so extrude and cut would go backwards.

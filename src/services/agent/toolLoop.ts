@@ -10,11 +10,18 @@ const inline = (n: any): any =>
     : Array.isArray(n) ? n.map(inline)
       : n && typeof n === 'object' ? Object.fromEntries(Object.entries(n).map(([k, v]) => [k, inline(v)])) : n;
 
+// The agent's tools are the schema as L5 signed it off: a sketch offset (added for STEP-to-CAD, L6 T3) is not offered, which
+// also keeps every recorded request byte for byte the same (human decision, L6 T3).
+const AGENT_PARAMS = (params: any) => {
+  const { offset, ...properties } = params.properties;
+  return offset ? { ...params, properties } : params;
+};
+
 // One tool per operation type, its parameters the schema's own params for that type.
 export const TOOLS = schema.properties.type.enum.map((name) => ({
   type: 'function',
   function: { name, parameters: { type: 'object', additionalProperties: false, required: ['id', 'params'],
-    properties: { id: { type: 'string', description: 'a new id for this operation' }, params: inline(defs.params[name]) } } },
+    properties: { id: { type: 'string', description: 'a new id for this operation' }, params: AGENT_PARAMS(inline(defs.params[name])) } } },
 }));
 
 export const TOOL_PROMPT = `You build one part in a CAD kernel by calling tools. Each tool is one operation; the kernel's inspection after it comes back to you.

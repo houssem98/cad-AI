@@ -24,6 +24,10 @@ class VerificationFailed(Exception):
     """The engine built the operation, but the result fails the operation's own check (a cut that removed nothing)."""
 
 
+class Unsupported(Exception):
+    """The adapter cannot do this for this input (a STEP-to-CAD rebuild of a freeform part)."""
+
+
 def outcome(status, result=None, verification=None, error=None):
     return {"status": status, "result": result, "verification": verification, "error": error}
 
@@ -72,5 +76,6 @@ class Adapter:
     def import_document(self, op): raise NotImplementedError
     def validate_geometry(self, op): raise NotImplementedError
     def tessellate(self, document): raise NotImplementedError
+    def rebuild_plan(self, document): raise NotImplementedError
     def save_checkpoint(self, document, path): raise NotImplementedError
     def load_checkpoint(self, document, path): raise NotImplementedError

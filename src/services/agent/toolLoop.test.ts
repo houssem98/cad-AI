@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Executor, type Decision } from '../cad/executor';
 import { modelClient, type Complete } from '../model/modelClient';
-import { runToolLoop } from './toolLoop';
+import { runToolLoop, TOOLS } from './toolLoop';
 
 // Responses were recorded once from the live model (MODEL_RECORD=1 with DEEPSEEK_API_KEY set); the gate only replays them.
 const DIR = fileURLToPath(new URL('./recordings/', import.meta.url));
@@ -79,5 +79,13 @@ describe('tool loop on recorded responses', { timeout: 120000 }, () => {
     const changed = res.steps.find((s) => s.call.name === 'modify_dimension');
     expect(changed?.outcome.status).toBe('succeeded');
     expect(changed?.outcome.inspection.bbox_mm.max.z).toBeCloseTo(8, 6);
+  });
+});
+
+describe('agent tools', () => {
+  it('do not offer the sketch offset, so the L5 agent and its recordings stay as signed off (L6 T3)', () => {
+    const sketches = TOOLS.filter((t) => t.function.name.startsWith('sketch_'));
+    expect(sketches).toHaveLength(3);
+    for (const t of sketches) expect(Object.keys(t.function.parameters.properties.params.properties)).not.toContain('offset');
   });
 });

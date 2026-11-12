@@ -24,7 +24,7 @@ export interface ExecutorOptions {
   approve?: (op: any) => Promise<Decision>;
 }
 interface TypedError { code: string; message: string; details?: object }
-interface Outcome { operationId: string; status: string; record: any; error?: TypedError }
+export interface Outcome { operationId: string; status: string; record: any; error?: TypedError }
 
 function toMm(v: any): any {
   if (Array.isArray(v)) return v.map(toMm);
@@ -109,6 +109,20 @@ export class Executor {
       try {
         const r = await this.worker.request({ kind: 'tessellate', document: docId });
         return r.status === 'succeeded' ? { status: 'succeeded', glb: Buffer.from(r.glb, 'base64') } : { status: r.status, error: r.error };
+      } catch (e) {
+        if (!(e instanceof WorkerError)) throw e;
+        await this.reloadAll();
+        return { status: 'failed', error: { code: e.code, message: e.message } };
+      }
+    });
+  }
+
+  // The operations that rebuild a document's solid as editable features (STEP-to-CAD), or why the kernel cannot.
+  plan(docId: string): Promise<{ status: string; operations?: any[]; error?: TypedError }> {
+    return this.serial(async () => {
+      try {
+        const r = await this.worker.request({ kind: 'plan', document: docId });
+        return r.status === 'succeeded' ? { status: 'succeeded', operations: r.operations } : { status: r.status, error: r.error };
       } catch (e) {
         if (!(e instanceof WorkerError)) throw e;
         await this.reloadAll();

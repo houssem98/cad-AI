@@ -1,10 +1,22 @@
-import { mkdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { Executor } from '../cad/executor';
+import { Executor, type Outcome } from '../cad/executor';
 import { text2cad, type Text2CadResult } from '../agent/text2cad';
 
 export interface JobContext { jobId: string; dir: string }
-type Handler = (input: any, ctx: JobContext) => Promise<{ verified: boolean; result?: unknown }>;
+type Handler = (input: any, ctx: JobContext) => Promise<{ verified: boolean; result?: unknown; error?: { code: string; message: string } }>;
+
+const open = (ctx: JobContext) => {
+  mkdirSync(ctx.dir, { recursive: true });
+  return Executor.open({ dbPath: join(ctx.dir, 'cad.db'), dataDir: ctx.dir, workerArgs: ['--adapter', 'kernel'] });
+};
+const op = (id: string, document: string, type: string, params: object) =>
+  ({ id, target: { document }, type, params, preconditions: [], status: 'pending', result: null, verification: null, error: null });
+const stepOf = (executor: Executor, exported: Outcome | null) => {
+  const a = exported?.status === 'succeeded' ? executor.store.artifact(exported.record.artifactReferences[0].id) : null;
+  return a ? { path: a.path, sha256: a.sha256, bytes: a.bytes } : null;
+};
 
 // A text-to-CAD job is done only when the agent built the whole part (its report is not incomplete) and the kernel's STEP export
 // passed its own re-import check (P9). A job cannot wait for a person: a question fails it, and an operation needing approval is
@@ -13,25 +25,60 @@ export const jobVerified = (out: Text2CadResult, exported: { status: string } | 
   out.kind === 'part' && out.report.unresolved.length === 0 && exported?.status === 'succeeded';
 
 const text2cadJob: Handler = async (input, ctx) => {
-  mkdirSync(ctx.dir, { recursive: true });
-  const executor = await Executor.open({ dbPath: join(ctx.dir, 'cad.db'), dataDir: ctx.dir, workerArgs: ['--adapter', 'kernel'] });
+  const executor = await open(ctx);
   try {
     const out = await text2cad(String(input?.request ?? ''), { executor, document: 'part', requestId: ctx.jobId });
     if (out.kind === 'asks') throw new Error(`the request needs an answer first: ${out.question}`);
     const exported = out.kind === 'part' && !out.report.unresolved.length
-      ? await executor.execute({ id: 'export-step', target: { document: 'part' }, type: 'export', params: { format: 'step' },
-        preconditions: [], status: 'pending', result: null, verification: null, error: null }, { requestId: ctx.jobId })
-      : null;
-    const artifact = exported?.status === 'succeeded' ? executor.store.artifact(exported.record.artifactReferences[0].id) : null;
+      ? await executor.execute(op('export-step', 'part', 'export', { format: 'step' }), { requestId: ctx.jobId }) : null;
     return {
       verified: jobVerified(out, exported),
       result: { report: out.report.text, records: out.report.operations.map((o) => o.record), unresolved: out.report.unresolved,
-        step: artifact ? { path: artifact.path, sha256: artifact.sha256, bytes: artifact.bytes } : null },
+        step: stepOf(executor, exported) },
     };
   } finally {
     executor.close();
   }
 };
 
-// Production job types, each run by jobWorker in its own process. L6 T3 adds STEP-to-CAD.
-export const handlers: Record<string, Handler> = { text2cad: text2cadJob };
+// The rebuilt solid stands for the imported one when its volume is within 0.1 % and every bounding-box bound within 0.001 mm.
+export const sameSolid = (a: any, b: any) => Math.abs(a.volume_mm3 - b.volume_mm3) <= 1e-3 * Math.abs(b.volume_mm3)
+  && (['min', 'max'] as const).every((end) => (['x', 'y', 'z'] as const).every((k) => Math.abs(a.bbox_mm[end][k] - b.bbox_mm[end][k]) <= 1e-3));
+
+// A STEP-to-CAD job imports the file, asks the kernel for a plan of editable features, runs it in a new document through the
+// executor (so every feature has its record), and is done only when the rebuilt solid is the imported one (sameSolid) and its
+// STEP export passed re-import (P9). A part outside the plan's scope (prismatic: planar faces, holes on principal axes) fails
+// with `unsupported` and the kernel's reason.
+const step2cadJob: Handler = async (input, ctx) => {
+  const executor = await open(ctx);
+  try {
+    const path = String(input?.path ?? ''), data = readFileSync(path);
+    executor.store.addArtifact({ id: 'source', kind: 'step', path, sha256: createHash('sha256').update(data).digest('hex'), bytes: data.length });
+    const run = (id: string, document: string, type: string, params: object) => executor.execute(op(id, document, type, params), { requestId: ctx.jobId });
+    const imported = await run('import', 'source', 'import', { artifact: 'source' });
+    if (imported.status !== 'succeeded') return { verified: false, result: null, error: imported.error };
+    const plan = await executor.plan('source');
+    if (plan.status !== 'succeeded') return { verified: false, result: { unsupported: plan.error?.message ?? null, step: null }, error: plan.error };
+    const done: Outcome[] = [];
+    for (const o of [{ id: 'new', type: 'new_part', params: { name: 'rebuilt' } }, ...plan.operations!]) {
+      done.push(await run(o.id, 'part', o.type, o.params));
+      if (done.at(-1)!.status !== 'succeeded') break;
+    }
+    const built = done.every((o) => o.status === 'succeeded');
+    const source = (await executor.inspect('source')).verification, rebuilt = built ? (await executor.inspect('part')).verification : null;
+    const same = Boolean(rebuilt && sameSolid(rebuilt, source));
+    const exported = same ? await run('export-step', 'part', 'export', { format: 'step' }) : null;
+    const step = stepOf(executor, exported);
+    return {
+      verified: Boolean(step),
+      result: { operations: plan.operations!.map((o) => o.type), records: done.map((o) => o.operationId),
+        volume_mm3: { source: source.volume_mm3, rebuilt: rebuilt?.volume_mm3 ?? null }, step },
+      ...(!built ? { error: done.at(-1)!.error } : !same ? { error: { code: 'verification_failed', message: 'the rebuilt solid differs from the imported one' } } : {}),
+    };
+  } finally {
+    executor.close();
+  }
+};
+
+// Production job types, each run by jobWorker in its own process.
+export const handlers: Record<string, Handler> = { text2cad: text2cadJob, step2cad: step2cadJob };

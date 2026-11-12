@@ -16,7 +16,7 @@ try {
   move(db, id, 'VERIFYING', ['RUNNING']);
   if (out?.verified) move(db, id, 'COMPLETED', ['VERIFYING'], { finished_at: iso(), result_json: JSON.stringify(out.result ?? null) });
   else move(db, id, 'FAILED', ['VERIFYING'], { finished_at: iso(), result_json: JSON.stringify(out?.result ?? null),
-    error_json: JSON.stringify({ code: 'verification_failed', message: 'the job finished, but its output did not pass verification' }) });
+    error_json: JSON.stringify(out?.error ?? { code: 'verification_failed', message: 'the job finished, but its output did not pass verification' }) });
 } catch (e) {
   move(db, id, 'FAILED', ['RUNNING', 'VERIFYING'], { finished_at: iso(), error_json: JSON.stringify({ code: 'job_error', message: String((e as Error)?.message ?? e) }) });
 }

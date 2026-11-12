@@ -4,16 +4,19 @@ import json
 import os
 import sys
 
-from adapter import METHODS, PreconditionFailed, outcome
+from adapter import METHODS, PreconditionFailed, Unsupported, outcome
 from adapter_double import DoubleAdapter
 from operation_schema import validate_operation
 
 
-def tessellate(adapter, document):
+def answer(call, document, missing):
+    """An executor step outside the operation set (a preview mesh, a rebuild plan), with the operations' error codes."""
     try:
-        return {"status": "succeeded", "error": None, **adapter.tessellate(document)}
+        return {"status": "succeeded", "error": None, **call(document)}
     except NotImplementedError:
-        return {"status": "unsupported", "error": {"code": "unsupported", "message": "this adapter has no preview mesh"}}
+        return {"status": "unsupported", "error": {"code": "unsupported", "message": missing}}
+    except Unsupported as e:
+        return {"status": "unsupported", "error": {"code": "unsupported", "message": str(e)}}
     except PreconditionFailed as e:
         return {"status": "failed", "error": {"code": "precondition_failed", "message": str(e)}}
     except Exception as e:
@@ -39,7 +42,9 @@ def serve(adapter, lines, out):
         elif kind == "inspect":
             reply = {"kind": "inspected", **adapter.inspect_geometry({"target": {"document": msg["document"]}})}
         elif kind == "tessellate":
-            reply = {"kind": "tessellated", **tessellate(adapter, msg["document"])}
+            reply = {"kind": "tessellated", **answer(adapter.tessellate, msg["document"], "this adapter has no preview mesh")}
+        elif kind == "plan":
+            reply = {"kind": "planned", **answer(adapter.rebuild_plan, msg["document"], "this adapter cannot rebuild a part as features")}
         elif kind == "save":
             adapter.save_checkpoint(msg["document"], msg["path"])
             reply = {"kind": "saved"}
