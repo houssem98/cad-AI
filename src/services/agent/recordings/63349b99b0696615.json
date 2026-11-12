@@ -1,0 +1,51 @@
+{
+ "request": {
+  "model": "deepseek-flash",
+  "messages": [
+   {
+    "role": "system",
+    "content": "You turn a request for one mechanical part into a JSON spec. Reply with JSON only, in this shape:\n{\"part\": \"<what the part is>\", \"dimensions\": [{\"name\": \"<what it measures>\", \"value\": <number>, \"unit\": \"mm\" | \"cm\" | \"m\" | \"in\"}], \"missing\": [\"<name>\"]}\nList every dimension the request states, in the unit it states; write fractions such as 1/4 in as 0.25.\nPut in \"missing\" every dimension needed to build the part that the request does not state. Never assume a default or a typical value.\nIf numbers come without a unit, put \"unit\" in \"missing\". If stated dimensions contradict each other, put the conflict in \"missing\"."
+   },
+   {
+    "role": "user",
+    "content": "plate 4 in by 3 in by 0.25 in"
+   }
+  ],
+  "temperature": 0,
+  "max_tokens": 400,
+  "thinking": {
+   "type": "disabled"
+  },
+  "response_format": {
+   "type": "json_object"
+  }
+ },
+ "response": {
+  "id": "199c59a1-72cd-4c45-b1e5-a05ef4b4700d",
+  "object": "chat.completion",
+  "created": 1794490666,
+  "model": "deepseek-flash",
+  "choices": [
+   {
+    "index": 0,
+    "message": {
+     "role": "assistant",
+     "content": "{\"part\": \"plate\", \"dimensions\": [{\"name\": \"length\", \"value\": 4, \"unit\": \"in\"}, {\"name\": \"width\", \"value\": 3, \"unit\": \"in\"}, {\"name\": \"thickness\", \"value\": 0.25, \"unit\": \"in\"}], \"missing\": []}"
+    },
+    "logprobs": null,
+    "finish_reason": "stop"
+   }
+  ],
+  "usage": {
+   "prompt_tokens": 206,
+   "completion_tokens": 74,
+   "total_tokens": 280,
+   "prompt_tokens_details": {
+    "cached_tokens": 0
+   },
+   "prompt_cache_hit_tokens": 0,
+   "prompt_cache_miss_tokens": 206
+  },
+  "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
+ }
+}

@@ -1,0 +1,51 @@
+{
+ "request": {
+  "model": "deepseek-flash",
+  "messages": [
+   {
+    "role": "system",
+    "content": "You turn a request for one mechanical part into a JSON spec. Reply with JSON only, in this shape:\n{\"part\": \"<what the part is>\", \"dimensions\": [{\"name\": \"<what it measures>\", \"value\": <number>, \"unit\": \"mm\" | \"cm\" | \"m\" | \"in\"}], \"missing\": [\"<name>\"]}\nList every dimension the request states, in the unit it states; write fractions such as 1/4 in as 0.25.\nPut in \"missing\" every dimension needed to build the part that the request does not state. Never assume a default or a typical value.\nIf numbers come without a unit, put \"unit\" in \"missing\". If stated dimensions contradict each other, put the conflict in \"missing\"."
+   },
+   {
+    "role": "user",
+    "content": "make a bracket"
+   }
+  ],
+  "temperature": 0,
+  "max_tokens": 400,
+  "thinking": {
+   "type": "disabled"
+  },
+  "response_format": {
+   "type": "json_object"
+  }
+ },
+ "response": {
+  "id": "b89e05e7-a01f-450d-a478-843f669bc7f6",
+  "object": "chat.completion",
+  "created": 1794490662,
+  "model": "deepseek-flash",
+  "choices": [
+   {
+    "index": 0,
+    "message": {
+     "role": "assistant",
+     "content": "{\"part\": \"bracket\", \"dimensions\": [], \"missing\": [\"overall length\", \"overall width\", \"overall height\", \"material thickness\", \"hole diameter\", \"hole positions\", \"mounting hole count\", \"bend angle\", \"unit\"]}"
+    },
+    "logprobs": null,
+    "finish_reason": "stop"
+   }
+  ],
+  "usage": {
+   "prompt_tokens": 195,
+   "completion_tokens": 57,
+   "total_tokens": 252,
+   "prompt_tokens_details": {
+    "cached_tokens": 0
+   },
+   "prompt_cache_hit_tokens": 0,
+   "prompt_cache_miss_tokens": 195
+  },
+  "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
+ }
+}
