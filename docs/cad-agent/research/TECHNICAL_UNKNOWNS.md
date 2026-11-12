@@ -92,7 +92,7 @@ cad-AI's state comes from `docs/cad-agent/CAD_AI_TRUTH_AUDIT.md` (its findings a
 | P2 | Automation library | Saved macros with categories and sharing | A workflow runner kept in memory (`cad-AI/src/components/views/AutomationStudioView.tsx#DAGWorkflowEngine.executeWorkflow`); nothing is saved, since no storage call exists in cad-AI's TypeScript (grep for localStorage, indexedDB, sqlite and writeFile: 0 matches) | L7 T4 |
 | P3 | Other CAD adapters | Listed as coming | None | No loop, as the roadmap advises |
 | none | General knowledge | Document folders used as context | Not inspected | L7 T5 |
-| none | Model selection | Six tiers, plan limits, usage | Three model choices in the agent panel (`cad-AI/src/components/agent/AICADAgentPanel.tsx#export type GeminiModelChoice`) | No task; T10 decides |
+| none | Model selection | Six tiers, plan limits, usage | One model since L5 T5, which removed the panel's three Gemini choices (`cad-AI/src/services/model/modelClient.ts#export const MODEL = 'deepseek-flash';`) | No task; T10 decides |
 | none | Chat history, accounts, file attachments | Sessions, sign-in and plans, attachment strip | No storage, no sign-in route in cad-AI/server.ts | No task; T10 decides |
 
 ## Priorities checked against the roadmap

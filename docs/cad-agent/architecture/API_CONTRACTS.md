@@ -45,10 +45,11 @@ stdin and stdout, one JSON object per line, UTF-8. Request: `{ "kind": "op", "op
 | GET /api/jobs, GET /api/jobs/:id | none | job list or job with status and artifacts |
 | POST /api/jobs/:id/cancel | none | 204 |
 | GET /api/artifacts/:id | none | file download |
+| POST /api/documents/:id/export | none | the kernel's STEP export as an `export` operation with its record: artifact id and record id. Added in L5 T5, when the human replaced the chat's template deliverables with it |
 | GET /api/documents/:id/inspect | none | `Executor.view`: id, revision, material, features (id and type, in build order, from the adapter's inspect), and inspection (valid, volume_mm3, bbox_mm, counts) with recordOperation, both from the document's last succeeded record. The inspector's properties and tree read it for `?part=<id>`; served once the server owns the executor (L5) |
 | GET /api/documents/:id/preview | none | the kernel's tessellation as `model/gltf-binary` (`Executor.preview`), a preview and never evidence (I3). The viewport reads it for `?part=<id>`; the server serves it once it owns the executor (L5), and until then the viewport shows its error state |
 
-Every response error body is `{ "error": { "code", "message", "details" } }` with the typed codes. These are our own routes; none mirrors the reference's channel names (I7). They replace the timer-driven routes the audit lists (`docs/cad-agent/CAD_AI_TRUTH_AUDIT.md`).
+Every response error body is `{ "error": { "code", "message", "details" } }` with the typed codes. Routes that spend model credit or write files (POST /api/requests, its answer, and document export) accept callers on this machine only, because the server listens on every interface. These are our own routes; none mirrors the reference's channel names (I7). They replace the timer-driven routes the audit lists (`docs/cad-agent/CAD_AI_TRUTH_AUDIT.md`).
 
 **Why events, not polling.** Row 1 shows a live progress list and row 10 live task status; a reconnecting client replays events from the store, so P18's "a reconnecting window sees the same status" holds.
 

@@ -71,8 +71,8 @@ Prefer checks with exit codes: geometry is measured, not judged. Where a model m
 
 ## Council protocol
 
-1. Members. Two fresh read-only agents on Opus 5.5, each with the identical prompt: the task's scope, the attack list below, and the instruction to report only disagreements, each with a `path:line` and a verbatim code quote. Independence comes from a fresh context that did not build the work; the human chose one model over several on 2026-11-11 to save tokens, accepting less model diversity. Fable is not used, no credit.
-2. Chairman. One more fresh agent on Opus 5.5 merges both reports into one deduplicated list ordered by severity, with each item's agreement count (1/2 or 2/2); it opens the cited code to settle an item the two reports disagree on, and marks it confirmed or refuted with a quote.
+1. Members. Two fresh read-only agents on Opus 5.5 at high effort. Each gets the task's scope, the whole attack list below, and the instruction to report only disagreements, each with a `path:line` and a verbatim code quote. Their stances differ. The attacker tries to make the work fail and attaches a reproduction sketch to each finding. The auditor traces every Journal claim back to code and records. One model run twice tends to miss the same things, so the different stances make their misses less alike, and because both cover the whole list the agreement count still means something. The human chose one model on 2026-11-11 to save tokens and these stances and efforts on 2026-11-12. Fable is not used, no credit.
+2. Chairman. One more fresh agent on Opus 5.5 at xhigh effort merges both reports into one deduplicated list ordered by severity, with each item's agreement count (1/2 or 2/2); it opens the cited code to settle an item the two reports disagree on, and marks it confirmed or refuted with a quote.
 3. Maker. Reproduces each item before acting: a failing test or a corrected row, or a rejection with its reason in the Journal.
 
 The Journal records member and chairman models, item counts after each stage, and every rejected item with its reason. A council costs about three agent runs against the loop's budget.
