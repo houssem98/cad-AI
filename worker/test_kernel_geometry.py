@@ -54,6 +54,17 @@ def test_plate_with_four_through_holes_matches_its_analytic_values():
     assert out["result"]["features"] == ["p", "s", "x", "h"]
 
 
+def test_holes_count_concave_full_turns_and_not_bosses_or_fillets():
+    k = built()
+    for o in (op("b", "sketch_circle", {"plane": "top", "diameter": mm(12)}), op("bx", "extrude", {"sketch": "b", "depth": mm(20)}),
+              op("f", "fillet", {"edges": ["x:edge:0"], "radius": mm(5)}),
+              op("bh", "hole", {"diameter": mm(4), "depth": mm(8), "positions": [{"x": mm(0), "y": mm(0)}]})):
+        assert k.run(o)["status"] == "succeeded", o["id"]
+    result = inspect(k)["result"]
+    assert result["cylindrical_faces"] == 7  # 4 through holes, the boss, the fillet, the blind hole in the boss
+    assert result["holes"] == 5
+
+
 def test_changing_thickness_to_12_rebuilds_to_the_new_analytic_volume():
     k = built()
     assert k.run(op("m", "modify_dimension", {"parameter": "x.depth", "value": mm(12)}))["status"] == "succeeded"

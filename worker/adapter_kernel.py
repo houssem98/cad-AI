@@ -5,8 +5,11 @@ import tempfile
 import uuid
 from pathlib import Path
 
-from build123d import (Circle, Cylinder, GeomType, Plane, Polygon, Pos, Rectangle, chamfer, export_brep, export_gltf,
+import math
+
+from build123d import (Circle, Cylinder, GeomType, Plane, Polygon, Pos, Rectangle, Vector, chamfer, export_brep, export_gltf,
                        export_step, extrude, fillet, import_brep, import_step)
+from OCP.BRepAdaptor import BRepAdaptor_Surface
 
 from adapter import Adapter, PreconditionFailed, VerificationFailed, outcome
 from adapter_contract import TYPES
@@ -38,6 +41,24 @@ def _verification(part):
     bb, solids = part.bounding_box(), len(part.solids())
     return {"valid": bool(part.is_valid) and solids > 0, "volume_mm3": part.volume, "bbox_mm": {"min": _xyz(bb.min), "max": _xyz(bb.max)},
             "counts": {"solids": solids, "faces": len(part.faces()), "edges": len(part.edges())}}
+
+
+def _holes(part):
+    """Concave cylinders that close a full turn, a cylinder split into faces counted once; bosses and fillets are not holes."""
+    turns = {}
+    for f in part.faces().filter_by(GeomType.CYLINDER):
+        s = BRepAdaptor_Surface(f.wrapped)
+        cyl = s.Cylinder()
+        o, d = Vector(cyl.Axis().Location()), Vector(cyl.Axis().Direction())
+        p = f.position_at(0.5, 0.5)
+        if f.normal_at(p).dot(p - o - d * (p - o).dot(d)) >= 0:
+            continue
+        if max((d.X, d.Y, d.Z), key=abs) < 0:
+            d = -d
+        foot = o - d * o.dot(d)
+        key = tuple(round(c, 4) for c in (foot.X, foot.Y, foot.Z, d.X, d.Y, d.Z, cyl.Radius()))
+        turns[key] = turns.get(key, 0) + s.LastUParameter() - s.FirstUParameter()
+    return sum(t > 2 * math.pi - 1e-6 for t in turns.values())
 
 
 def _matches(a, b):
@@ -131,7 +152,8 @@ class KernelAdapter(Adapter):
         material = next((o["params"]["material"] for o in reversed(history) if o["type"] == "assign_material"), None)
         result = {"features": [o["id"] for o in history], "material": material,
                   "area_mm2": part.area if part is not None else 0,
-                  "cylindrical_faces": len(part.faces().filter_by(GeomType.CYLINDER)) if part is not None else 0}
+                  "cylindrical_faces": len(part.faces().filter_by(GeomType.CYLINDER)) if part is not None else 0,
+                  "holes": _holes(part) if part is not None else 0}
         return outcome("succeeded", result=result, verification=_verification(part))
 
     def tessellate(self, document):
