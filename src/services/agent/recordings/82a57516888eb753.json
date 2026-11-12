@@ -1,0 +1,51 @@
+{
+ "request": {
+  "model": "deepseek-flash",
+  "messages": [
+   {
+    "role": "system",
+    "content": "You turn a request for one mechanical part into a JSON spec. Reply with JSON only, in this shape:\n{\"part\": \"<what the part is>\", \"dimensions\": [{\"name\": \"<what it measures>\", \"value\": <number>, \"unit\": \"mm\" | \"cm\" | \"m\" | \"in\"}], \"missing\": [\"<name>\"]}\nList every dimension the request states, in the unit it states; write fractions such as 1/4 in as 0.25.\nPut in \"missing\" only a dimension without which the part's geometry cannot be built, and never assume a default or a typical value for one.\nThese drafting conventions are not missing dimensions: edges are sharp unless rounding or chamfering is asked for; a hole goes through unless a depth is given; holes on a bolt circle are evenly spaced, the first on the +X axis; a hole \"N in from both edges\" has its centre N from each of the two nearest edges; material, finish and tolerances are not dimensions; the part's position and orientation are free.\nIf numbers come without a unit, put \"unit\" in \"missing\". If stated dimensions contradict each other, put the conflict in \"missing\"."
+   },
+   {
+    "role": "user",
+    "content": "make a bracket"
+   }
+  ],
+  "temperature": 0,
+  "max_tokens": 400,
+  "thinking": {
+   "type": "disabled"
+  },
+  "response_format": {
+   "type": "json_object"
+  }
+ },
+ "response": {
+  "id": "367374db-a804-4957-898e-cf576e0c22c0",
+  "object": "chat.completion",
+  "created": 1794495042,
+  "model": "deepseek-flash",
+  "choices": [
+   {
+    "index": 0,
+    "message": {
+     "role": "assistant",
+     "content": "{\"part\": \"bracket\", \"dimensions\": [], \"missing\": [\"overall length\", \"overall width\", \"overall height\", \"hole diameter\", \"hole positions\"]}"
+    },
+    "logprobs": null,
+    "finish_reason": "stop"
+   }
+  ],
+  "usage": {
+   "prompt_tokens": 285,
+   "completion_tokens": 39,
+   "total_tokens": 324,
+   "prompt_tokens_details": {
+    "cached_tokens": 0
+   },
+   "prompt_cache_hit_tokens": 0,
+   "prompt_cache_miss_tokens": 285
+  },
+  "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
+ }
+}

@@ -61,6 +61,19 @@ def _holes(part):
     return sum(t > 2 * math.pi - 1e-6 for t in turns.values())
 
 
+def _edge_list(part, feature):
+    """The solid's edges under the names fillet and chamfer take (<last solid feature>:edge:<n>), so a caller can choose them."""
+    out = []
+    for i, e in enumerate(sorted(part.edges(), key=_edge_key)):
+        d = {"name": "%s:edge:%d" % (feature, i), "type": e.geom_type.name, "center": [round(c, 3) for c in e.center()],
+             "length": round(e.length, 3)}
+        if e.geom_type == GeomType.LINE:
+            v = (e.position_at(1) - e.position_at(0)).normalized()
+            d["direction"] = [round(abs(c), 3) + 0 for c in v]  # unsigned, so an edge reads the same either way
+        out.append(d)
+    return out
+
+
 def _matches(a, b):
     if abs(a["volume_mm3"] - b["volume_mm3"]) > VOLUME_TOL * abs(b["volume_mm3"]):
         return False
@@ -148,12 +161,13 @@ class KernelAdapter(Adapter):
 
     def inspect_geometry(self, op):
         history = self.docs.get(op["target"]["document"], [])
-        part, _ = self._build(history)
+        part, snapshots = self._build(history)
         material = next((o["params"]["material"] for o in reversed(history) if o["type"] == "assign_material"), None)
         result = {"features": [o["id"] for o in history], "material": material,
                   "area_mm2": part.area if part is not None else 0,
                   "cylindrical_faces": len(part.faces().filter_by(GeomType.CYLINDER)) if part is not None else 0,
-                  "holes": _holes(part) if part is not None else 0}
+                  "holes": _holes(part) if part is not None else 0,
+                  "edges": _edge_list(part, next(reversed(snapshots), None)) if part is not None else []}
         return outcome("succeeded", result=result, verification=_verification(part))
 
     def tessellate(self, document):

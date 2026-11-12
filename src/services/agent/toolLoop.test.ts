@@ -34,6 +34,20 @@ describe('tool loop on recorded responses', { timeout: 120000 }, () => {
     expect(after?.find((x) => x.tool_call_id === refused!.call.id).content).toContain('validation_failed');
   });
 
+  it('gives the model the edge list an inspect call returns, under the names fillet takes', async () => {
+    ex = await open();
+    for (const o of [op('p', 'new_part', { name: 'plate' }), op('s', 'sketch_rectangle', { plane: 'top', width: mm(90), height: mm(90) }), op('x', 'extrude', { sketch: 's', depth: mm(15) })])
+      expect((await ex.execute(o, { requestId: 'setup' })).status).toBe('succeeded');
+    // A scripted model, not a recording: this checks the loop's plumbing, not the model.
+    const turns = [{ text: '', toolCalls: [{ id: 't1', name: 'inspect', arguments: '{"id":"i1","params":{}}' }] }, { text: 'done', toolCalls: [] }];
+    const seen: any[][] = [];
+    const scripted: Complete = async (r) => { seen.push(structuredClone(r.messages)); return { ...turns[seen.length - 1], usage: { prompt_tokens: 0, completion_tokens: 0 } }; };
+    const res = await runToolLoop('Inspect the plate.', { complete: scripted, executor: ex, document: 'plate', requestId: 'r3' });
+    expect(res.steps[0].outcome.edges).toHaveLength(12);
+    expect(res.steps[0].outcome.edges?.[0].name).toBe('x:edge:0');
+    expect(JSON.parse(seen[1].at(-1).content).edges).toHaveLength(12);
+  });
+
   it('holds an approval-gated operation until the human answers', async () => {
     let answer!: (d: Decision) => void;
     const asked: any[] = [];

@@ -11,7 +11,8 @@ export type SpecResult = { kind: 'spec'; spec: Spec } | { kind: 'asks'; question
 export const SPEC_PROMPT = `You turn a request for one mechanical part into a JSON spec. Reply with JSON only, in this shape:
 {"part": "<what the part is>", "dimensions": [{"name": "<what it measures>", "value": <number>, "unit": "mm" | "cm" | "m" | "in"}], "missing": ["<name>"]}
 List every dimension the request states, in the unit it states; write fractions such as 1/4 in as 0.25.
-Put in "missing" every dimension needed to build the part that the request does not state. Never assume a default or a typical value.
+Put in "missing" only a dimension without which the part's geometry cannot be built, and never assume a default or a typical value for one.
+These drafting conventions are not missing dimensions: edges are sharp unless rounding or chamfering is asked for; a hole goes through unless a depth is given; holes on a bolt circle are evenly spaced, the first on the +X axis; a hole "N in from both edges" has its centre N from each of the two nearest edges; material, finish and tolerances are not dimensions; the part's position and orientation are free.
 If numbers come without a unit, put "unit" in "missing". If stated dimensions contradict each other, put the conflict in "missing".`;
 
 // A number followed by a unit. The recorded model read "plate 100 by 60 by 5" as millimetres, so code, not the prompt, refuses that guess.

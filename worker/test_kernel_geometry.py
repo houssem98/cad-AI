@@ -65,6 +65,16 @@ def test_holes_count_concave_full_turns_and_not_bosses_or_fillets():
     assert result["holes"] == 5
 
 
+def test_inspect_lists_the_edges_by_the_names_fillet_takes():
+    edges = inspect(built())["result"]["edges"]
+    # The plate's four outer vertical edges; each hole's seam is a vertical line too, told apart by its centre.
+    vertical = [e["name"] for e in edges if e["type"] == "LINE" and e["direction"] == [0, 0, 1] and [abs(c) for c in e["center"][:2]] == [60, 40]]
+    assert len(vertical) == 4 and all(n.startswith("h:edge:") for n in vertical), edges
+    k = built()
+    assert k.run(op("f", "fillet", {"edges": vertical, "radius": mm(5)}))["status"] == "succeeded"
+    assert abs(inspect(k)["verification"]["volume_mm3"] - (analytic_volume(10) - 4 * (25 - 25 * math.pi / 4) * 10)) < 1e-3
+
+
 def test_changing_thickness_to_12_rebuilds_to_the_new_analytic_volume():
     k = built()
     assert k.run(op("m", "modify_dimension", {"parameter": "x.depth", "value": mm(12)}))["status"] == "succeeded"

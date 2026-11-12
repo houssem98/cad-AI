@@ -4,100 +4,30 @@
   "messages": [
    {
     "role": "system",
-    "content": "You build one part in a CAD kernel by calling tools. Each tool is one operation; the kernel's inspection after it comes back to you.\nLengths are {\"value\": <number>, \"unit\": \"mm\" | \"cm\" | \"m\" | \"in\"}. Sketches lie on a plane through the origin: \"top\" is XY, \"front\" is XZ, \"right\" is YZ.\nextrude and cut take a sketch id. Holes are drilled along Z from the top of the part at XY positions. Fillet and chamfer edges are named \"<feature id>:edge:<n>\".\nA document starts with new_part. Give every operation a new id. If an operation is refused or fails, read its error and correct it.\nWhen the request is done, reply with one line and call no tool."
+    "content": "You build one part in a CAD kernel by calling tools. Each tool is one operation; the kernel's inspection after it comes back to you.\nLengths are {\"value\": <number>, \"unit\": \"mm\" | \"cm\" | \"m\" | \"in\"}. Sketches lie on a plane through the origin: \"top\" is XY, \"front\" is XZ, \"right\" is YZ.\nextrude and cut take a sketch id. Holes are drilled along Z from the top of the part at XY positions. Fillet and chamfer edges are named \"<feature id>:edge:<n>\":\ncall inspect first, which lists the solid's edges with their name, type, centre and direction, and take the names from that list.\nA hexagon's across-flats size is the distance between two opposite sides; its corners lie across_flats / √3 from its centre.\nA document starts with new_part. Give every operation a new id. If an operation is refused or fails, read its error and correct it.\nWhen the request is done, reply with one line and call no tool."
    },
    {
     "role": "user",
-    "content": "The document does not exist yet.\nBuild this part: Plate 100 mm by 60 mm by 5 mm.\nSpec, lengths also in mm: {\"part\":\"plate\",\"dimensions\":[{\"name\":\"length\",\"value\":100,\"unit\":\"mm\",\"mm\":100},{\"name\":\"width\",\"value\":60,\"unit\":\"mm\",\"mm\":60},{\"name\":\"thickness\",\"value\":5,\"unit\":\"mm\",\"mm\":5}]}"
+    "content": "The document exists.\nThe plate is feature x, extruded 10 mm. Make it 8 mm thick by calling modify_dimension with parameter \"x.depth\"."
    },
    {
     "role": "assistant",
-    "content": null,
+    "content": "I'll modify the extrusion depth.",
     "tool_calls": [
      {
-      "id": "call_00_xQI2HZZVxf57C7SWvbsh5472",
+      "id": "call_00_sNjRcVCerb6YYwcEmPNj4926",
       "type": "function",
       "function": {
-       "name": "new_part",
-       "arguments": "{\"id\": \"p1\", \"params\": {\"name\": \"plate\"}}"
-      }
-     },
-     {
-      "id": "call_01_4Trw4nKt9xFSdorOTCiW8594",
-      "type": "function",
-      "function": {
-       "name": "sketch_rectangle",
-       "arguments": "{\"id\": \"s1\", \"params\": {\"plane\": \"top\", \"width\": {\"value\": 100, \"unit\": \"mm\"}, \"height\": {\"value\": 60, \"unit\": \"mm\"}, \"center\": {\"x\": {\"value\": 0, \"unit\": \"mm\"}, \"y\": {\"value\": 0, \"unit\": \"mm\"}}}}"
+       "name": "modify_dimension",
+       "arguments": "{\"id\": \"mod1\", \"params\": {\"parameter\": \"x.depth\", \"value\": {\"value\": 8, \"unit\": \"mm\"}}}"
       }
      }
     ]
    },
    {
     "role": "tool",
-    "tool_call_id": "call_00_xQI2HZZVxf57C7SWvbsh5472",
-    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
-   },
-   {
-    "role": "tool",
-    "tool_call_id": "call_01_4Trw4nKt9xFSdorOTCiW8594",
-    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
-   },
-   {
-    "role": "assistant",
-    "content": null,
-    "tool_calls": [
-     {
-      "id": "call_00_XWBipSEo3iEBtWAGuCXU5426",
-      "type": "function",
-      "function": {
-       "name": "extrude",
-       "arguments": "{\"id\": \"e1\", \"params\": {\"sketch\": \"s1\", \"depth\": {\"value\": 5, \"unit\": \"mm\"}}}"
-      }
-     }
-    ]
-   },
-   {
-    "role": "tool",
-    "tool_call_id": "call_00_XWBipSEo3iEBtWAGuCXU5426",
-    "content": "{\"status\":\"failed\",\"error\":{\"code\":\"kernel_error\",\"message\":\"double: extrude failed on purpose\"},\"inspection\":null}"
-   },
-   {
-    "role": "assistant",
-    "content": null,
-    "tool_calls": [
-     {
-      "id": "call_00_3sb7ivdtlN2DradL7pZT1212",
-      "type": "function",
-      "function": {
-       "name": "extrude",
-       "arguments": "{\"id\": \"e2\", \"params\": {\"depth\": {\"unit\": \"mm\", \"value\": 5}, \"sketch\": \"s1\", \"direction\": \"normal\"}}"
-      }
-     }
-    ]
-   },
-   {
-    "role": "tool",
-    "tool_call_id": "call_00_3sb7ivdtlN2DradL7pZT1212",
-    "content": "{\"status\":\"failed\",\"error\":{\"code\":\"kernel_error\",\"message\":\"double: extrude failed on purpose\"},\"inspection\":null}"
-   },
-   {
-    "role": "assistant",
-    "content": null,
-    "tool_calls": [
-     {
-      "id": "call_00_K1OrwFuhODTIobaaQtCH9888",
-      "type": "function",
-      "function": {
-       "name": "inspect",
-       "arguments": "{\"id\": \"i1\", \"params\": {}}"
-      }
-     }
-    ]
-   },
-   {
-    "role": "tool",
-    "tool_call_id": "call_00_K1OrwFuhODTIobaaQtCH9888",
-    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
+    "tool_call_id": "call_00_sNjRcVCerb6YYwcEmPNj4926",
+    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":true,\"volume_mm3\":48000,\"bbox_mm\":{\"min\":{\"x\":-50,\"y\":-30,\"z\":0},\"max\":{\"x\":50,\"y\":30,\"z\":8}},\"counts\":{\"solids\":1,\"faces\":6,\"edges\":12}}}"
    }
   ],
   "tools": [
@@ -1035,41 +965,30 @@
   }
  },
  "response": {
-  "id": "6b305b23-983f-4c2b-a918-dece783c714e",
+  "id": "721f45b0-03cd-4c89-9200-a0ac76fbd07b",
   "object": "chat.completion",
-  "created": 1794493252,
+  "created": 1794495066,
   "model": "deepseek-flash",
   "choices": [
    {
     "index": 0,
     "message": {
      "role": "assistant",
-     "content": "",
-     "tool_calls": [
-      {
-       "index": 0,
-       "id": "call_00_Ki0f679TeTme0TfhTdl21775",
-       "type": "function",
-       "function": {
-        "name": "sketch_rectangle",
-        "arguments": "{\"id\": \"s2\", \"params\": {\"height\": {\"unit\": \"mm\", \"value\": 60}, \"plane\": \"top\", \"width\": {\"unit\": \"mm\", \"value\": 100}}}"
-       }
-      }
-     ]
+     "content": "Plate thickness changed to 8 mm (bbox z now 0–8, volume 48000 mm³)."
     },
     "logprobs": null,
-    "finish_reason": "tool_calls"
+    "finish_reason": "stop"
    }
   ],
   "usage": {
-   "prompt_tokens": 3880,
-   "completion_tokens": 90,
-   "total_tokens": 3970,
+   "prompt_tokens": 3336,
+   "completion_tokens": 23,
+   "total_tokens": 3359,
    "prompt_tokens_details": {
-    "cached_tokens": 3712
+    "cached_tokens": 3200
    },
-   "prompt_cache_hit_tokens": 3712,
-   "prompt_cache_miss_tokens": 168
+   "prompt_cache_hit_tokens": 3200,
+   "prompt_cache_miss_tokens": 136
   },
   "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
  }

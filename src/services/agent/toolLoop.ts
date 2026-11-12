@@ -19,13 +19,15 @@ export const TOOLS = schema.properties.type.enum.map((name) => ({
 
 export const TOOL_PROMPT = `You build one part in a CAD kernel by calling tools. Each tool is one operation; the kernel's inspection after it comes back to you.
 Lengths are {"value": <number>, "unit": "mm" | "cm" | "m" | "in"}. Sketches lie on a plane through the origin: "top" is XY, "front" is XZ, "right" is YZ.
-extrude and cut take a sketch id. Holes are drilled along Z from the top of the part at XY positions. Fillet and chamfer edges are named "<feature id>:edge:<n>".
+extrude and cut take a sketch id. Holes are drilled along Z from the top of the part at XY positions. Fillet and chamfer edges are named "<feature id>:edge:<n>":
+call inspect first, which lists the solid's edges with their name, type, centre and direction, and take the names from that list.
+A hexagon's across-flats size is the distance between two opposite sides; its corners lie across_flats / √3 from its centre.
 A document starts with new_part. Give every operation a new id. If an operation is refused or fails, read its error and correct it.
 When the request is done, reply with one line and call no tool.`;
 
 // A failed operation, or a "done" that verify rejects, is a failure; the model replans after each, and the third ends the request.
 export const MAX_REPLANS = 2;
-export interface Outcome { status: string; error: any; inspection: any }
+export interface Outcome { status: string; error: any; inspection: any; edges?: any[] }
 export interface Step { call: ToolCall; outcome: Outcome; operationId: string }
 export interface LoopResult { status: 'done' | 'failed' | 'step_limit'; text?: string; steps: Step[]; problem?: string }
 export interface LoopContext {
@@ -42,7 +44,8 @@ async function run(call: ToolCall, ctx: LoopContext): Promise<Step> {
     preconditions: [], status: 'pending', result: null, verification: null, error: null };
   const out = await ctx.executor.execute(proposal, { requestId: ctx.requestId, signal: ctx.signal });
   return { call, operationId: out.operationId,
-    outcome: { status: out.status, error: out.record?.errorDetails ?? out.error ?? null, inspection: out.record?.validationResult?.inspection ?? null } };
+    outcome: { status: out.status, error: out.record?.errorDetails ?? out.error ?? null, inspection: out.record?.validationResult?.inspection ?? null,
+      ...(call.name === 'inspect' && { edges: out.record?.executionResult?.result?.edges }) } }; // the record keeps the adapter's answer under result
 }
 
 export async function runToolLoop(task: string, ctx: LoopContext): Promise<LoopResult> {

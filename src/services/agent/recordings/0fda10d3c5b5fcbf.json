@@ -4,7 +4,7 @@
   "messages": [
    {
     "role": "system",
-    "content": "You build one part in a CAD kernel by calling tools. Each tool is one operation; the kernel's inspection after it comes back to you.\nLengths are {\"value\": <number>, \"unit\": \"mm\" | \"cm\" | \"m\" | \"in\"}. Sketches lie on a plane through the origin: \"top\" is XY, \"front\" is XZ, \"right\" is YZ.\nextrude and cut take a sketch id. Holes are drilled along Z from the top of the part at XY positions. Fillet and chamfer edges are named \"<feature id>:edge:<n>\".\nA document starts with new_part. Give every operation a new id. If an operation is refused or fails, read its error and correct it.\nWhen the request is done, reply with one line and call no tool."
+    "content": "You build one part in a CAD kernel by calling tools. Each tool is one operation; the kernel's inspection after it comes back to you.\nLengths are {\"value\": <number>, \"unit\": \"mm\" | \"cm\" | \"m\" | \"in\"}. Sketches lie on a plane through the origin: \"top\" is XY, \"front\" is XZ, \"right\" is YZ.\nextrude and cut take a sketch id. Holes are drilled along Z from the top of the part at XY positions. Fillet and chamfer edges are named \"<feature id>:edge:<n>\":\ncall inspect first, which lists the solid's edges with their name, type, centre and direction, and take the names from that list.\nA hexagon's across-flats size is the distance between two opposite sides; its corners lie across_flats / √3 from its centre.\nA document starts with new_part. Give every operation a new id. If an operation is refused or fails, read its error and correct it.\nWhen the request is done, reply with one line and call no tool."
    },
    {
     "role": "user",
@@ -12,10 +12,10 @@
    },
    {
     "role": "assistant",
-    "content": "I'll start by creating the document, then attempt the sketch as requested.",
+    "content": "I'll start by creating the part, then attempt the sketch as requested.",
     "tool_calls": [
      {
-      "id": "call_00_xJUqoniyZfDP6czlPP6X7273",
+      "id": "call_00_zuO4gyXVdQSdujM9e5bh4459",
       "type": "function",
       "function": {
        "name": "new_part",
@@ -26,8 +26,27 @@
    },
    {
     "role": "tool",
-    "tool_call_id": "call_00_xJUqoniyZfDP6czlPP6X7273",
+    "tool_call_id": "call_00_zuO4gyXVdQSdujM9e5bh4459",
     "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
+   },
+   {
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+     {
+      "id": "call_00_F6WpZHcYUk9iWfJedKDg3982",
+      "type": "function",
+      "function": {
+       "name": "sketch_rectangle",
+       "arguments": "{\"id\": \"sk1\", \"params\": {\"plane\": \"top\", \"width\": {\"value\": 0, \"unit\": \"mm\"}, \"height\": {\"value\": 50, \"unit\": \"mm\"}}}"
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_00_F6WpZHcYUk9iWfJedKDg3982",
+    "content": "{\"status\":\"failed\",\"error\":{\"code\":\"validation_failed\",\"message\":\"refused by the operation schema\",\"details\":{\"errors\":[{\"path\":\"/params/width/value\",\"message\":\"must be greater than 0\"}]}},\"inspection\":null}"
    }
   ],
   "tools": [
@@ -965,41 +984,30 @@
   }
  },
  "response": {
-  "id": "ff20a171-7799-4f8b-8566-e3e10ecd356c",
+  "id": "96fd9612-7cf8-4359-a0b6-0e44f7ca5747",
   "object": "chat.completion",
-  "created": 1794493275,
+  "created": 1794495049,
   "model": "deepseek-flash",
   "choices": [
    {
     "index": 0,
     "message": {
      "role": "assistant",
-     "content": "",
-     "tool_calls": [
-      {
-       "index": 0,
-       "id": "call_00_HpXk6VflSzyuoipxIwnK1581",
-       "type": "function",
-       "function": {
-        "name": "sketch_rectangle",
-        "arguments": "{\"id\": \"sk1\", \"params\": {\"plane\": \"top\", \"width\": {\"value\": 0, \"unit\": \"mm\"}, \"height\": {\"value\": 50, \"unit\": \"mm\"}}}"
-       }
-      }
-     ]
+     "content": "Created the part, but the rectangle sketch was refused: width must be greater than 0 mm, so a 0 mm width is not allowed."
     },
     "logprobs": null,
-    "finish_reason": "tool_calls"
+    "finish_reason": "stop"
    }
   ],
   "usage": {
-   "prompt_tokens": 3263,
-   "completion_tokens": 91,
-   "total_tokens": 3354,
+   "prompt_tokens": 3474,
+   "completion_tokens": 30,
+   "total_tokens": 3504,
    "prompt_tokens_details": {
-    "cached_tokens": 3072
+    "cached_tokens": 3328
    },
-   "prompt_cache_hit_tokens": 3072,
-   "prompt_cache_miss_tokens": 191
+   "prompt_cache_hit_tokens": 3328,
+   "prompt_cache_miss_tokens": 146
   },
   "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
  }

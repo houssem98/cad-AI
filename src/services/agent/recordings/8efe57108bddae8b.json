@@ -1,0 +1,51 @@
+{
+ "request": {
+  "model": "deepseek-flash",
+  "messages": [
+   {
+    "role": "system",
+    "content": "You turn a request for one mechanical part into a JSON spec. Reply with JSON only, in this shape:\n{\"part\": \"<what the part is>\", \"dimensions\": [{\"name\": \"<what it measures>\", \"value\": <number>, \"unit\": \"mm\" | \"cm\" | \"m\" | \"in\"}], \"missing\": [\"<name>\"]}\nList every dimension the request states, in the unit it states; write fractions such as 1/4 in as 0.25.\nPut in \"missing\" only a dimension without which the part's geometry cannot be built, and never assume a default or a typical value for one.\nThese drafting conventions are not missing dimensions: edges are sharp unless rounding or chamfering is asked for; a hole goes through unless a depth is given; holes on a bolt circle are evenly spaced, the first on the +X axis; a hole \"N in from both edges\" has its centre N from each of the two nearest edges; material, finish and tolerances are not dimensions; the part's position and orientation are free.\nIf numbers come without a unit, put \"unit\" in \"missing\". If stated dimensions contradict each other, put the conflict in \"missing\"."
+   },
+   {
+    "role": "user",
+    "content": "A 40 mm cube that is 60 mm tall."
+   }
+  ],
+  "temperature": 0,
+  "max_tokens": 400,
+  "thinking": {
+   "type": "disabled"
+  },
+  "response_format": {
+   "type": "json_object"
+  }
+ },
+ "response": {
+  "id": "4cccb14a-f9d3-4297-a8db-4241dfd02d0c",
+  "object": "chat.completion",
+  "created": 1794495044,
+  "model": "deepseek-flash",
+  "choices": [
+   {
+    "index": 0,
+    "message": {
+     "role": "assistant",
+     "content": "{\"part\": \"cube\", \"dimensions\": [{\"name\": \"cube edge\", \"value\": 40, \"unit\": \"mm\"}, {\"name\": \"height\", \"value\": 60, \"unit\": \"mm\"}], \"missing\": [\"conflict: cube edge 40 mm vs height 60 mm\"]}"
+    },
+    "logprobs": null,
+    "finish_reason": "stop"
+   }
+  ],
+  "usage": {
+   "prompt_tokens": 294,
+   "completion_tokens": 68,
+   "total_tokens": 362,
+   "prompt_tokens_details": {
+    "cached_tokens": 128
+   },
+   "prompt_cache_hit_tokens": 128,
+   "prompt_cache_miss_tokens": 166
+  },
+  "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
+ }
+}

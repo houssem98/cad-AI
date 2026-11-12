@@ -4,11 +4,30 @@
   "messages": [
    {
     "role": "system",
-    "content": "You build one part in a CAD kernel by calling tools. Each tool is one operation; the kernel's inspection after it comes back to you.\nLengths are {\"value\": <number>, \"unit\": \"mm\" | \"cm\" | \"m\" | \"in\"}. Sketches lie on a plane through the origin: \"top\" is XY, \"front\" is XZ, \"right\" is YZ.\nextrude and cut take a sketch id. Holes are drilled along Z from the top of the part at XY positions. Fillet and chamfer edges are named \"<feature id>:edge:<n>\".\nA document starts with new_part. Give every operation a new id. If an operation is refused or fails, read its error and correct it.\nWhen the request is done, reply with one line and call no tool."
+    "content": "You build one part in a CAD kernel by calling tools. Each tool is one operation; the kernel's inspection after it comes back to you.\nLengths are {\"value\": <number>, \"unit\": \"mm\" | \"cm\" | \"m\" | \"in\"}. Sketches lie on a plane through the origin: \"top\" is XY, \"front\" is XZ, \"right\" is YZ.\nextrude and cut take a sketch id. Holes are drilled along Z from the top of the part at XY positions. Fillet and chamfer edges are named \"<feature id>:edge:<n>\":\ncall inspect first, which lists the solid's edges with their name, type, centre and direction, and take the names from that list.\nA hexagon's across-flats size is the distance between two opposite sides; its corners lie across_flats / √3 from its centre.\nA document starts with new_part. Give every operation a new id. If an operation is refused or fails, read its error and correct it.\nWhen the request is done, reply with one line and call no tool."
    },
    {
     "role": "user",
-    "content": "The document does not exist yet.\nBuild this part: Plate 100 mm by 60 mm by 5 mm.\nSpec, lengths also in mm: {\"part\":\"plate\",\"dimensions\":[{\"name\":\"length\",\"value\":100,\"unit\":\"mm\",\"mm\":100},{\"name\":\"width\",\"value\":60,\"unit\":\"mm\",\"mm\":60},{\"name\":\"thickness\",\"value\":5,\"unit\":\"mm\",\"mm\":5}]}"
+    "content": "The document does not exist yet.\nCall new_part, then call sketch_rectangle on the top plane with width 0 mm and height 50 mm."
+   },
+   {
+    "role": "assistant",
+    "content": "I'll start by creating the part, then attempt the sketch as requested.",
+    "tool_calls": [
+     {
+      "id": "call_00_zuO4gyXVdQSdujM9e5bh4459",
+      "type": "function",
+      "function": {
+       "name": "new_part",
+       "arguments": "{\"id\": \"part1\", \"params\": {\"name\": \"part1\"}}"
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_00_zuO4gyXVdQSdujM9e5bh4459",
+    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
    }
   ],
   "tools": [
@@ -946,9 +965,9 @@
   }
  },
  "response": {
-  "id": "0cce82f2-dad9-488e-9827-82e6af7b2fd7",
+  "id": "c61fea3a-8abe-4f62-a90e-767ceb789584",
   "object": "chat.completion",
-  "created": 1794493246,
+  "created": 1794495047,
   "model": "deepseek-flash",
   "choices": [
    {
@@ -959,20 +978,11 @@
      "tool_calls": [
       {
        "index": 0,
-       "id": "call_00_xQI2HZZVxf57C7SWvbsh5472",
-       "type": "function",
-       "function": {
-        "name": "new_part",
-        "arguments": "{\"id\": \"p1\", \"params\": {\"name\": \"plate\"}}"
-       }
-      },
-      {
-       "index": 1,
-       "id": "call_01_4Trw4nKt9xFSdorOTCiW8594",
+       "id": "call_00_F6WpZHcYUk9iWfJedKDg3982",
        "type": "function",
        "function": {
         "name": "sketch_rectangle",
-        "arguments": "{\"id\": \"s1\", \"params\": {\"plane\": \"top\", \"width\": {\"value\": 100, \"unit\": \"mm\"}, \"height\": {\"value\": 60, \"unit\": \"mm\"}, \"center\": {\"x\": {\"value\": 0, \"unit\": \"mm\"}, \"y\": {\"value\": 0, \"unit\": \"mm\"}}}}"
+        "arguments": "{\"id\": \"sk1\", \"params\": {\"plane\": \"top\", \"width\": {\"value\": 0, \"unit\": \"mm\"}, \"height\": {\"value\": 50, \"unit\": \"mm\"}}}"
        }
       }
      ]
@@ -982,14 +992,14 @@
    }
   ],
   "usage": {
-   "prompt_tokens": 3162,
-   "completion_tokens": 175,
-   "total_tokens": 3337,
+   "prompt_tokens": 3320,
+   "completion_tokens": 91,
+   "total_tokens": 3411,
    "prompt_tokens_details": {
-    "cached_tokens": 2816
+    "cached_tokens": 3072
    },
-   "prompt_cache_hit_tokens": 2816,
-   "prompt_cache_miss_tokens": 346
+   "prompt_cache_hit_tokens": 3072,
+   "prompt_cache_miss_tokens": 248
   },
   "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
  }

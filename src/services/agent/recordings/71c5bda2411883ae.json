@@ -4,7 +4,7 @@
   "messages": [
    {
     "role": "system",
-    "content": "You build one part in a CAD kernel by calling tools. Each tool is one operation; the kernel's inspection after it comes back to you.\nLengths are {\"value\": <number>, \"unit\": \"mm\" | \"cm\" | \"m\" | \"in\"}. Sketches lie on a plane through the origin: \"top\" is XY, \"front\" is XZ, \"right\" is YZ.\nextrude and cut take a sketch id. Holes are drilled along Z from the top of the part at XY positions. Fillet and chamfer edges are named \"<feature id>:edge:<n>\".\nA document starts with new_part. Give every operation a new id. If an operation is refused or fails, read its error and correct it.\nWhen the request is done, reply with one line and call no tool."
+    "content": "You build one part in a CAD kernel by calling tools. Each tool is one operation; the kernel's inspection after it comes back to you.\nLengths are {\"value\": <number>, \"unit\": \"mm\" | \"cm\" | \"m\" | \"in\"}. Sketches lie on a plane through the origin: \"top\" is XY, \"front\" is XZ, \"right\" is YZ.\nextrude and cut take a sketch id. Holes are drilled along Z from the top of the part at XY positions. Fillet and chamfer edges are named \"<feature id>:edge:<n>\":\ncall inspect first, which lists the solid's edges with their name, type, centre and direction, and take the names from that list.\nA hexagon's across-flats size is the distance between two opposite sides; its corners lie across_flats / √3 from its centre.\nA document starts with new_part. Give every operation a new id. If an operation is refused or fails, read its error and correct it.\nWhen the request is done, reply with one line and call no tool."
    },
    {
     "role": "user",
@@ -12,10 +12,10 @@
    },
    {
     "role": "assistant",
-    "content": null,
+    "content": "I'll build the plate: a 100 × 60 mm rectangle on the top plane, extruded 5 mm.",
     "tool_calls": [
      {
-      "id": "call_00_xQI2HZZVxf57C7SWvbsh5472",
+      "id": "call_00_Sna984NKBqvofRibiemF4798",
       "type": "function",
       "function": {
        "name": "new_part",
@@ -23,7 +23,7 @@
       }
      },
      {
-      "id": "call_01_4Trw4nKt9xFSdorOTCiW8594",
+      "id": "call_01_Kh5DlYH3nPISelYseD1z9598",
       "type": "function",
       "function": {
        "name": "sketch_rectangle",
@@ -34,13 +34,32 @@
    },
    {
     "role": "tool",
-    "tool_call_id": "call_00_xQI2HZZVxf57C7SWvbsh5472",
+    "tool_call_id": "call_00_Sna984NKBqvofRibiemF4798",
     "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
    },
    {
     "role": "tool",
-    "tool_call_id": "call_01_4Trw4nKt9xFSdorOTCiW8594",
+    "tool_call_id": "call_01_Kh5DlYH3nPISelYseD1z9598",
     "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
+   },
+   {
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+     {
+      "id": "call_00_favMApN5wBan4su2PxQ76466",
+      "type": "function",
+      "function": {
+       "name": "extrude",
+       "arguments": "{\"id\": \"e1\", \"params\": {\"sketch\": \"s1\", \"depth\": {\"value\": 5, \"unit\": \"mm\"}}}"
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_00_favMApN5wBan4su2PxQ76466",
+    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":true,\"volume_mm3\":30000,\"bbox_mm\":{\"min\":{\"x\":-50,\"y\":-30,\"z\":0},\"max\":{\"x\":50,\"y\":30,\"z\":5}},\"counts\":{\"solids\":1,\"faces\":6,\"edges\":12}}}"
    }
   ],
   "tools": [
@@ -978,41 +997,30 @@
   }
  },
  "response": {
-  "id": "7116f9da-b10c-4ade-b808-3f4d827fe4c5",
+  "id": "83424292-fddb-448b-98a6-00d7b06dfb2c",
   "object": "chat.completion",
-  "created": 1794493248,
+  "created": 1794495065,
   "model": "deepseek-flash",
   "choices": [
    {
     "index": 0,
     "message": {
      "role": "assistant",
-     "content": "",
-     "tool_calls": [
-      {
-       "index": 0,
-       "id": "call_00_XWBipSEo3iEBtWAGuCXU5426",
-       "type": "function",
-       "function": {
-        "name": "extrude",
-        "arguments": "{\"id\": \"e1\", \"params\": {\"sketch\": \"s1\", \"depth\": {\"value\": 5, \"unit\": \"mm\"}}}"
-       }
-      }
-     ]
+     "content": "Built the plate: 100 × 60 × 5 mm, valid solid with volume 30,000 mm³."
     },
     "logprobs": null,
-    "finish_reason": "tool_calls"
+    "finish_reason": "stop"
    }
   ],
   "usage": {
-   "prompt_tokens": 3505,
-   "completion_tokens": 76,
-   "total_tokens": 3581,
+   "prompt_tokens": 3751,
+   "completion_tokens": 25,
+   "total_tokens": 3776,
    "prompt_tokens_details": {
-    "cached_tokens": 3328
+    "cached_tokens": 3584
    },
-   "prompt_cache_hit_tokens": 3328,
-   "prompt_cache_miss_tokens": 177
+   "prompt_cache_hit_tokens": 3584,
+   "prompt_cache_miss_tokens": 167
   },
   "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
  }
