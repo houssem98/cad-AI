@@ -1,0 +1,14 @@
+[
+  { "file": "plate_holes.step", "expect": "rebuilt" },
+  { "file": "step_block.step", "expect": "rebuilt" },
+  { "file": "pocket_plate.step", "expect": "rebuilt" },
+  { "file": "boss_plate.step", "expect": "rebuilt" },
+  { "file": "counterbore_plate.step", "expect": "rebuilt" },
+  { "file": "l_bracket.step", "expect": "rebuilt" },
+  { "file": "u_channel.step", "expect": "rebuilt" },
+  { "file": "hex_bore.step", "expect": "rebuilt" },
+  { "file": "t_slot_block.step", "expect": "rebuilt" },
+  { "file": "flange.step", "expect": "rebuilt" },
+  { "file": "freeform_loft.step", "expect": "unsupported" },
+  { "file": "slot_plate.step", "expect": "unsupported" }
+]

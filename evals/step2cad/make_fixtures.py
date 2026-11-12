@@ -1,0 +1,48 @@
+"""Writes the STEP-to-CAD eval fixtures (L6 T3) with build123d solids, never with the operation vocabulary the rebuild
+uses, and placed off the origin. Run: python evals/step2cad/make_fixtures.py"""
+import math
+from pathlib import Path
+
+from build123d import Circle, Ellipse, Plane, Pos, RegularPolygon, Solid, SlotCenterToCenter, Vector, export_step, extrude, loft
+
+OUT = Path(__file__).parent / "fixtures"
+
+
+def box(x0, y0, z0, x1, y1, z1):
+    return Solid.make_box(x1 - x0, y1 - y0, z1 - z0, Plane.XY.offset(z0).shift_origin((x0, y0, z0)))
+
+
+def rod(p0, p1, d):
+    p0, p1 = Vector(p0), Vector(p1)
+    return Solid.make_cylinder(d / 2, (p1 - p0).length, Plane(origin=p0, z_dir=p1 - p0))
+
+
+def z_rod(x, y, z0, z1, d):
+    return rod((x, y, z0), (x, y, z1), d)
+
+
+FIXTURES = {
+    "plate_holes": box(-20, 7, 3, 60, 57, 11) - [z_rod(x, y, 2, 12, 6) for x in (-10, 50) for y in (17, 47)],
+    "step_block": box(0, 0, 0, 60, 40, 20) - box(30, -1, 10, 61, 41, 21),
+    "pocket_plate": box(0, 0, 0, 100, 60, 10) - box(20, 20, 6, 60, 40, 11) - z_rod(80, 30, 4, 11, 5),
+    "boss_plate": box(-30, -30, 0, 30, 30, 6) + z_rod(0, 0, 6, 16, 20) - z_rod(0, 0, -1, 17, 8),
+    "counterbore_plate": box(0, 0, 0, 50, 50, 12) - z_rod(25, 25, -1, 13, 6) - z_rod(25, 25, 8, 13, 12),
+    "l_bracket": box(0, 0, 0, 60, 40, 8) + box(0, 0, 8, 8, 40, 50) - [z_rod(35, y, -1, 9, 6) for y in (12, 28)]
+                 - rod((-1, 20, 30), (9, 20, 30), 6),
+    "u_channel": box(0, 0, 0, 100, 40, 5) + box(0, 0, 5, 100, 5, 30) + box(0, 35, 5, 100, 40, 30)
+                 - [rod((x, -1, 20), (x, 41, 20), 5) for x in (25, 75)],
+    "hex_bore": extrude(Plane.XY.offset(2) * Pos(10, -5) * RegularPolygon(30 / math.sqrt(3), 6), 20) - z_rod(10, -5, 1, 23, 12),
+    "t_slot_block": box(0, 0, 0, 80, 60, 40) - box(30, -1, 25, 50, 61, 41) - box(20, -1, 12, 60, 61, 25),
+    "flange": z_rod(0, 0, 0, 10, 80) + z_rod(0, 0, 10, 25, 40) - z_rod(0, 0, -1, 26, 20)
+              - [z_rod(30 * math.cos(a), 30 * math.sin(a), -1, 11, 8) for a in (i * math.pi / 3 for i in range(6))],
+    # Out of scope, so each must come back unsupported: a freeform surface, and a slot whose round ends are part cylinders.
+    "freeform_loft": loft([Circle(20), Plane.XY.offset(30) * Ellipse(25, 10)]),
+    "slot_plate": box(0, 0, 0, 80, 40, 6) - extrude(Pos(40, 20) * SlotCenterToCenter(30, 8), 6),
+}
+
+if __name__ == "__main__":
+    OUT.mkdir(exist_ok=True)
+    for name, shape in FIXTURES.items():
+        assert len(shape.solids()) == 1 and shape.is_valid, name
+        export_step(shape, str(OUT / ("%s.step" % name)))
+        print(name, round(shape.volume, 3))
