@@ -19,9 +19,9 @@ const fail = (res: Response, status: number, code: string, message: string) => r
 const LOOPBACK = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
 const LOCAL_NAMES = ['localhost', '127.0.0.1', '[::1]'];
 const named = (url: string) => { try { return LOCAL_NAMES.includes(new URL(url).hostname); } catch { return false; } };
-const local = (req: Request) => LOOPBACK.includes(req.socket.remoteAddress ?? '') && named(`http://${req.headers.host ?? ''}`)
+export const local = (req: Request) => LOOPBACK.includes(req.socket.remoteAddress ?? '') && named(`http://${req.headers.host ?? ''}`)
   && (!req.headers.origin || named(req.headers.origin));
-const refuse = (res: Response) => fail(res, 403, 'precondition_failed', 'only this machine may make this request');
+export const refuse = (res: Response) => fail(res, 403, 'precondition_failed', 'only this machine may make this request');
 
 export function agentRoutes(executor: Executor, complete: Complete, opts: { approvalTimeoutMs?: number } = {}) {
   const runs = new Map<string, Run>();

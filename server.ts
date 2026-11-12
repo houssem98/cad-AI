@@ -14,6 +14,9 @@ import { mkdirSync, rmSync } from 'node:fs';
 import { Executor, type Decision } from './src/services/cad/executor';
 import { modelClient } from './src/services/model/modelClient';
 import { agentRoutes } from './src/services/agent/routes';
+import { JobEngine } from './src/services/jobs/jobEngine';
+import { jobRoutes } from './src/services/jobs/jobRoutes';
+import { handlers as jobHandlers } from './src/services/jobs/handlers';
 
 dotenv.config();
 
@@ -159,6 +162,9 @@ async function startServer() {
   const agent = agentRoutes(executor, modelClient({ mode, recordings, spendFile: `${recordings}spend.json`, capUsd: 3, key: process.env.DEEPSEEK_API_KEY }));
   approve = agent.approve;
   app.use(agent.router);
+  // Background jobs (L6 T1): durable in their own store, each run by a worker process the watchdog keeps honest.
+  const jobs = JobEngine.open({ dbPath: path.join(dataDir, 'jobs.db'), handlers: path.resolve(__dirname, 'src/services/jobs/handlers.ts'), types: Object.keys(jobHandlers) });
+  app.use(jobRoutes(jobs));
 
   if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.resolve(__dirname, 'dist')));
