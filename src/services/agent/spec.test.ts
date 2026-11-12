@@ -21,6 +21,22 @@ describe('spec extraction on recorded responses', () => {
     expect((await asks('plate 100 by 60 by 5')).missing.join(' ')).toMatch(/unit/i);
   });
 
+  it('asks for the unit when any dimension lacks one, before calling the model (council C3)', async () => {
+    const never: typeof complete = async () => { throw new Error('the model was called'); };
+    for (const request of ['Plate 100 by 60 by 5 with 4 holes, 1 in each corner.', 'Plate 100 by 60 by 5 with 2 M6 holes.', 'Plate 100 mm by 60 by 5.', 'Plate 100 by 60 by 5, holes 10 in from each edge.']) {
+      const r = await extractSpec(request, never);
+      expect(r.kind, request).toBe('asks');
+    }
+    for (const request of ['A 200 x 100 x 10 mm plate with four 9 mm holes, each 15 mm in from both edges.', 'Rectangular bar 1 in x 1/2 in x 12 in.', 'Plate 100 mm by 60 mm by 5 mm with 2 M6 holes.', 'A 1 inch cube.'])
+      await expect(extractSpec(request, never), request).rejects.toThrow('the model was called');
+  });
+
+  it('names the drafting conventions it relied on (council C8)', async () => {
+    const r = await extractSpec('Disk 60 mm in diameter and 5 mm thick with four 5 mm holes on a 40 mm bolt circle.', complete);
+    expect(r.kind, JSON.stringify(r)).toBe('spec');
+    if (r.kind === 'spec') expect(r.spec.assumptions.join(' ')).toMatch(/bolt|spac|axis|angle/i);
+  });
+
   it('asks when stated dimensions contradict each other', async () => {
     await asks('A 40 mm cube that is 60 mm tall.');
   });
@@ -31,5 +47,6 @@ describe('spec extraction on recorded responses', () => {
     if (r.kind !== 'spec') return;
     expect(r.spec.dimensions.map((d) => d.unit)).toEqual(['in', 'in', 'in']);
     expect(r.spec.dimensions.map((d) => d.mm).sort((a, b) => a - b)).toEqual([6.35, 76.2, 101.6]);
+    expect([...r.spec.envelope_mm!].sort((a, b) => a - b)).toEqual([6.35, 76.2, 101.6]);
   });
 });

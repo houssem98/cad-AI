@@ -8,58 +8,26 @@
    },
    {
     "role": "user",
-    "content": "The document does not exist yet.\nBuild this part: Plate 100 mm by 60 mm by 5 mm.\nSpec, lengths also in mm: {\"part\":\"plate\",\"dimensions\":[{\"name\":\"length\",\"value\":100,\"unit\":\"mm\",\"mm\":100},{\"name\":\"width\",\"value\":60,\"unit\":\"mm\",\"mm\":60},{\"name\":\"thickness\",\"value\":5,\"unit\":\"mm\",\"mm\":5}]}"
+    "content": "The document does not exist yet.\nCall new_part, then call sketch_rectangle on the top plane with width 0 mm and height 50 mm."
    },
    {
     "role": "assistant",
-    "content": "I'll build the plate: a 100 × 60 mm rectangle on the top plane, extruded 5 mm.",
+    "content": "I'll start by creating the part, then attempt the sketch as requested.",
     "tool_calls": [
      {
-      "id": "call_00_Sna984NKBqvofRibiemF4798",
+      "id": "call_00_GKROkgN5k555mkjy1gyA0300",
       "type": "function",
       "function": {
        "name": "new_part",
-       "arguments": "{\"id\": \"p1\", \"params\": {\"name\": \"plate\"}}"
-      }
-     },
-     {
-      "id": "call_01_Kh5DlYH3nPISelYseD1z9598",
-      "type": "function",
-      "function": {
-       "name": "sketch_rectangle",
-       "arguments": "{\"id\": \"s1\", \"params\": {\"plane\": \"top\", \"width\": {\"value\": 100, \"unit\": \"mm\"}, \"height\": {\"value\": 60, \"unit\": \"mm\"}, \"center\": {\"x\": {\"value\": 0, \"unit\": \"mm\"}, \"y\": {\"value\": 0, \"unit\": \"mm\"}}}}"
+       "arguments": "{\"id\": \"part1\", \"params\": {\"name\": \"part1\"}}"
       }
      }
     ]
    },
    {
     "role": "tool",
-    "tool_call_id": "call_00_Sna984NKBqvofRibiemF4798",
+    "tool_call_id": "call_00_GKROkgN5k555mkjy1gyA0300",
     "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
-   },
-   {
-    "role": "tool",
-    "tool_call_id": "call_01_Kh5DlYH3nPISelYseD1z9598",
-    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
-   },
-   {
-    "role": "assistant",
-    "content": null,
-    "tool_calls": [
-     {
-      "id": "call_00_favMApN5wBan4su2PxQ76466",
-      "type": "function",
-      "function": {
-       "name": "extrude",
-       "arguments": "{\"id\": \"e1\", \"params\": {\"sketch\": \"s1\", \"depth\": {\"value\": 5, \"unit\": \"mm\"}}}"
-      }
-     }
-    ]
-   },
-   {
-    "role": "tool",
-    "tool_call_id": "call_00_favMApN5wBan4su2PxQ76466",
-    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":true,\"volume_mm3\":30000,\"bbox_mm\":{\"min\":{\"x\":-50,\"y\":-30,\"z\":0},\"max\":{\"x\":50,\"y\":30,\"z\":5}},\"counts\":{\"solids\":1,\"faces\":6,\"edges\":12}}}"
    }
   ],
   "tools": [
@@ -997,30 +965,41 @@
   }
  },
  "response": {
-  "id": "83424292-fddb-448b-98a6-00d7b06dfb2c",
+  "id": "7f0f761b-017b-4f4e-8177-3533f53f0e4b",
   "object": "chat.completion",
-  "created": 1794495065,
+  "created": 1794500982,
   "model": "deepseek-flash",
   "choices": [
    {
     "index": 0,
     "message": {
      "role": "assistant",
-     "content": "Built the plate: 100 × 60 × 5 mm, valid solid with volume 30,000 mm³."
+     "content": "",
+     "tool_calls": [
+      {
+       "index": 0,
+       "id": "call_00_4kdElNwTJbnnCtUcxBlK1078",
+       "type": "function",
+       "function": {
+        "name": "sketch_rectangle",
+        "arguments": "{\"id\": \"sk1\", \"params\": {\"plane\": \"top\", \"width\": {\"value\": 0, \"unit\": \"mm\"}, \"height\": {\"value\": 50, \"unit\": \"mm\"}}}"
+       }
+      }
+     ]
     },
     "logprobs": null,
-    "finish_reason": "stop"
+    "finish_reason": "tool_calls"
    }
   ],
   "usage": {
-   "prompt_tokens": 3751,
-   "completion_tokens": 25,
-   "total_tokens": 3776,
+   "prompt_tokens": 3320,
+   "completion_tokens": 91,
+   "total_tokens": 3411,
    "prompt_tokens_details": {
-    "cached_tokens": 3584
+    "cached_tokens": 3072
    },
-   "prompt_cache_hit_tokens": 3584,
-   "prompt_cache_miss_tokens": 167
+   "prompt_cache_hit_tokens": 3072,
+   "prompt_cache_miss_tokens": 248
   },
   "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
  }

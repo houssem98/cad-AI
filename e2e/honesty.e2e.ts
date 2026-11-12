@@ -31,7 +31,8 @@ async function walk(page: Page) {
   await page.keyboard.press('Escape');
   // A recorded request through the real server (L5 T5 replaced the demo run this step used to make).
   await page.getByRole('button', { name: 'Plate 100 × 60 × 5 mm' }).click();
-  await expect(page.getByTestId('report').last()).toBeVisible({ timeout: 90_000 });
+  // A finished, successful run (council C15): a failure report must not satisfy this step.
+  await expect(page.getByTestId('report').last()).toContainText('30000 mm3', { timeout: 90_000 });
   await noClaims(page, 'after an agent run');
 }
 

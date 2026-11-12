@@ -56,6 +56,21 @@ describe('model client', () => {
     expect(JSON.parse(readFileSync(s.spendFile, 'utf8')).calls).toBe(1);
   });
 
+  it('counts every call when two run at once', async () => {
+    const s = setup();
+    const c = s.client('live');
+    await Promise.all([c(msg), c({ messages: [{ role: 'user', content: 'other' }] })]);
+    expect(JSON.parse(readFileSync(s.spendFile, 'utf8'))).toEqual({ usd: 2 * cost(usage), calls: 2 });
+  });
+
+  it('stops a call when the request is cancelled', async () => {
+    const s = setup();
+    const stop = new AbortController();
+    stop.abort();
+    await expect(s.client('live')({ ...msg, signal: stop.signal })).rejects.toThrow(/cancelled/);
+    expect(s.calls).toHaveLength(0);
+  });
+
   it('does not retry a 4xx and retries a 5xx at most twice', async () => {
     const four = setup([400]);
     await expect(four.client('live')(msg)).rejects.toMatchObject({ code: 'model_error', status: 400 });

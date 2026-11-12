@@ -8,14 +8,14 @@
    },
    {
     "role": "user",
-    "content": "The document does not exist yet.\nBuild this part: Plate 100 mm by 60 mm by 5 mm.\nSpec, lengths also in mm: {\"part\":\"plate\",\"dimensions\":[{\"name\":\"length\",\"value\":100,\"unit\":\"mm\",\"mm\":100},{\"name\":\"width\",\"value\":60,\"unit\":\"mm\",\"mm\":60},{\"name\":\"thickness\",\"value\":5,\"unit\":\"mm\",\"mm\":5}]}"
+    "content": "The document does not exist yet.\nBuild this part: Plate 100 mm by 60 mm by 5 mm.\nSpec, lengths also in mm: {\"part\":\"plate\",\"dimensions\":[{\"name\":\"length\",\"value\":100,\"unit\":\"mm\",\"mm\":100},{\"name\":\"width\",\"value\":60,\"unit\":\"mm\",\"mm\":60},{\"name\":\"thickness\",\"value\":5,\"unit\":\"mm\",\"mm\":5}],\"envelope_mm\":[100,60,5],\"assumptions\":[\"edges sharp\",\"position and orientation free\"]}"
    },
    {
     "role": "assistant",
-    "content": "I'll build the plate: a 100 × 60 mm rectangle on the top plane, extruded 5 mm.",
+    "content": "I'll build the plate: a 100 × 60 rectangle on the top plane, extruded 5 mm.",
     "tool_calls": [
      {
-      "id": "call_00_Sna984NKBqvofRibiemF4798",
+      "id": "call_00_tXnyxsJcy1spp67QVZVi4459",
       "type": "function",
       "function": {
        "name": "new_part",
@@ -23,7 +23,7 @@
       }
      },
      {
-      "id": "call_01_Kh5DlYH3nPISelYseD1z9598",
+      "id": "call_01_XEu1pxVtc5jZpNrCcfhV2229",
       "type": "function",
       "function": {
        "name": "sketch_rectangle",
@@ -34,12 +34,12 @@
    },
    {
     "role": "tool",
-    "tool_call_id": "call_00_Sna984NKBqvofRibiemF4798",
+    "tool_call_id": "call_00_tXnyxsJcy1spp67QVZVi4459",
     "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
    },
    {
     "role": "tool",
-    "tool_call_id": "call_01_Kh5DlYH3nPISelYseD1z9598",
+    "tool_call_id": "call_01_XEu1pxVtc5jZpNrCcfhV2229",
     "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
    },
    {
@@ -47,7 +47,7 @@
     "content": null,
     "tool_calls": [
      {
-      "id": "call_00_favMApN5wBan4su2PxQ76466",
+      "id": "call_00_lLl3ISrSZYP5ssuEmTDA4997",
       "type": "function",
       "function": {
        "name": "extrude",
@@ -58,7 +58,26 @@
    },
    {
     "role": "tool",
-    "tool_call_id": "call_00_favMApN5wBan4su2PxQ76466",
+    "tool_call_id": "call_00_lLl3ISrSZYP5ssuEmTDA4997",
+    "content": "{\"status\":\"failed\",\"error\":{\"code\":\"kernel_error\",\"message\":\"double: extrude failed on purpose\"},\"inspection\":null}"
+   },
+   {
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+     {
+      "id": "call_00_C935Mi7epeZG4Yqo5XTA2987",
+      "type": "function",
+      "function": {
+       "name": "extrude",
+       "arguments": "{\"id\": \"e2\", \"params\": {\"depth\": {\"unit\": \"mm\", \"value\": 5}, \"sketch\": \"s1\", \"direction\": \"normal\"}}"
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_00_C935Mi7epeZG4Yqo5XTA2987",
     "content": "{\"status\":\"failed\",\"error\":{\"code\":\"kernel_error\",\"message\":\"double: extrude failed on purpose\"},\"inspection\":null}"
    }
   ],
@@ -997,9 +1016,9 @@
   }
  },
  "response": {
-  "id": "99c3df77-c955-4fa1-9377-664834a5d5a7",
+  "id": "9f902d48-e2d0-4006-b28d-beb502b6418c",
   "object": "chat.completion",
-  "created": 1794495047,
+  "created": 1794501006,
   "model": "deepseek-flash",
   "choices": [
    {
@@ -1010,11 +1029,11 @@
      "tool_calls": [
       {
        "index": 0,
-       "id": "call_00_ybsij4egoW8kOgEMNkzQ6338",
+       "id": "call_00_JfHG9MTEQHoRGl3aOuvI2207",
        "type": "function",
        "function": {
-        "name": "extrude",
-        "arguments": "{\"id\": \"e2\", \"params\": {\"depth\": {\"unit\": \"mm\", \"value\": 5}, \"sketch\": \"s1\", \"direction\": \"normal\"}}"
+        "name": "inspect",
+        "arguments": "{\"id\": \"i1\", \"params\": {}}"
        }
       }
      ]
@@ -1024,14 +1043,14 @@
    }
   ],
   "usage": {
-   "prompt_tokens": 3701,
-   "completion_tokens": 82,
-   "total_tokens": 3783,
+   "prompt_tokens": 3845,
+   "completion_tokens": 53,
+   "total_tokens": 3898,
    "prompt_tokens_details": {
-    "cached_tokens": 3456
+    "cached_tokens": 3584
    },
-   "prompt_cache_hit_tokens": 3456,
-   "prompt_cache_miss_tokens": 245
+   "prompt_cache_hit_tokens": 3584,
+   "prompt_cache_miss_tokens": 261
   },
   "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
  }

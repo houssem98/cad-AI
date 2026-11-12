@@ -48,6 +48,21 @@ describe('tool loop on recorded responses', { timeout: 120000 }, () => {
     expect(JSON.parse(seen[1].at(-1).content).edges).toHaveLength(12);
   });
 
+  it('stops at a cancel and calls the model no more (council C7)', async () => {
+    ex = await open();
+    const stop = new AbortController();
+    let calls = 0;
+    const scripted: Complete = async () => {
+      calls++;
+      if (calls === 2) stop.abort();
+      return calls === 1 ? { text: '', toolCalls: [{ id: 't1', name: 'new_part', arguments: '{"id":"p","params":{"name":"x"}}' }], usage: { prompt_tokens: 0, completion_tokens: 0 } }
+        : { text: 'done', toolCalls: [], usage: { prompt_tokens: 0, completion_tokens: 0 } };
+    };
+    const res = await runToolLoop('Make a part.', { complete: scripted, executor: ex, document: 'plate', requestId: 'r4', signal: stop.signal, verify: async () => null });
+    expect(res.status).toBe('cancelled');
+    expect(calls).toBe(2);
+  });
+
   it('holds an approval-gated operation until the human answers', async () => {
     let answer!: (d: Decision) => void;
     const asked: any[] = [];

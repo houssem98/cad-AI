@@ -8,26 +8,96 @@
    },
    {
     "role": "user",
-    "content": "The document exists.\nThe plate is feature x, extruded 10 mm. Make it 8 mm thick by calling modify_dimension with parameter \"x.depth\"."
+    "content": "The document does not exist yet.\nBuild this part: Plate 100 mm by 60 mm by 5 mm.\nSpec, lengths also in mm: {\"part\":\"plate\",\"dimensions\":[{\"name\":\"length\",\"value\":100,\"unit\":\"mm\",\"mm\":100},{\"name\":\"width\",\"value\":60,\"unit\":\"mm\",\"mm\":60},{\"name\":\"thickness\",\"value\":5,\"unit\":\"mm\",\"mm\":5}],\"envelope_mm\":[100,60,5],\"assumptions\":[\"edges sharp\",\"position and orientation free\"]}"
    },
    {
     "role": "assistant",
-    "content": "I'll modify the extrusion depth.",
+    "content": "I'll build the plate: a 100 × 60 rectangle on the top plane, extruded 5 mm.",
     "tool_calls": [
      {
-      "id": "call_00_sNjRcVCerb6YYwcEmPNj4926",
+      "id": "call_00_tXnyxsJcy1spp67QVZVi4459",
       "type": "function",
       "function": {
-       "name": "modify_dimension",
-       "arguments": "{\"id\": \"mod1\", \"params\": {\"parameter\": \"x.depth\", \"value\": {\"value\": 8, \"unit\": \"mm\"}}}"
+       "name": "new_part",
+       "arguments": "{\"id\": \"p1\", \"params\": {\"name\": \"plate\"}}"
+      }
+     },
+     {
+      "id": "call_01_XEu1pxVtc5jZpNrCcfhV2229",
+      "type": "function",
+      "function": {
+       "name": "sketch_rectangle",
+       "arguments": "{\"id\": \"s1\", \"params\": {\"plane\": \"top\", \"width\": {\"value\": 100, \"unit\": \"mm\"}, \"height\": {\"value\": 60, \"unit\": \"mm\"}, \"center\": {\"x\": {\"value\": 0, \"unit\": \"mm\"}, \"y\": {\"value\": 0, \"unit\": \"mm\"}}}}"
       }
      }
     ]
    },
    {
     "role": "tool",
-    "tool_call_id": "call_00_sNjRcVCerb6YYwcEmPNj4926",
-    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":true,\"volume_mm3\":48000,\"bbox_mm\":{\"min\":{\"x\":-50,\"y\":-30,\"z\":0},\"max\":{\"x\":50,\"y\":30,\"z\":8}},\"counts\":{\"solids\":1,\"faces\":6,\"edges\":12}}}"
+    "tool_call_id": "call_00_tXnyxsJcy1spp67QVZVi4459",
+    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_01_XEu1pxVtc5jZpNrCcfhV2229",
+    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
+   },
+   {
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+     {
+      "id": "call_00_lLl3ISrSZYP5ssuEmTDA4997",
+      "type": "function",
+      "function": {
+       "name": "extrude",
+       "arguments": "{\"id\": \"e1\", \"params\": {\"sketch\": \"s1\", \"depth\": {\"value\": 5, \"unit\": \"mm\"}}}"
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_00_lLl3ISrSZYP5ssuEmTDA4997",
+    "content": "{\"status\":\"failed\",\"error\":{\"code\":\"kernel_error\",\"message\":\"double: extrude failed on purpose\"},\"inspection\":null}"
+   },
+   {
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+     {
+      "id": "call_00_C935Mi7epeZG4Yqo5XTA2987",
+      "type": "function",
+      "function": {
+       "name": "extrude",
+       "arguments": "{\"id\": \"e2\", \"params\": {\"depth\": {\"unit\": \"mm\", \"value\": 5}, \"sketch\": \"s1\", \"direction\": \"normal\"}}"
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_00_C935Mi7epeZG4Yqo5XTA2987",
+    "content": "{\"status\":\"failed\",\"error\":{\"code\":\"kernel_error\",\"message\":\"double: extrude failed on purpose\"},\"inspection\":null}"
+   },
+   {
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+     {
+      "id": "call_00_JfHG9MTEQHoRGl3aOuvI2207",
+      "type": "function",
+      "function": {
+       "name": "inspect",
+       "arguments": "{\"id\": \"i1\", \"params\": {}}"
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_00_JfHG9MTEQHoRGl3aOuvI2207",
+    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
    }
   ],
   "tools": [
@@ -965,30 +1035,41 @@
   }
  },
  "response": {
-  "id": "721f45b0-03cd-4c89-9200-a0ac76fbd07b",
+  "id": "5534ef63-db72-4a12-ba44-c564c3c2b8ff",
   "object": "chat.completion",
-  "created": 1794495066,
+  "created": 1794501007,
   "model": "deepseek-flash",
   "choices": [
    {
     "index": 0,
     "message": {
      "role": "assistant",
-     "content": "Plate thickness changed to 8 mm (bbox z now 0–8, volume 48000 mm³)."
+     "content": "",
+     "tool_calls": [
+      {
+       "index": 0,
+       "id": "call_00_TUPCVIVxsGPP2t7CY9Kd4204",
+       "type": "function",
+       "function": {
+        "name": "extrude",
+        "arguments": "{\"id\": \"e3\", \"params\": {\"depth\": {\"unit\": \"mm\", \"value\": 5}, \"sketch\": \"s1\"}}"
+       }
+      }
+     ]
     },
     "logprobs": null,
-    "finish_reason": "stop"
+    "finish_reason": "tool_calls"
    }
   ],
   "usage": {
-   "prompt_tokens": 3336,
-   "completion_tokens": 23,
-   "total_tokens": 3359,
+   "prompt_tokens": 3984,
+   "completion_tokens": 76,
+   "total_tokens": 4060,
    "prompt_tokens_details": {
-    "cached_tokens": 3200
+    "cached_tokens": 3840
    },
-   "prompt_cache_hit_tokens": 3200,
-   "prompt_cache_miss_tokens": 136
+   "prompt_cache_hit_tokens": 3840,
+   "prompt_cache_miss_tokens": 144
   },
   "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
  }

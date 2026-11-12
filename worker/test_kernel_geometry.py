@@ -75,6 +75,24 @@ def test_inspect_lists_the_edges_by_the_names_fillet_takes():
     assert abs(inspect(k)["verification"]["volume_mm3"] - (analytic_volume(10) - 4 * (25 - 25 * math.pi / 4) * 10)) < 1e-3
 
 
+def test_inspect_measures_each_hole_round_and_bevel():
+    k = built()
+    for o in (op("f", "fillet", {"edges": ["x:edge:0"], "radius": mm(5)}), op("c", "chamfer", {"edges": ["x:edge:3"], "distance": mm(3)})):
+        assert k.run(o)["status"] == "succeeded", o["id"]
+    r = inspect(k)["result"]
+    assert sorted((h["diameter"], h["depth"]) for h in r["hole_list"]) == [(6.0, 10.0)] * 4
+    assert r["rounds"] == [5.0] and r["bevels"] == [4.243]
+
+    # A C-section: one drill through both flanges makes two holes on one axis, not one.
+    k = KernelAdapter()
+    c = [(0, 0), (40, 0), (40, 4), (6, 4), (6, 16), (40, 16), (40, 20), (0, 20)]
+    for o in (op("p", "new_part", {"name": "c"}), op("s", "sketch_polyline", {"plane": "front", "points": [{"x": mm(x), "y": mm(y)} for x, y in c]}),
+              op("x", "extrude", {"sketch": "s", "depth": mm(30)}), op("h", "hole", {"diameter": mm(5), "through_all": True, "positions": [{"x": mm(25), "y": mm(-15)}]})):
+        assert k.run(o)["status"] == "succeeded", o["id"]
+    r = inspect(k)["result"]
+    assert r["holes"] == 2 and sorted((h["diameter"], h["depth"]) for h in r["hole_list"]) == [(5.0, 4.0)] * 2
+
+
 def test_changing_thickness_to_12_rebuilds_to_the_new_analytic_volume():
     k = built()
     assert k.run(op("m", "modify_dimension", {"parameter": "x.depth", "value": mm(12)}))["status"] == "succeeded"

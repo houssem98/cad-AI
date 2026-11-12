@@ -8,96 +8,7 @@
    },
    {
     "role": "user",
-    "content": "The document does not exist yet.\nBuild this part: Plate 100 mm by 60 mm by 5 mm.\nSpec, lengths also in mm: {\"part\":\"plate\",\"dimensions\":[{\"name\":\"length\",\"value\":100,\"unit\":\"mm\",\"mm\":100},{\"name\":\"width\",\"value\":60,\"unit\":\"mm\",\"mm\":60},{\"name\":\"thickness\",\"value\":5,\"unit\":\"mm\",\"mm\":5}]}"
-   },
-   {
-    "role": "assistant",
-    "content": "I'll build the plate: a 100 × 60 mm rectangle on the top plane, extruded 5 mm.",
-    "tool_calls": [
-     {
-      "id": "call_00_Sna984NKBqvofRibiemF4798",
-      "type": "function",
-      "function": {
-       "name": "new_part",
-       "arguments": "{\"id\": \"p1\", \"params\": {\"name\": \"plate\"}}"
-      }
-     },
-     {
-      "id": "call_01_Kh5DlYH3nPISelYseD1z9598",
-      "type": "function",
-      "function": {
-       "name": "sketch_rectangle",
-       "arguments": "{\"id\": \"s1\", \"params\": {\"plane\": \"top\", \"width\": {\"value\": 100, \"unit\": \"mm\"}, \"height\": {\"value\": 60, \"unit\": \"mm\"}, \"center\": {\"x\": {\"value\": 0, \"unit\": \"mm\"}, \"y\": {\"value\": 0, \"unit\": \"mm\"}}}}"
-      }
-     }
-    ]
-   },
-   {
-    "role": "tool",
-    "tool_call_id": "call_00_Sna984NKBqvofRibiemF4798",
-    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
-   },
-   {
-    "role": "tool",
-    "tool_call_id": "call_01_Kh5DlYH3nPISelYseD1z9598",
-    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
-   },
-   {
-    "role": "assistant",
-    "content": null,
-    "tool_calls": [
-     {
-      "id": "call_00_favMApN5wBan4su2PxQ76466",
-      "type": "function",
-      "function": {
-       "name": "extrude",
-       "arguments": "{\"id\": \"e1\", \"params\": {\"sketch\": \"s1\", \"depth\": {\"value\": 5, \"unit\": \"mm\"}}}"
-      }
-     }
-    ]
-   },
-   {
-    "role": "tool",
-    "tool_call_id": "call_00_favMApN5wBan4su2PxQ76466",
-    "content": "{\"status\":\"failed\",\"error\":{\"code\":\"kernel_error\",\"message\":\"double: extrude failed on purpose\"},\"inspection\":null}"
-   },
-   {
-    "role": "assistant",
-    "content": null,
-    "tool_calls": [
-     {
-      "id": "call_00_ybsij4egoW8kOgEMNkzQ6338",
-      "type": "function",
-      "function": {
-       "name": "extrude",
-       "arguments": "{\"id\": \"e2\", \"params\": {\"depth\": {\"unit\": \"mm\", \"value\": 5}, \"sketch\": \"s1\", \"direction\": \"normal\"}}"
-      }
-     }
-    ]
-   },
-   {
-    "role": "tool",
-    "tool_call_id": "call_00_ybsij4egoW8kOgEMNkzQ6338",
-    "content": "{\"status\":\"failed\",\"error\":{\"code\":\"kernel_error\",\"message\":\"double: extrude failed on purpose\"},\"inspection\":null}"
-   },
-   {
-    "role": "assistant",
-    "content": null,
-    "tool_calls": [
-     {
-      "id": "call_00_OII2lXhydNQlfrceTbGF8581",
-      "type": "function",
-      "function": {
-       "name": "inspect",
-       "arguments": "{\"id\": \"i1\", \"params\": {}}"
-      }
-     }
-    ]
-   },
-   {
-    "role": "tool",
-    "tool_call_id": "call_00_OII2lXhydNQlfrceTbGF8581",
-    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
+    "content": "The document does not exist yet.\nBuild this part: Plate 100 mm by 60 mm by 5 mm.\nSpec, lengths also in mm: {\"part\":\"plate\",\"dimensions\":[{\"name\":\"length\",\"value\":100,\"unit\":\"mm\",\"mm\":100},{\"name\":\"width\",\"value\":60,\"unit\":\"mm\",\"mm\":60},{\"name\":\"thickness\",\"value\":5,\"unit\":\"mm\",\"mm\":5}],\"envelope_mm\":[100,60,5],\"assumptions\":[\"edges sharp\",\"position and orientation free\"]}"
    }
   ],
   "tools": [
@@ -1035,24 +946,33 @@
   }
  },
  "response": {
-  "id": "40355cd7-3a27-4d79-9589-976ae2394c41",
+  "id": "166875db-1e0c-4f86-9349-073734d44f1b",
   "object": "chat.completion",
-  "created": 1794495049,
+  "created": 1794501002,
   "model": "deepseek-flash",
   "choices": [
    {
     "index": 0,
     "message": {
      "role": "assistant",
-     "content": "The sketch exists but the extrude is being refused. Let me retry with a fresh id and explicit direction.",
+     "content": "I'll build the plate: a 100 × 60 rectangle on the top plane, extruded 5 mm.",
      "tool_calls": [
       {
        "index": 0,
-       "id": "call_00_evYPyUygSEhSc47F07me0702",
+       "id": "call_00_tXnyxsJcy1spp67QVZVi4459",
        "type": "function",
        "function": {
-        "name": "extrude",
-        "arguments": "{\"id\": \"e3\", \"params\": {\"direction\": \"normal\", \"depth\": {\"unit\": \"mm\", \"value\": 5}, \"sketch\": \"s1\"}}"
+        "name": "new_part",
+        "arguments": "{\"id\": \"p1\", \"params\": {\"name\": \"plate\"}}"
+       }
+      },
+      {
+       "index": 1,
+       "id": "call_01_XEu1pxVtc5jZpNrCcfhV2229",
+       "type": "function",
+       "function": {
+        "name": "sketch_rectangle",
+        "arguments": "{\"id\": \"s1\", \"params\": {\"plane\": \"top\", \"width\": {\"value\": 100, \"unit\": \"mm\"}, \"height\": {\"value\": 60, \"unit\": \"mm\"}, \"center\": {\"x\": {\"value\": 0, \"unit\": \"mm\"}, \"y\": {\"value\": 0, \"unit\": \"mm\"}}}}"
        }
       }
      ]
@@ -1062,14 +982,14 @@
    }
   ],
   "usage": {
-   "prompt_tokens": 3961,
-   "completion_tokens": 104,
-   "total_tokens": 4065,
+   "prompt_tokens": 3243,
+   "completion_tokens": 198,
+   "total_tokens": 3441,
    "prompt_tokens_details": {
-    "cached_tokens": 3712
+    "cached_tokens": 3072
    },
-   "prompt_cache_hit_tokens": 3712,
-   "prompt_cache_miss_tokens": 249
+   "prompt_cache_hit_tokens": 3072,
+   "prompt_cache_miss_tokens": 171
   },
   "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
  }

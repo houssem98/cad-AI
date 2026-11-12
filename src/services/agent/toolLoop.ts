@@ -29,7 +29,10 @@ When the request is done, reply with one line and call no tool.`;
 export const MAX_REPLANS = 2;
 export interface Outcome { status: string; error: any; inspection: any; edges?: any[] }
 export interface Step { call: ToolCall; outcome: Outcome; operationId: string }
-export interface LoopResult { status: 'done' | 'failed' | 'step_limit'; text?: string; steps: Step[]; problem?: string }
+export interface LoopResult {
+  status: 'done' | 'failed' | 'cancelled' | 'step_limit'; text?: string; steps: Step[]; failures: number;
+  problem?: string; problemFrom?: 'record' | 'kernel'; // the last failed operation's record, or the kernel's objection to a done
+}
 export interface LoopContext {
   complete: Complete; executor: Executor; document: string; requestId: string; signal?: AbortSignal; maxTurns?: number;
   verify?: () => Promise<string | null>; // the kernel's objection to a "done", or null
@@ -54,12 +57,21 @@ export async function runToolLoop(task: string, ctx: LoopContext): Promise<LoopR
   const messages: any[] = [{ role: 'system', content: TOOL_PROMPT }, { role: 'user', content: `${exists}.\n${task}` }];
   const steps: Step[] = [];
   let failures = 0;
+  const end = (status: LoopResult['status'], more: Partial<LoopResult> = {}): LoopResult => ({ status, steps, failures, ...more });
   for (let turn = 0; turn < (ctx.maxTurns ?? 20); turn++) {
-    const reply = await ctx.complete({ messages, tools: TOOLS, maxTokens: 800 });
+    if (ctx.signal?.aborted) return end('cancelled');
+    let reply;
+    try {
+      reply = await ctx.complete({ messages, tools: TOOLS, maxTokens: 800, signal: ctx.signal });
+    } catch (e) {
+      if (ctx.signal?.aborted) return end('cancelled');
+      throw e;
+    }
+    if (ctx.signal?.aborted) return end('cancelled'); // a cancel during the call: nothing it proposed runs
     if (!reply.toolCalls.length) {
       const problem = (await ctx.verify?.()) ?? null;
-      if (!problem) return { status: 'done', text: reply.text, steps };
-      if (++failures > MAX_REPLANS) return { status: 'failed', text: reply.text, steps, problem };
+      if (!problem) return end('done', { text: reply.text });
+      if (++failures > MAX_REPLANS) return end('failed', { text: reply.text, problem, problemFrom: 'kernel' });
       messages.push({ role: 'assistant', content: reply.text }, { role: 'user', content: `The kernel says the request is not done: ${problem}. Continue.` });
       continue;
     }
@@ -73,8 +85,9 @@ export async function runToolLoop(task: string, ctx: LoopContext): Promise<LoopR
       ctx.onEvent?.('record', { call: call.id, record: step.operationId, type: call.name, ...step.outcome });
       // No row ids or times: what the model sees must replay byte for byte.
       messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify(step.outcome) });
-      if (step.outcome.status !== 'succeeded' && ++failures > MAX_REPLANS) return { status: 'failed', steps, problem: step.outcome.error?.message ?? step.outcome.status };
+      if (step.outcome.status !== 'succeeded' && ++failures > MAX_REPLANS)
+        return end(ctx.signal?.aborted ? 'cancelled' : 'failed', { problem: step.outcome.error?.message ?? step.outcome.status, problemFrom: 'record' });
     }
   }
-  return { status: 'step_limit', steps };
+  return end('step_limit');
 }

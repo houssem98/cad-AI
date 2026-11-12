@@ -156,6 +156,12 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({ onAddOperation
           <div className="flex items-center gap-2 text-xs text-steel-400 bg-steel-950/30 border border-steel-800/40 px-3 py-2 rounded-lg">
             <Loader2 className="w-3.5 h-3.5 animate-spin text-steel-400" />
             <span>Running…</span>
+            <button
+              onClick={() => { const run = runs.find((r) => !finished(r)); if (run) post(`/api/requests/${run.id}/cancel`, {}).catch((e) => setError(e.message)); }}
+              className="ml-auto px-2 py-0.5 rounded border border-neutral-700 text-neutral-300 hover:text-white hover:bg-[#232323]"
+            >
+              Cancel
+            </button>
           </div>
         )}
         {error && <div role="alert" className="text-xs text-red-400">{error}</div>}
@@ -224,7 +230,7 @@ function RequestView({ run, onDecide, onExport }: { run: AgentRun; onDecide: (r:
           if (e.type === 'plan')
             return (
               <div key={i} data-testid="plan" className="text-neutral-300">
-                {e.data.text && <p className="whitespace-pre-line">{e.data.text}</p>}
+                {e.data.text && <p className="whitespace-pre-line"><span className="text-neutral-500">Model's plan, not a record: </span>{e.data.text}</p>}
                 <p className="text-[11px] text-neutral-500 font-tech">Proposed: {e.data.calls.map((c: any) => c.name).join(', ')}</p>
               </div>
             );
@@ -258,7 +264,7 @@ function RequestView({ run, onDecide, onExport }: { run: AgentRun; onDecide: (r:
         })}
         {done && (
           <div className="pt-1 space-y-1.5">
-            <p data-testid="report" className={done.status === 'succeeded' ? 'text-neutral-100' : 'text-red-400'}>{done.report.text}</p>
+            <p data-testid="report" data-status={done.status} className={done.status === 'succeeded' ? 'text-neutral-100' : done.status === 'cancelled' ? 'text-neutral-400' : 'text-red-400'}>{done.report.text}</p>
             {done.status === 'succeeded' && (
               <div className="flex flex-wrap items-center gap-2">
                 <a href={`/?part=${encodeURIComponent(done.document)}`} className="inline-flex items-center gap-1 px-2.5 py-1 bg-steel-600 hover:bg-steel-500 text-white rounded text-xs"><ExternalLink className="w-3 h-3" />Open part</a>

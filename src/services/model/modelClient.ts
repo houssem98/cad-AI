@@ -11,7 +11,7 @@ const PRICE = { hit: 0.006e-6, miss: 0.3e-6, out: 1.2e-6 };
 export interface Usage { prompt_tokens: number; completion_tokens: number; prompt_cache_hit_tokens?: number; prompt_cache_miss_tokens?: number }
 export interface ToolCall { id: string; name: string; arguments: string }
 export interface Completion { text: string; toolCalls: ToolCall[]; usage: Usage }
-export interface Request { messages: object[]; tools?: object[]; temperature?: number; json?: boolean; maxTokens?: number }
+export interface Request { messages: object[]; tools?: object[]; temperature?: number; json?: boolean; maxTokens?: number; signal?: AbortSignal }
 export type Complete = (r: Request) => Promise<Completion>;
 
 export class ModelError extends Error {
@@ -51,15 +51,15 @@ function parse(res: any): Completion {
 
 export function modelClient(o: ClientOptions): Complete {
   const http = o.fetch ?? fetch;
-  async function call(body: object) {
+  async function call(body: object, signal?: AbortSignal) {
     if (!o.key) throw new ModelError('DEEPSEEK_API_KEY is not set');
     for (let attempt = 0; ; attempt++) {
       let res: Response;
       try {
         res = await http(ENDPOINT, { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${o.key}` },
-          body: JSON.stringify(body), signal: AbortSignal.timeout(60_000) });
+          body: JSON.stringify(body), signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(60_000)]) : AbortSignal.timeout(60_000) });
       } catch (e) {
-        throw new ModelError(`no answer from the model: ${(e as Error).name}`);
+        throw new ModelError(signal?.aborted ? 'cancelled by the user' : `no answer from the model: ${(e as Error).name}`);
       }
       if (res.ok) return res.json();
       if (res.status < 500 || attempt === 2) throw new ModelError(`the model API answered ${res.status}`, res.status);
@@ -68,7 +68,8 @@ export function modelClient(o: ClientOptions): Complete {
     }
   }
 
-  return async ({ messages, tools, temperature = 0, json = false, maxTokens = 800 }) => {
+  return async ({ messages, tools, temperature = 0, json = false, maxTokens = 800, signal }) => {
+    if (signal?.aborted) throw new ModelError('cancelled by the user');
     const body = { model: MODEL, messages, ...(tools && { tools }), temperature, max_tokens: maxTokens,
       thinking: { type: 'disabled' }, ...(json && { response_format: { type: 'json_object' } }) };
     const file = join(o.recordings, `${createHash('sha256').update(JSON.stringify(body)).digest('hex').slice(0, 16)}.json`);
@@ -77,8 +78,10 @@ export function modelClient(o: ClientOptions): Complete {
     const before = spent(o.spendFile);
     if (before.usd >= o.capUsd) throw new ModelError(`the $${o.capUsd} eval cap is reached ($${before.usd.toFixed(4)} spent)`);
     mkdirSync(dirname(o.spendFile), { recursive: true }); // before the call: a billed call must always be counted
-    const res = await call(body);
-    if (res?.usage) writeFileSync(o.spendFile, JSON.stringify({ usd: before.usd + cost(res.usage), calls: before.calls + 1 }) + '\n');
+    const res = await call(body, signal);
+    // Read again after the call, with no await before the write, so a call that ran alongside is not overwritten.
+    const now = spent(o.spendFile);
+    if (res?.usage) writeFileSync(o.spendFile, JSON.stringify({ usd: now.usd + cost(res.usage), calls: now.calls + 1 }) + '\n');
     const out = parse(res);
     if (o.mode === 'record') {
       mkdirSync(o.recordings, { recursive: true });

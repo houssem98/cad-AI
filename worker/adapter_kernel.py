@@ -43,22 +43,45 @@ def _verification(part):
             "counts": {"solids": solids, "faces": len(part.faces()), "edges": len(part.edges())}}
 
 
-def _holes(part):
-    """Concave cylinders that close a full turn, a cylinder split into faces counted once; bosses and fillets are not holes."""
-    turns = {}
-    for f in part.faces().filter_by(GeomType.CYLINDER):
+def _measure(part):
+    """The features a grader compares. A hole is a concave cylinder closing a full turn over one stretch of its axis, so a
+    cylinder split into faces counts once and two holes on one axis count twice. Rounds are the radii of convex part-turn
+    cylinders (fillets); bevels are the widths of planar faces on no axis plane (chamfers, hexagon sides)."""
+    groups, rounds, bevels = {}, [], []
+    for f in part.faces():
+        if f.geom_type == GeomType.PLANE:
+            n = f.normal_at()
+            if max(abs(n.X), abs(n.Y), abs(n.Z)) < 1 - 1e-6:
+                bevels.append(round(f.area / max(e.length for e in f.edges()), 3))
+            continue
+        if f.geom_type != GeomType.CYLINDER:
+            continue
         s = BRepAdaptor_Surface(f.wrapped)
         cyl = s.Cylinder()
         o, d = Vector(cyl.Axis().Location()), Vector(cyl.Axis().Direction())
         p = f.position_at(0.5, 0.5)
+        turn = s.LastUParameter() - s.FirstUParameter()
         if f.normal_at(p).dot(p - o - d * (p - o).dot(d)) >= 0:
+            if turn < 2 * math.pi - 1e-6:
+                rounds.append(round(cyl.Radius(), 3))
             continue
         if max((d.X, d.Y, d.Z), key=abs) < 0:
             d = -d
         foot = o - d * o.dot(d)
         key = tuple(round(c, 4) for c in (foot.X, foot.Y, foot.Z, d.X, d.Y, d.Z, cyl.Radius()))
-        turns[key] = turns.get(key, 0) + s.LastUParameter() - s.FirstUParameter()
-    return sum(t > 2 * math.pi - 1e-6 for t in turns.values())
+        ts = [(Vector(v.X, v.Y, v.Z) - foot).dot(d) for v in f.vertices()]
+        groups.setdefault(key, []).append([min(ts), max(ts), turn])
+    holes = []
+    for key, stretches in groups.items():
+        merged = []
+        for lo, hi, turn in sorted(stretches):
+            if merged and lo <= merged[-1][1] + 1e-6:
+                merged[-1][1], merged[-1][2] = max(merged[-1][1], hi), merged[-1][2] + turn
+            else:
+                merged.append([lo, hi, turn])
+        holes += [{"diameter": round(2 * key[6], 3), "depth": round(hi - lo, 3), "point": list(key[:3]), "direction": list(key[3:6])}
+                  for lo, hi, turn in merged if turn > 2 * math.pi - 1e-6]
+    return {"holes": len(holes), "hole_list": holes, "rounds": sorted(rounds), "bevels": sorted(bevels)}
 
 
 def _edge_list(part, feature):
@@ -166,7 +189,7 @@ class KernelAdapter(Adapter):
         result = {"features": [o["id"] for o in history], "material": material,
                   "area_mm2": part.area if part is not None else 0,
                   "cylindrical_faces": len(part.faces().filter_by(GeomType.CYLINDER)) if part is not None else 0,
-                  "holes": _holes(part) if part is not None else 0,
+                  **(_measure(part) if part is not None else {"holes": 0, "hole_list": [], "rounds": [], "bevels": []}),
                   "edges": _edge_list(part, next(reversed(snapshots), None)) if part is not None else []}
         return outcome("succeeded", result=result, verification=_verification(part))
 

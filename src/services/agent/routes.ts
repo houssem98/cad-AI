@@ -14,10 +14,16 @@ interface Run {
 }
 
 const fail = (res: Response, status: number, code: string, message: string) => res.status(status).json({ error: { code, message } });
-// These routes spend model credit or write files: only this machine may call them.
-const local = (req: Request) => ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress ?? '');
+// Routes that spend model credit, change a part or write files: only this machine may call them. The socket must be loopback,
+// and the Host and any Origin must name this machine, so a web page that rebinds a name to 127.0.0.1 is refused too (council C17).
+const LOOPBACK = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
+const LOCAL_NAMES = ['localhost', '127.0.0.1', '[::1]'];
+const named = (url: string) => { try { return LOCAL_NAMES.includes(new URL(url).hostname); } catch { return false; } };
+const local = (req: Request) => LOOPBACK.includes(req.socket.remoteAddress ?? '') && named(`http://${req.headers.host ?? ''}`)
+  && (!req.headers.origin || named(req.headers.origin));
+const refuse = (res: Response) => fail(res, 403, 'precondition_failed', 'only this machine may make this request');
 
-export function agentRoutes(executor: Executor, complete: Complete) {
+export function agentRoutes(executor: Executor, complete: Complete, opts: { approvalTimeoutMs?: number } = {}) {
   const runs = new Map<string, Run>();
   const router = express.Router();
   const emit = (run: Run, type: EventType, data: any) => {
@@ -37,7 +43,9 @@ export function agentRoutes(executor: Executor, complete: Complete) {
     const run = [...runs.values()].find((r) => r.busy && r.document === op.target.document);
     if (!run) return Promise.resolve('denied');
     return new Promise((resolve) => {
-      run.approvals.set(op.id, resolve);
+      // An approval nobody answers is a denial, so the executor, which waits inside its one-at-a-time lock, is released (council C6).
+      const timer = setTimeout(() => { run.approvals.delete(op.id); resolve('denied'); }, opts.approvalTimeoutMs ?? 300_000);
+      run.approvals.set(op.id, (d) => { clearTimeout(timer); resolve(d); });
       emit(run, 'approval', { operation: op.id, type: op.type, params: op.params });
     });
   };
@@ -48,7 +56,7 @@ export function agentRoutes(executor: Executor, complete: Complete) {
       const out = await text2cad(run.text, { executor, document: run.document, requestId: run.id, signal: run.abort.signal, complete,
         onEvent: (type, data) => emit(run, type, data) });
       if (out.kind === 'asks') emit(run, 'question', { question: out.question, missing: out.missing });
-      else emit(run, 'done', { status: out.kind === 'part' ? 'succeeded' : 'failed', document: run.document, report: out.report });
+      else emit(run, 'done', { status: out.kind === 'part' ? 'succeeded' : out.kind, document: run.document, report: out.report });
     } catch (e) {
       emit(run, 'done', { status: 'failed', document: run.document, report: { text: `Failed: ${(e as Error).message}`, operations: [], inspection: null } });
     } finally {
@@ -58,7 +66,7 @@ export function agentRoutes(executor: Executor, complete: Complete) {
   const find = (req: Request, res: Response) => runs.get(String(req.params.id)) ?? (fail(res, 404, 'precondition_failed', 'no such request'), undefined);
 
   router.post('/api/requests', (req, res) => {
-    if (!local(req)) return fail(res, 403, 'precondition_failed', 'requests are accepted from this machine only');
+    if (!local(req)) return refuse(res);
     const text = String(req.body?.text ?? '').trim();
     if (!text) return fail(res, 400, 'validation_failed', 'text is required');
     const run: Run = { id: randomUUID(), text, document: nextDocument(), busy: false, abort: new AbortController(), events: [], listeners: new Set(), approvals: new Map() };
@@ -78,7 +86,7 @@ export function agentRoutes(executor: Executor, complete: Complete) {
   });
 
   router.post('/api/requests/:id/answer', (req, res) => {
-    if (!local(req)) return fail(res, 403, 'precondition_failed', 'requests are accepted from this machine only');
+    if (!local(req)) return refuse(res);
     const run = find(req, res);
     if (!run) return;
     if (run.busy || run.events.at(-1)?.type !== 'question') return fail(res, 409, 'precondition_failed', 'the request is not waiting for an answer');
@@ -88,6 +96,7 @@ export function agentRoutes(executor: Executor, complete: Complete) {
   });
 
   router.post('/api/requests/:id/approve', (req, res) => {
+    if (!local(req)) return refuse(res);
     const run = find(req, res);
     if (!run) return;
     const answer = run.approvals.get(String(req.body?.operationId));
@@ -98,9 +107,12 @@ export function agentRoutes(executor: Executor, complete: Complete) {
   });
 
   router.post('/api/requests/:id/cancel', (req, res) => {
+    if (!local(req)) return refuse(res);
     const run = find(req, res);
     if (!run) return;
     run.abort.abort();
+    for (const answer of run.approvals.values()) answer('denied'); // an operation waiting for approval is not run
+    run.approvals.clear();
     res.status(204).end();
   });
 
@@ -118,7 +130,7 @@ export function agentRoutes(executor: Executor, complete: Complete) {
 
   // The kernel's STEP export of a document, as an operation with its record; the file is served by its artifact id.
   router.post('/api/documents/:id/export', async (req, res) => {
-    if (!local(req)) return fail(res, 403, 'precondition_failed', 'exports are accepted from this machine only');
+    if (!local(req)) return refuse(res);
     const op = { id: `export-${randomUUID().slice(0, 8)}`, target: { document: req.params.id }, type: 'export', params: { format: 'step' },
       preconditions: [], status: 'pending', result: null, verification: null, error: null };
     const out = await executor.execute(op, { requestId: `export-${req.params.id}` });

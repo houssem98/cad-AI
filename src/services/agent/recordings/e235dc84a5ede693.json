@@ -8,7 +8,58 @@
    },
    {
     "role": "user",
-    "content": "The document does not exist yet.\nBuild this part: Plate 100 mm by 60 mm by 5 mm.\nSpec, lengths also in mm: {\"part\":\"plate\",\"dimensions\":[{\"name\":\"length\",\"value\":100,\"unit\":\"mm\",\"mm\":100},{\"name\":\"width\",\"value\":60,\"unit\":\"mm\",\"mm\":60},{\"name\":\"thickness\",\"value\":5,\"unit\":\"mm\",\"mm\":5}]}"
+    "content": "The document does not exist yet.\nBuild this part: Plate 100 mm by 60 mm by 5 mm.\nSpec, lengths also in mm: {\"part\":\"plate\",\"dimensions\":[{\"name\":\"length\",\"value\":100,\"unit\":\"mm\",\"mm\":100},{\"name\":\"width\",\"value\":60,\"unit\":\"mm\",\"mm\":60},{\"name\":\"thickness\",\"value\":5,\"unit\":\"mm\",\"mm\":5}],\"envelope_mm\":[100,60,5],\"assumptions\":[\"edges sharp\",\"position and orientation free\"]}"
+   },
+   {
+    "role": "assistant",
+    "content": "I'll build the plate: a 100 × 60 rectangle on the top plane, extruded 5 mm.",
+    "tool_calls": [
+     {
+      "id": "call_00_tXnyxsJcy1spp67QVZVi4459",
+      "type": "function",
+      "function": {
+       "name": "new_part",
+       "arguments": "{\"id\": \"p1\", \"params\": {\"name\": \"plate\"}}"
+      }
+     },
+     {
+      "id": "call_01_XEu1pxVtc5jZpNrCcfhV2229",
+      "type": "function",
+      "function": {
+       "name": "sketch_rectangle",
+       "arguments": "{\"id\": \"s1\", \"params\": {\"plane\": \"top\", \"width\": {\"value\": 100, \"unit\": \"mm\"}, \"height\": {\"value\": 60, \"unit\": \"mm\"}, \"center\": {\"x\": {\"value\": 0, \"unit\": \"mm\"}, \"y\": {\"value\": 0, \"unit\": \"mm\"}}}}"
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_00_tXnyxsJcy1spp67QVZVi4459",
+    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_01_XEu1pxVtc5jZpNrCcfhV2229",
+    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
+   },
+   {
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+     {
+      "id": "call_00_lLl3ISrSZYP5ssuEmTDA4997",
+      "type": "function",
+      "function": {
+       "name": "extrude",
+       "arguments": "{\"id\": \"e1\", \"params\": {\"sketch\": \"s1\", \"depth\": {\"value\": 5, \"unit\": \"mm\"}}}"
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_00_lLl3ISrSZYP5ssuEmTDA4997",
+    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":true,\"volume_mm3\":30000,\"bbox_mm\":{\"min\":{\"x\":-50,\"y\":-30,\"z\":0},\"max\":{\"x\":50,\"y\":30,\"z\":5}},\"counts\":{\"solids\":1,\"faces\":6,\"edges\":12}}}"
    }
   ],
   "tools": [
@@ -946,50 +997,30 @@
   }
  },
  "response": {
-  "id": "a0c22de4-4423-4cfa-9770-0be138fe963d",
+  "id": "0b4b7cd0-d549-4750-99b0-700a4df5855c",
   "object": "chat.completion",
-  "created": 1794495044,
+  "created": 1794501018,
   "model": "deepseek-flash",
   "choices": [
    {
     "index": 0,
     "message": {
      "role": "assistant",
-     "content": "I'll build the plate: a 100 × 60 mm rectangle on the top plane, extruded 5 mm.",
-     "tool_calls": [
-      {
-       "index": 0,
-       "id": "call_00_Sna984NKBqvofRibiemF4798",
-       "type": "function",
-       "function": {
-        "name": "new_part",
-        "arguments": "{\"id\": \"p1\", \"params\": {\"name\": \"plate\"}}"
-       }
-      },
-      {
-       "index": 1,
-       "id": "call_01_Kh5DlYH3nPISelYseD1z9598",
-       "type": "function",
-       "function": {
-        "name": "sketch_rectangle",
-        "arguments": "{\"id\": \"s1\", \"params\": {\"plane\": \"top\", \"width\": {\"value\": 100, \"unit\": \"mm\"}, \"height\": {\"value\": 60, \"unit\": \"mm\"}, \"center\": {\"x\": {\"value\": 0, \"unit\": \"mm\"}, \"y\": {\"value\": 0, \"unit\": \"mm\"}}}}"
-       }
-      }
-     ]
+     "content": "Built the plate: 100 × 60 × 5 mm, valid solid with volume 30,000 mm³ and sharp edges."
     },
     "logprobs": null,
-    "finish_reason": "tool_calls"
+    "finish_reason": "stop"
    }
   ],
   "usage": {
-   "prompt_tokens": 3219,
-   "completion_tokens": 199,
-   "total_tokens": 3418,
+   "prompt_tokens": 3774,
+   "completion_tokens": 28,
+   "total_tokens": 3802,
    "prompt_tokens_details": {
-    "cached_tokens": 3072
+    "cached_tokens": 3584
    },
-   "prompt_cache_hit_tokens": 3072,
-   "prompt_cache_miss_tokens": 147
+   "prompt_cache_hit_tokens": 3584,
+   "prompt_cache_miss_tokens": 190
   },
   "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
  }

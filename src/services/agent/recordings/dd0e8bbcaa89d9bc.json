@@ -8,25 +8,38 @@
    },
    {
     "role": "user",
-    "content": "The document does not exist yet.\nCall new_part, then call sketch_rectangle on the top plane with width 0 mm and height 50 mm."
+    "content": "The document does not exist yet.\nBuild this part: Plate 100 mm by 60 mm by 5 mm.\nSpec, lengths also in mm: {\"part\":\"plate\",\"dimensions\":[{\"name\":\"length\",\"value\":100,\"unit\":\"mm\",\"mm\":100},{\"name\":\"width\",\"value\":60,\"unit\":\"mm\",\"mm\":60},{\"name\":\"thickness\",\"value\":5,\"unit\":\"mm\",\"mm\":5}],\"envelope_mm\":[100,60,5],\"assumptions\":[\"edges sharp\",\"position and orientation free\"]}"
    },
    {
     "role": "assistant",
-    "content": "I'll start by creating the part, then attempt the sketch as requested.",
+    "content": "I'll build the plate: a 100 × 60 rectangle on the top plane, extruded 5 mm.",
     "tool_calls": [
      {
-      "id": "call_00_zuO4gyXVdQSdujM9e5bh4459",
+      "id": "call_00_tXnyxsJcy1spp67QVZVi4459",
       "type": "function",
       "function": {
        "name": "new_part",
-       "arguments": "{\"id\": \"part1\", \"params\": {\"name\": \"part1\"}}"
+       "arguments": "{\"id\": \"p1\", \"params\": {\"name\": \"plate\"}}"
+      }
+     },
+     {
+      "id": "call_01_XEu1pxVtc5jZpNrCcfhV2229",
+      "type": "function",
+      "function": {
+       "name": "sketch_rectangle",
+       "arguments": "{\"id\": \"s1\", \"params\": {\"plane\": \"top\", \"width\": {\"value\": 100, \"unit\": \"mm\"}, \"height\": {\"value\": 60, \"unit\": \"mm\"}, \"center\": {\"x\": {\"value\": 0, \"unit\": \"mm\"}, \"y\": {\"value\": 0, \"unit\": \"mm\"}}}}"
       }
      }
     ]
    },
    {
     "role": "tool",
-    "tool_call_id": "call_00_zuO4gyXVdQSdujM9e5bh4459",
+    "tool_call_id": "call_00_tXnyxsJcy1spp67QVZVi4459",
+    "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_01_XEu1pxVtc5jZpNrCcfhV2229",
     "content": "{\"status\":\"succeeded\",\"error\":null,\"inspection\":{\"valid\":false,\"volume_mm3\":0,\"bbox_mm\":{\"min\":{\"x\":0,\"y\":0,\"z\":0},\"max\":{\"x\":0,\"y\":0,\"z\":0}},\"counts\":{\"solids\":0,\"faces\":0,\"edges\":0}}}"
    },
    {
@@ -34,19 +47,19 @@
     "content": null,
     "tool_calls": [
      {
-      "id": "call_00_F6WpZHcYUk9iWfJedKDg3982",
+      "id": "call_00_lLl3ISrSZYP5ssuEmTDA4997",
       "type": "function",
       "function": {
-       "name": "sketch_rectangle",
-       "arguments": "{\"id\": \"sk1\", \"params\": {\"plane\": \"top\", \"width\": {\"value\": 0, \"unit\": \"mm\"}, \"height\": {\"value\": 50, \"unit\": \"mm\"}}}"
+       "name": "extrude",
+       "arguments": "{\"id\": \"e1\", \"params\": {\"sketch\": \"s1\", \"depth\": {\"value\": 5, \"unit\": \"mm\"}}}"
       }
      }
     ]
    },
    {
     "role": "tool",
-    "tool_call_id": "call_00_F6WpZHcYUk9iWfJedKDg3982",
-    "content": "{\"status\":\"failed\",\"error\":{\"code\":\"validation_failed\",\"message\":\"refused by the operation schema\",\"details\":{\"errors\":[{\"path\":\"/params/width/value\",\"message\":\"must be greater than 0\"}]}},\"inspection\":null}"
+    "tool_call_id": "call_00_lLl3ISrSZYP5ssuEmTDA4997",
+    "content": "{\"status\":\"failed\",\"error\":{\"code\":\"kernel_error\",\"message\":\"double: extrude failed on purpose\"},\"inspection\":null}"
    }
   ],
   "tools": [
@@ -984,30 +997,41 @@
   }
  },
  "response": {
-  "id": "96fd9612-7cf8-4359-a0b6-0e44f7ca5747",
+  "id": "3560da9d-3956-460d-a919-e965771ba304",
   "object": "chat.completion",
-  "created": 1794495049,
+  "created": 1794501005,
   "model": "deepseek-flash",
   "choices": [
    {
     "index": 0,
     "message": {
      "role": "assistant",
-     "content": "Created the part, but the rectangle sketch was refused: width must be greater than 0 mm, so a 0 mm width is not allowed."
+     "content": "",
+     "tool_calls": [
+      {
+       "index": 0,
+       "id": "call_00_C935Mi7epeZG4Yqo5XTA2987",
+       "type": "function",
+       "function": {
+        "name": "extrude",
+        "arguments": "{\"id\": \"e2\", \"params\": {\"depth\": {\"unit\": \"mm\", \"value\": 5}, \"sketch\": \"s1\", \"direction\": \"normal\"}}"
+       }
+      }
+     ]
     },
     "logprobs": null,
-    "finish_reason": "stop"
+    "finish_reason": "tool_calls"
    }
   ],
   "usage": {
-   "prompt_tokens": 3474,
-   "completion_tokens": 30,
-   "total_tokens": 3504,
+   "prompt_tokens": 3724,
+   "completion_tokens": 82,
+   "total_tokens": 3806,
    "prompt_tokens_details": {
-    "cached_tokens": 3328
+    "cached_tokens": 3584
    },
-   "prompt_cache_hit_tokens": 3328,
-   "prompt_cache_miss_tokens": 146
+   "prompt_cache_hit_tokens": 3584,
+   "prompt_cache_miss_tokens": 140
   },
   "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
  }
