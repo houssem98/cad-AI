@@ -29,12 +29,17 @@ export function PanelFrame({ panel, label, view, className = '', stateClassName 
   );
 }
 
+// The browser gave no WebGL context, so no 3D view can draw. Say how to get it back, not only that it failed.
+export const NO_WEBGL = 'WebGL is off in this browser, so the 3D view cannot draw. In Chrome, open chrome://gpu to see why, '
+  + 'turn on Settings > System > "Use graphics acceleration when available", then restart Chrome (chrome://restart).';
+
 // A panel whose content throws (no WebGL, a malformed mesh) shows its own error state; the rest of the app keeps running.
 class Boundary extends React.Component<Props, { crash: string | null }> {
   state = { crash: null as string | null };
 
   static getDerivedStateFromError(e: Error) {
-    return { crash: e.message || String(e) };
+    const message = e.message || String(e);
+    return { crash: /WebGL/i.test(message) ? NO_WEBGL : message };
   }
 
   render() {

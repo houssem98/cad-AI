@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { NO_WEBGL } from '../workspace/PanelFrame';
 
 interface Props {
   glb: ArrayBuffer;
@@ -23,7 +24,7 @@ export function KernelPreview({ glb, onError, onEmpty }: Props) {
     try {
       renderer = new THREE.WebGLRenderer({ antialias: true });
     } catch {
-      onError('this browser cannot draw a 3D preview (no WebGL)');
+      onError(NO_WEBGL);
       return;
     }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
