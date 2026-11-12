@@ -87,20 +87,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className={`h-full bg-[#080c14] border-r border-[#1a2336] flex flex-col justify-between select-none flex-shrink-0 transition-all duration-200 z-30 ${
+      className={`h-full bg-[#0c0c0c] border-r border-[#232323] flex flex-col justify-between select-none flex-shrink-0 transition-all duration-200 z-30 ${
         isCollapsed ? 'w-14' : 'w-[208px]'
       }`}
     >
       {/* 1. Header with Collapse Toggle */}
-      <div className="flex items-center justify-between px-2.5 py-2 border-b border-[#141d2e]">
+      <div className="flex items-center justify-between px-2.5 py-2 border-b border-[#1d1d1d]">
         {!isCollapsed && (
-          <span className="text-[10px] uppercase font-tech font-bold tracking-wider text-slate-500 pl-1.5">
+          <span className="text-[10px] uppercase font-tech font-bold tracking-wider text-neutral-500 pl-1.5">
             Modules
           </span>
         )}
         <button
           onClick={toggle}
-          className={`p-1 text-slate-400 hover:text-white hover:bg-[#12192a] rounded transition-colors cursor-pointer ${
+          className={`p-1 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] rounded transition-colors cursor-pointer ${
             isCollapsed ? 'mx-auto' : ''
           }`}
           title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
@@ -123,29 +123,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 isCollapsed ? 'justify-center p-2' : 'justify-between px-2.5 py-1.5'
               } ${
                 isActive
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                  : 'text-slate-400 hover:text-slate-100 hover:bg-[#111829]'
+                  ? 'bg-steel-600 text-white shadow-md '
+                  : 'text-neutral-400 hover:text-neutral-100 hover:bg-[#191919]'
               }`}
               title={isCollapsed ? item.label : undefined}
             >
               <div className="flex items-center gap-2.5 truncate">
                 <Icon
                   className={`w-4 h-4 shrink-0 transition-colors ${
-                    isActive ? 'text-white' : 'text-slate-400 group-hover:text-blue-400'
+                    isActive ? 'text-white' : 'text-neutral-400 group-hover:text-steel-400'
                   }`}
                 />
                 {!isCollapsed && <span className="truncate text-xs">{item.label}</span>}
               </div>
 
               {!isCollapsed && item.badge && !isActive && (
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-steel-500 shrink-0" />
               )}
             </button>
           );
         })}
 
         {/* Divider */}
-        <div className="my-2 mx-1 border-t border-[#162033]" />
+        <div className="my-2 mx-1 border-t border-[#202020]" />
 
         {/* Secondary Category / Governance */}
         {adminNavItems.map((item) => {
@@ -160,15 +160,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 isCollapsed ? 'justify-center p-2' : 'justify-between px-2.5 py-1.5'
               } ${
                 isActive
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                  : 'text-slate-400 hover:text-slate-100 hover:bg-[#111829]'
+                  ? 'bg-steel-600 text-white shadow-md '
+                  : 'text-neutral-400 hover:text-neutral-100 hover:bg-[#191919]'
               }`}
               title={isCollapsed ? item.label : undefined}
             >
               <div className="flex items-center gap-2.5 truncate">
                 <Icon
                   className={`w-4 h-4 shrink-0 transition-colors ${
-                    isActive ? 'text-white' : 'text-slate-400 group-hover:text-blue-400'
+                    isActive ? 'text-white' : 'text-neutral-400 group-hover:text-steel-400'
                   }`}
                 />
                 {!isCollapsed && <span className="truncate text-xs">{item.label}</span>}
@@ -180,29 +180,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* 3. Bottom Enterprise Badge */}
       {!isCollapsed ? (
-        <div className="p-2 border-t border-[#162033] bg-[#090d16]">
-          <div className="p-2.5 bg-[#0f1627] border border-[#1d2a44] rounded-lg space-y-1.5">
+        <div className="p-2 border-t border-[#202020] bg-[#0d0d0d]">
+          <div className="p-2.5 bg-[#171717] border border-[#2a2a2a] rounded-lg space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-slate-200 text-xs">Enterprise Edition</span>
-              <ChevronDown className="w-3 h-3 text-slate-400" />
+              <span className="font-semibold text-neutral-200 text-xs">Enterprise Edition</span>
+              <ChevronDown className="w-3 h-3 text-neutral-400" />
             </div>
-            <p className="text-[10px] text-slate-400 leading-tight">
+            <p className="text-[10px] text-neutral-400 leading-tight">
               Advanced AI · Unlimited CAD
             </p>
             <button
               onClick={onOpenPricing}
-              className="w-full flex items-center justify-center gap-1 py-1 px-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium text-xs rounded transition-all shadow-sm cursor-pointer"
+              className="w-full flex items-center justify-center gap-1 py-1 px-2 bg-steel-600 hover:bg-steel-500 text-white font-medium text-xs rounded transition-all shadow-sm cursor-pointer"
             >
-              <Sparkles className="w-3 h-3 text-cyan-200" />
+              <Sparkles className="w-3 h-3 text-steel-200" />
               <span>Upgrade Plan</span>
             </button>
           </div>
         </div>
       ) : (
-        <div className="p-2 border-t border-[#162033] flex justify-center">
+        <div className="p-2 border-t border-[#202020] flex justify-center">
           <button
             onClick={onOpenPricing}
-            className="p-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-500 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg bg-steel-600 text-white hover:bg-steel-500 transition-colors cursor-pointer"
             title="Enterprise Plan"
           >
             <Sparkles className="w-3.5 h-3.5" />

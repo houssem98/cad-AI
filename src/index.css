@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
+/* Graphite: neutral greys (Tailwind neutral), one steel-blue accent, and emerald, amber and red for states only. */
+@theme {
+  --color-steel-50: oklch(0.97 0.012 245);
+  --color-steel-100: oklch(0.932 0.025 245);
+  --color-steel-200: oklch(0.882 0.04 245);
+  --color-steel-300: oklch(0.809 0.06 245);
+  --color-steel-400: oklch(0.707 0.085 245);
+  --color-steel-500: oklch(0.623 0.1 245);
+  --color-steel-600: oklch(0.546 0.105 245);
+  --color-steel-700: oklch(0.488 0.1 245);
+  --color-steel-800: oklch(0.424 0.09 245);
+  --color-steel-900: oklch(0.379 0.075 245);
+  --color-steel-950: oklch(0.282 0.055 245);
+}
+
 @layer base {
   :root {
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -9,8 +24,8 @@
 
   body {
     font-family: var(--font-sans);
-    background-color: #0b0f19;
-    color: #e2e8f0;
+    background-color: #0e0e0e;
+    color: #e5e5e5;
     overflow: hidden;
     user-select: none;
     -webkit-font-smoothing: antialiased;
@@ -23,14 +38,14 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f1523;
+  background: #131313;
 }
 ::-webkit-scrollbar-thumb {
-  background: #232d42;
+  background: #2b2b2b;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #404040;
 }
 
 /* Engineering technical font helper */

@@ -79,21 +79,21 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-150">
-      <div className="w-full max-w-xl bg-[#0f1728] border border-[#232f48] rounded-xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="w-full max-w-xl bg-[#171717] border border-[#2f2f2f] rounded-xl shadow-2xl overflow-hidden flex flex-col">
         {/* Search Input */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-[#1e293b] bg-[#121b2d]">
-          <Search className="w-4 h-4 text-slate-400" />
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-[#292929] bg-[#1b1b1b]">
+          <Search className="w-4 h-4 text-neutral-400" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Type a command, module, or CAD instruction..."
-            className="flex-1 bg-transparent text-slate-100 placeholder-slate-500 text-sm focus:outline-none"
+            className="flex-1 bg-transparent text-neutral-100 placeholder-neutral-500 text-sm focus:outline-none"
             autoFocus
           />
           <button
             onClick={onClose}
-            className="p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded"
+            className="p-1 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 rounded"
           >
             <X className="w-4 h-4" />
           </button>
@@ -102,7 +102,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
         {/* Action List */}
         <div className="max-h-80 overflow-y-auto p-2 space-y-1">
           {filtered.length === 0 ? (
-            <div className="p-6 text-center text-xs text-slate-500 font-tech">
+            <div className="p-6 text-center text-xs text-neutral-500 font-tech">
               No matching commands found.
             </div>
           ) : (
@@ -119,13 +119,13 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
                     }
                     onClose();
                   }}
-                  className="w-full flex items-center justify-between p-2.5 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-[#1a253c] transition-colors text-left group"
+                  className="w-full flex items-center justify-between p-2.5 rounded-lg text-xs text-neutral-300 hover:text-white hover:bg-[#252525] transition-colors text-left group"
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className="w-4 h-4 text-blue-400 group-hover:text-cyan-300" />
+                    <Icon className="w-4 h-4 text-steel-400 group-hover:text-steel-300" />
                     <span>{item.label}</span>
                   </div>
-                  <span className="text-[10px] font-tech text-slate-500 group-hover:text-slate-400 px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800">
+                  <span className="text-[10px] font-tech text-neutral-500 group-hover:text-neutral-400 px-1.5 py-0.5 rounded bg-neutral-900 border border-neutral-800">
                     {item.type}
                   </span>
                 </button>
@@ -135,7 +135,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
         </div>
 
         {/* Footer shortcuts */}
-        <div className="px-4 py-2 border-t border-[#1e293b] bg-[#0c121e] flex items-center justify-between text-[11px] text-slate-500 font-tech">
+        <div className="px-4 py-2 border-t border-[#292929] bg-[#121212] flex items-center justify-between text-[11px] text-neutral-500 font-tech">
           <span>Navigate with arrows • Press Enter to select</span>
           <span>Esc to exit</span>
         </div>

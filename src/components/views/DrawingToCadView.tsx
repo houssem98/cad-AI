@@ -38,25 +38,25 @@ export const DrawingToCadView: React.FC<DrawingToCadViewProps> = ({
   ];
 
   return (
-    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-[#0b0f19] select-none text-slate-200">
+    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-[#0f0f0f] select-none text-neutral-200">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#1a2336]">
+      <div className="flex items-center justify-between pb-3 border-b border-[#232323]">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            <FileSearch className="w-5 h-5 text-blue-400" />
+            <FileSearch className="w-5 h-5 text-steel-400" />
             <span>Drawing-to-CAD Vector Extraction</span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-tech uppercase bg-blue-500/20 text-blue-400 border border-blue-500/30">
+            <span className="px-2 py-0.5 rounded text-[10px] font-tech uppercase bg-steel-500/20 text-steel-400 border border-steel-500/30">
               OCR & Geometric NLP
             </span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-neutral-400 mt-1">
             Analyze 2D PDF engineering drawings, extract GD&T annotations and tolerances, and reconstruct native 3D parametric solids.
           </p>
         </div>
 
         <button
           onClick={onNavigateToAgent}
-          className="flex items-center gap-2 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow-md shadow-blue-600/30 transition-colors"
+          className="flex items-center gap-2 px-3.5 py-1.5 bg-steel-600 hover:bg-steel-500 text-white rounded-lg text-xs font-semibold shadow-md transition-colors"
         >
           <span>Open in 3D Viewport</span>
           <ArrowRight className="w-3.5 h-3.5" />
@@ -65,10 +65,10 @@ export const DrawingToCadView: React.FC<DrawingToCadViewProps> = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: 2D Drawing Blueprint Viewer (2 cols) */}
-        <div className="lg:col-span-2 p-5 bg-[#101728] border border-[#1e293b] rounded-xl space-y-4">
+        <div className="lg:col-span-2 p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
           <div className="flex items-center justify-between">
-            <div className="font-semibold text-slate-100 text-sm flex items-center gap-2">
-              <Eye className="w-4 h-4 text-cyan-400" />
+            <div className="font-semibold text-neutral-100 text-sm flex items-center gap-2">
+              <Eye className="w-4 h-4 text-steel-400" />
               <span>{selectedDrawing}</span>
             </div>
             <span className="px-2 py-0.5 rounded text-[10px] font-tech font-bold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -77,45 +77,45 @@ export const DrawingToCadView: React.FC<DrawingToCadViewProps> = ({
           </div>
 
           {/* Blueprint Canvas Graphic */}
-          <div className="relative w-full h-[400px] bg-[#0c1424] border border-[#21314e] rounded-lg p-6 flex flex-col items-center justify-center cad-grid-bg overflow-hidden shadow-inner">
+          <div className="relative w-full h-[400px] bg-[#141414] border border-[#313131] rounded-lg p-6 flex flex-col items-center justify-center cad-grid-bg overflow-hidden shadow-inner">
             {/* Title Block Graphic */}
-            <div className="absolute bottom-4 right-4 bg-[#0a101f]/90 border border-blue-500/40 p-3 rounded font-tech text-[10px] space-y-1 text-slate-300 w-52 shadow-lg">
-              <div className="text-blue-400 font-bold border-b border-blue-500/30 pb-0.5">AUTONOVA CORP — DWG 084</div>
+            <div className="absolute bottom-4 right-4 bg-[#111111]/90 border border-steel-500/40 p-3 rounded font-tech text-[10px] space-y-1 text-neutral-300 w-52 shadow-lg">
+              <div className="text-steel-400 font-bold border-b border-steel-500/30 pb-0.5">AUTONOVA CORP — DWG 084</div>
               <div>TITLE: MOUNTING BRACKET L-TYPE</div>
               <div>MATERIAL: AL 6061-T6 • SCALE 1:1</div>
               <div>TOL: ISO 2768-m • SHEET 1 OF 1</div>
             </div>
 
             {/* Simulated Orthographic Blueprint Drafting Projection Lines */}
-            <div className="relative w-72 h-56 border-2 border-cyan-500/50 rounded flex flex-col items-center justify-center p-4 bg-blue-950/20 shadow-2xl">
+            <div className="relative w-72 h-56 border-2 border-steel-500/50 rounded flex flex-col items-center justify-center p-4 bg-steel-950/20 shadow-2xl">
               {/* L-bracket outline */}
-              <div className="relative w-48 h-36 border-2 border-cyan-400">
+              <div className="relative w-48 h-36 border-2 border-steel-400">
                 {/* Vertical flange bore */}
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full border-2 border-dashed border-cyan-300" />
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full border-2 border-dashed border-steel-300" />
                 {/* Base plate horizontal cut */}
-                <div className="absolute bottom-6 left-0 right-0 border-b-2 border-cyan-400" />
+                <div className="absolute bottom-6 left-0 right-0 border-b-2 border-steel-400" />
                 {/* 4 mounting holes indicators */}
-                <div className="absolute bottom-2 left-3 w-3 h-3 rounded-full border border-cyan-300" />
-                <div className="absolute bottom-2 right-3 w-3 h-3 rounded-full border border-cyan-300" />
+                <div className="absolute bottom-2 left-3 w-3 h-3 rounded-full border border-steel-300" />
+                <div className="absolute bottom-2 right-3 w-3 h-3 rounded-full border border-steel-300" />
               </div>
 
               {/* Dimension markers */}
-              <div className="absolute -bottom-6 text-cyan-300 font-tech text-xs font-bold">
+              <div className="absolute -bottom-6 text-steel-300 font-tech text-xs font-bold">
                 ◄── 80.00 mm ──►
               </div>
-              <div className="absolute -left-8 top-1/2 -translate-y-1/2 -rotate-90 text-cyan-300 font-tech text-xs font-bold">
+              <div className="absolute -left-8 top-1/2 -translate-y-1/2 -rotate-90 text-steel-300 font-tech text-xs font-bold">
                 ◄── 50.00 mm ──►
               </div>
             </div>
 
-            <div className="absolute top-4 left-4 text-xs font-tech text-cyan-400 bg-cyan-950/60 px-2.5 py-1 rounded border border-cyan-800/40">
+            <div className="absolute top-4 left-4 text-xs font-tech text-steel-400 bg-steel-950/60 px-2.5 py-1 rounded border border-steel-800/40">
               ANSI Y14.5 / ISO 128 Drafting Standards
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-slate-400 font-tech">
+          <div className="flex items-center justify-between text-xs text-neutral-400 font-tech">
             <span>Raster DPI: 600 • Vector Layers: 14 • Projection: 3rd Angle</span>
-            <label className="flex items-center gap-2 px-3 py-1.5 bg-[#162035] hover:bg-slate-700 text-slate-200 rounded cursor-pointer transition-colors">
+            <label className="flex items-center gap-2 px-3 py-1.5 bg-[#202020] hover:bg-neutral-700 text-neutral-200 rounded cursor-pointer transition-colors">
               <Upload className="w-3.5 h-3.5" />
               <span>Upload New PDF/DWG</span>
               <input type="file" className="hidden" accept=".pdf,.dwg,.dxf,.png" />
@@ -124,9 +124,9 @@ export const DrawingToCadView: React.FC<DrawingToCadViewProps> = ({
         </div>
 
         {/* Right: Extracted Dimensions & NLP Validation (1 col) */}
-        <div className="p-5 bg-[#101728] border border-[#1e293b] rounded-xl space-y-4">
+        <div className="p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
           <div className="flex items-center justify-between">
-            <div className="font-semibold text-slate-100 text-sm">
+            <div className="font-semibold text-neutral-100 text-sm">
               Extracted Engineering Parameters
             </div>
             <span className="text-[10px] text-emerald-400 font-tech">100% Resolved</span>
@@ -136,13 +136,13 @@ export const DrawingToCadView: React.FC<DrawingToCadViewProps> = ({
             {extractedDimensions.map((dim, i) => (
               <div
                 key={i}
-                className="p-3 bg-[#131b2e] border border-[#202c42] rounded-lg space-y-1 text-xs"
+                className="p-3 bg-[#1c1c1c] border border-[#2c2c2c] rounded-lg space-y-1 text-xs"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">{dim.label}</span>
-                  <span className="font-tech text-cyan-300 font-bold">{dim.value}</span>
+                  <span className="text-neutral-400">{dim.label}</span>
+                  <span className="font-tech text-steel-300 font-bold">{dim.value}</span>
                 </div>
-                <div className="flex items-center justify-between text-[11px] font-tech text-slate-500 pt-1 border-t border-[#1a2336]">
+                <div className="flex items-center justify-between text-[11px] font-tech text-neutral-500 pt-1 border-t border-[#232323]">
                   <span>{dim.view}</span>
                   <span className="text-emerald-400">Confidence {dim.confidence}</span>
                 </div>
@@ -153,7 +153,7 @@ export const DrawingToCadView: React.FC<DrawingToCadViewProps> = ({
           <div className="pt-2">
             <button
               onClick={onNavigateToAgent}
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow-md shadow-blue-600/30 transition-colors"
+              className="w-full py-2.5 bg-steel-600 hover:bg-steel-500 text-white rounded-lg text-xs font-semibold shadow-md transition-colors"
             >
               Reconstruct Parametric 3D Model
             </button>

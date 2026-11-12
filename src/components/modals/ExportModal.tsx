@@ -344,28 +344,28 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-150">
-      <div className="w-full max-w-xl bg-[#0f1728] border border-[#232f48] rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="w-full max-w-xl bg-[#171717] border border-[#2f2f2f] rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#1e293b] bg-[#121b2d]">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#292929] bg-[#1b1b1b]">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-blue-600/20 text-cyan-400 border border-blue-500/30">
+            <div className="p-1.5 rounded-lg bg-steel-600/20 text-steel-400 border border-steel-500/30">
               <Package className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-slate-100 text-sm">Batch CAD Export &amp; Packaging</span>
-                <span className="text-[10px] font-tech text-cyan-300 bg-blue-950/80 px-2 py-0.5 rounded border border-blue-800/60 font-semibold">
+                <span className="font-bold text-neutral-100 text-sm">Batch CAD Export &amp; Packaging</span>
+                <span className="text-[10px] font-tech text-steel-300 bg-steel-950/80 px-2 py-0.5 rounded border border-steel-800/60 font-semibold">
                   Multi-Format
                 </span>
               </div>
-              <div className="text-[11px] text-slate-400">
+              <div className="text-[11px] text-neutral-400">
                 Package complete engineering deliverables in a single click
               </div>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors cursor-pointer"
+            className="p-1 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -374,25 +374,25 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
         {/* Body Content */}
         <div className="p-5 overflow-y-auto space-y-4 text-xs">
           {/* Quick Presets & Batch Select Controls */}
-          <div className="flex items-center justify-between bg-[#131b2e] p-2.5 rounded-lg border border-[#22304d]">
-            <div className="flex items-center gap-1.5 text-slate-300">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+          <div className="flex items-center justify-between bg-[#1c1c1c] p-2.5 rounded-lg border border-[#313131]">
+            <div className="flex items-center gap-1.5 text-neutral-300">
+              <Sparkles className="w-3.5 h-3.5 text-steel-400" />
               <span className="font-semibold text-[11px]">Presets:</span>
               <button
                 onClick={() => handlePresetSelect('all')}
-                className="px-2 py-0.5 text-[10px] font-tech rounded bg-[#1c2942] hover:bg-blue-600/30 text-blue-300 border border-blue-800/40 transition-colors cursor-pointer"
+                className="px-2 py-0.5 text-[10px] font-tech rounded bg-[#292929] hover:bg-steel-600/30 text-steel-300 border border-steel-800/40 transition-colors cursor-pointer"
               >
                 All 5 Formats
               </button>
               <button
                 onClick={() => handlePresetSelect('cad-drawing')}
-                className="px-2 py-0.5 text-[10px] font-tech rounded bg-[#1c2942] hover:bg-blue-600/30 text-blue-300 border border-blue-800/40 transition-colors cursor-pointer"
+                className="px-2 py-0.5 text-[10px] font-tech rounded bg-[#292929] hover:bg-steel-600/30 text-steel-300 border border-steel-800/40 transition-colors cursor-pointer"
               >
                 CAD + Drawing
               </button>
               <button
                 onClick={() => handlePresetSelect('manufacturing')}
-                className="px-2 py-0.5 text-[10px] font-tech rounded bg-[#1c2942] hover:bg-blue-600/30 text-blue-300 border border-blue-800/40 transition-colors cursor-pointer"
+                className="px-2 py-0.5 text-[10px] font-tech rounded bg-[#292929] hover:bg-steel-600/30 text-steel-300 border border-steel-800/40 transition-colors cursor-pointer"
               >
                 Production (STEP/STL/SVG)
               </button>
@@ -401,14 +401,14 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSelectAll}
-                className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+                className="text-[10px] text-steel-400 hover:text-steel-300 transition-colors cursor-pointer"
               >
                 Select All
               </button>
-              <span className="text-slate-600">•</span>
+              <span className="text-neutral-600">•</span>
               <button
                 onClick={handleDeselectAll}
-                className="text-[10px] text-slate-400 hover:text-slate-300 transition-colors cursor-pointer"
+                className="text-[10px] text-neutral-400 hover:text-neutral-300 transition-colors cursor-pointer"
               >
                 Clear
               </button>
@@ -418,10 +418,10 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
           {/* Format Selection Cards (Checkable list) */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-slate-300 font-semibold uppercase text-[11px] tracking-wider">
+              <label className="text-neutral-300 font-semibold uppercase text-[11px] tracking-wider">
                 Select Formats to Include ({selectedCount} of {AVAILABLE_FORMATS.length})
               </label>
-              <span className="text-[10px] font-tech text-slate-500">
+              <span className="text-[10px] font-tech text-neutral-500">
                 Click cards to toggle selection
               </span>
             </div>
@@ -435,31 +435,31 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
                     onClick={() => toggleFormat(fmt.id)}
                     className={`flex items-start gap-3 p-3 rounded-lg border transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-blue-950/30 border-blue-500/80 shadow-sm shadow-blue-950/40'
-                        : 'bg-[#12192a] border-[#202c42] opacity-70 hover:opacity-100 hover:border-slate-600'
+                        ? 'bg-steel-950/30 border-steel-500/80 shadow-sm '
+                        : 'bg-[#1a1a1a] border-[#2c2c2c] opacity-70 hover:opacity-100 hover:border-neutral-600'
                     }`}
                   >
                     <div className="pt-0.5">
                       {isSelected ? (
-                        <div className="w-4 h-4 rounded bg-blue-600 text-white flex items-center justify-center shadow-sm">
+                        <div className="w-4 h-4 rounded bg-steel-600 text-white flex items-center justify-center shadow-sm">
                           <Check className="w-3 h-3 stroke-[3]" />
                         </div>
                       ) : (
-                        <div className="w-4 h-4 rounded border border-slate-600 bg-[#0d1424]" />
+                        <div className="w-4 h-4 rounded border border-neutral-600 bg-[#141414]" />
                       )}
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-slate-100 text-xs">{fmt.label}</span>
-                          <span className="text-[10px] font-tech text-slate-500">{fmt.ext}</span>
+                          <span className="font-semibold text-neutral-100 text-xs">{fmt.label}</span>
+                          <span className="text-[10px] font-tech text-neutral-500">{fmt.ext}</span>
                         </div>
-                        <span className="text-[9px] font-tech px-1.5 py-0.2 rounded bg-[#182338] text-slate-400 border border-slate-700">
+                        <span className="text-[9px] font-tech px-1.5 py-0.2 rounded bg-[#232323] text-neutral-400 border border-neutral-700">
                           {fmt.badge}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">{fmt.desc}</p>
+                      <p className="text-[11px] text-neutral-400 mt-0.5 leading-snug">{fmt.desc}</p>
                     </div>
                   </div>
                 );
@@ -474,15 +474,15 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
               onClick={() => setPackageAsZip(true)}
               className={`p-3 rounded-lg border transition-all cursor-pointer ${
                 packageAsZip
-                  ? 'bg-blue-900/20 border-blue-500 text-white'
-                  : 'bg-[#12192a] border-[#202c42] text-slate-400 hover:border-slate-600'
+                  ? 'bg-steel-900/20 border-steel-500 text-white'
+                  : 'bg-[#1a1a1a] border-[#2c2c2c] text-neutral-400 hover:border-neutral-600'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Archive className="w-4 h-4 text-cyan-400" />
-                <span className="font-semibold text-xs text-slate-200">ZIP Package Bundle</span>
+                <Archive className="w-4 h-4 text-steel-400" />
+                <span className="font-semibold text-xs text-neutral-200">ZIP Package Bundle</span>
               </div>
-              <p className="text-[10px] text-slate-400 mt-1 leading-snug">
+              <p className="text-[10px] text-neutral-400 mt-1 leading-snug">
                 One .zip file containing all selected formats, manifest, and release notes
               </p>
             </div>
@@ -492,15 +492,15 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
               onClick={() => setPackageAsZip(false)}
               className={`p-3 rounded-lg border transition-all cursor-pointer ${
                 !packageAsZip
-                  ? 'bg-blue-900/20 border-blue-500 text-white'
-                  : 'bg-[#12192a] border-[#202c42] text-slate-400 hover:border-slate-600'
+                  ? 'bg-steel-900/20 border-steel-500 text-white'
+                  : 'bg-[#1a1a1a] border-[#2c2c2c] text-neutral-400 hover:border-neutral-600'
               }`}
             >
               <div className="flex items-center gap-2">
-                <Download className="w-4 h-4 text-blue-400" />
-                <span className="font-semibold text-xs text-slate-200">Individual Files</span>
+                <Download className="w-4 h-4 text-steel-400" />
+                <span className="font-semibold text-xs text-neutral-200">Individual Files</span>
               </div>
-              <p className="text-[10px] text-slate-400 mt-1 leading-snug">
+              <p className="text-[10px] text-neutral-400 mt-1 leading-snug">
                 Download {selectedCount} separate files directly to your downloads folder
               </p>
             </div>
@@ -508,13 +508,13 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
 
           {/* Tessellation / Precision */}
           <div className="space-y-1.5">
-            <label className="text-slate-300 font-semibold uppercase text-[11px] tracking-wider">
+            <label className="text-neutral-300 font-semibold uppercase text-[11px] tracking-wider">
               Tessellation &amp; Kernel Precision
             </label>
             <select
               value={precision}
               onChange={(e) => setPrecision(e.target.value as any)}
-              className="w-full bg-[#12192a] border border-[#202c42] rounded-lg p-2 text-slate-200 font-tech text-xs focus:outline-none focus:border-blue-500"
+              className="w-full bg-[#1a1a1a] border border-[#2c2c2c] rounded-lg p-2 text-neutral-200 font-tech text-xs focus:outline-none focus:border-steel-500"
             >
               <option value="manufacturing">Tooling Grade (ASME Y14.5 / Tolerance 0.001 mm)</option>
               <option value="high">Fine Visual (Chord Height 0.005 mm)</option>
@@ -523,26 +523,26 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
           </div>
 
           {/* Model Spec & Package Summary */}
-          <div className="p-3 bg-[#11192b] border border-[#202c42] rounded-lg font-tech text-[11px] space-y-1.5 text-slate-400">
-            <div className="flex justify-between items-center text-slate-200 font-semibold pb-1 border-b border-slate-800">
+          <div className="p-3 bg-[#191919] border border-[#2c2c2c] rounded-lg font-tech text-[11px] space-y-1.5 text-neutral-400">
+            <div className="flex justify-between items-center text-neutral-200 font-semibold pb-1 border-b border-neutral-800">
               <span>Target Part:</span>
-              <span className="text-cyan-400">Mounting_Bracket ({parameters.length}×{parameters.width}×{parameters.thickness}mm)</span>
+              <span className="text-steel-400">Mounting_Bracket ({parameters.length}×{parameters.width}×{parameters.thickness}mm)</span>
             </div>
             <div className="flex justify-between">
               <span>Material Specification:</span>
-              <span className="text-slate-300">{parameters.material} ({parameters.density} g/cm³)</span>
+              <span className="text-neutral-300">{parameters.material} ({parameters.density} g/cm³)</span>
             </div>
             <div className="flex justify-between">
               <span>Estimated Mass:</span>
-              <span className="text-slate-300">{parameters.mass} kg</span>
+              <span className="text-neutral-300">{parameters.mass} kg</span>
             </div>
             <div className="flex justify-between">
               <span>Quality Verification:</span>
               <span className="text-emerald-400">Euler Genus g=1 • Watertight B-Rep</span>
             </div>
-            <div className="flex justify-between pt-0.5 border-t border-slate-800">
+            <div className="flex justify-between pt-0.5 border-t border-neutral-800">
               <span>Package Bundle Name:</span>
-              <span className="text-slate-200 truncate">
+              <span className="text-neutral-200 truncate">
                 {packageAsZip
                   ? `Mounting_Bracket_${parameters.length}x${parameters.width}_Package.zip`
                   : `${selectedCount} Standalone Files`}
@@ -552,8 +552,8 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
 
           {/* Progress / Success State */}
           {isExporting && (
-            <div className="p-3 bg-blue-950/40 border border-blue-800/60 rounded-lg flex items-center gap-2.5 text-xs text-blue-300 animate-pulse">
-              <Loader2 className="w-4 h-4 animate-spin text-cyan-400 flex-shrink-0" />
+            <div className="p-3 bg-steel-950/40 border border-steel-800/60 rounded-lg flex items-center gap-2.5 text-xs text-steel-300 animate-pulse">
+              <Loader2 className="w-4 h-4 animate-spin text-steel-400 flex-shrink-0" />
               <span>{exportProgressStage || 'Preparing engineering deliverables...'}</span>
             </div>
           )}
@@ -575,10 +575,10 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3.5 border-t border-[#1e293b] bg-[#0c121e] flex items-center justify-between">
+        <div className="px-5 py-3.5 border-t border-[#292929] bg-[#121212] flex items-center justify-between">
           <button
             onClick={onClose}
-            className="px-3.5 py-1.5 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="px-3.5 py-1.5 text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer"
           >
             Close
           </button>
@@ -588,8 +588,8 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
             disabled={isExporting || selectedCount === 0}
             className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-semibold shadow-md transition-all cursor-pointer ${
               selectedCount === 0
-                ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white shadow-blue-600/30'
+                ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
+                : 'bg-steel-600 hover:bg-steel-500 text-white '
             }`}
           >
             {isExporting ? (

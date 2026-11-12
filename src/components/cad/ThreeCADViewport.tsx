@@ -90,7 +90,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
     let material: THREE.Material;
     if (mode === 'wireframe') {
       material = new THREE.MeshBasicMaterial({
-        color: 0x38bdf8,
+        color: 0x7fa3c4,
         wireframe: true,
       });
     } else if (mode === 'xray') {
@@ -118,7 +118,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
 
     // Edge outline material for crisp CAD edges
     const edgeMaterial = new THREE.LineBasicMaterial({
-      color: 0x1e293b,
+      color: 0x262626,
       linewidth: 1.5,
     });
 
@@ -231,7 +231,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
 
     // 3. Counterbore rings for mounting holes to match industrial SolidWorks precision
     const counterBoreMat = new THREE.MeshStandardMaterial({
-      color: 0x64748b,
+      color: 0x737373,
       metalness: 0.9,
       roughness: 0.35,
     });
@@ -277,7 +277,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
     const halfW = W / 2;
 
     const lineMat = new THREE.LineBasicMaterial({
-      color: 0x94a3b8,
+      color: 0xa3a3a3,
       linewidth: 1.5,
       depthTest: true,
     });
@@ -300,7 +300,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
 
       // Arrowheads (small cones)
       const dir = pt2.clone().sub(pt1).normalize();
-      const arrowMat = new THREE.MeshBasicMaterial({ color: 0x94a3b8 });
+      const arrowMat = new THREE.MeshBasicMaterial({ color: 0xa3a3a3 });
 
       const arrow1 = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.35, 12), arrowMat);
       arrow1.position.copy(pt1);
@@ -342,7 +342,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
     dimGroup.add(new THREE.Line(leaderGeo, lineMat));
 
     const dotGeo = new THREE.SphereGeometry(0.1, 16, 16);
-    const dotMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+    const dotMat = new THREE.MeshBasicMaterial({ color: 0x7fa3c4 });
     const dot = new THREE.Mesh(dotGeo, dotMat);
     dot.position.copy(holePos);
     dimGroup.add(dot);
@@ -369,7 +369,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
 
     // 1. Scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0e1422); // Deep graphite CAD canvas
+    scene.background = new THREE.Color(0x111111); // Deep graphite CAD canvas
     sceneRef.current = scene;
 
     // 2. Camera
@@ -416,15 +416,15 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
     dirLight.shadow.normalBias = 0.02;
     scene.add(dirLight);
 
-    const rimLight = new THREE.DirectionalLight(0x38bdf8, 1.4);
+    const rimLight = new THREE.DirectionalLight(0x7fa3c4, 1.4);
     rimLight.position.set(-15, 12, -18);
     scene.add(rimLight);
 
-    const hemiLight = new THREE.HemisphereLight(0xe0f2fe, 0x0f172a, 1.0);
+    const hemiLight = new THREE.HemisphereLight(0xf5f5f5, 0x171717, 1.0);
     scene.add(hemiLight);
 
     // 6. Technical Engineering Grid Plane
-    const gridHelper = new THREE.GridHelper(28, 28, 0x1e3a8a, 0x1e293b);
+    const gridHelper = new THREE.GridHelper(28, 28, 0x3a3a3a, 0x262626);
     gridHelper.position.y = -0.01;
     scene.add(gridHelper);
 
@@ -466,7 +466,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
     controls.listenToKeyEvents(renderer.domElement); // arrows pan; with Shift they orbit
     renderer.domElement.tabIndex = 0;
     renderer.domElement.setAttribute('aria-label', 'Demo model preview. Arrow keys pan, Shift and arrow keys orbit.');
-    renderer.domElement.className = 'outline-none focus-visible:ring-2 focus-visible:ring-sky-400';
+    renderer.domElement.className = 'outline-none focus-visible:ring-2 focus-visible:ring-steel-400';
     controlsRef.current = controls;
 
     // 8. Build Bracket Model & Dimension Overlay
@@ -556,24 +556,24 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full flex flex-col bg-[#080c14] select-none overflow-hidden">
+    <div className="relative w-full h-full flex flex-col bg-[#0c0c0c] select-none overflow-hidden">
       {/* 1. Clean CAD Document Tab Bar */}
-      <div className="h-8 bg-[#090e18] border-b border-[#182338] flex items-center justify-between px-2.5 z-10 flex-shrink-0 text-xs">
+      <div className="h-8 bg-[#0e0e0e] border-b border-[#232323] flex items-center justify-between px-2.5 z-10 flex-shrink-0 text-xs">
         <div className="flex items-center gap-1 min-w-0">
           <button
             title="CAD Workspace"
-            className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors"
+            className="p-1 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded transition-colors"
           >
-            <Box className="w-3.5 h-3.5 text-blue-400" />
+            <Box className="w-3.5 h-3.5 text-steel-400" />
           </button>
 
           {/* Active Document Tab */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#121b2d] border-t-2 border-t-blue-500 border-x border-[#1e2c44] rounded-t text-slate-200 font-medium text-[11px] truncate max-w-[200px]">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0" />
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#1b1b1b] border-t-2 border-t-steel-500 border-x border-[#2c2c2c] rounded-t text-neutral-200 font-medium text-[11px] truncate max-w-[200px]">
+            <span className="w-1.5 h-1.5 rounded-full bg-steel-400 shrink-0" />
             <span className="font-tech tracking-tight truncate">{activeTab}</span>
             <button
               title="Close Tab"
-              className="p-0.5 text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 rounded ml-1 shrink-0"
+              className="p-0.5 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-700/50 rounded ml-1 shrink-0"
             >
               <X className="w-2.5 h-2.5" />
             </button>
@@ -581,15 +581,15 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
 
           <button
             title="New CAD Document"
-            className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors"
+            className="p-1 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded transition-colors"
           >
             <Plus className="w-3 h-3" />
           </button>
         </div>
 
         {/* Clean Unboxed Document Metadata (Anti-Slop Zero-Pill) */}
-        <div className="flex min-w-0 items-center gap-2 text-[10px] font-tech text-slate-400">
-          <span className="shrink-0 rounded border border-slate-600 px-1.5 py-0.5 font-semibold uppercase tracking-wider text-slate-100">Preview</span>
+        <div className="flex min-w-0 items-center gap-2 text-[10px] font-tech text-neutral-400">
+          <span className="shrink-0 rounded border border-neutral-600 px-1.5 py-0.5 font-semibold uppercase tracking-wider text-neutral-100">Preview</span>
           <span className="hidden md:inline truncate" title="demo model drawn from parameters, not built by a CAD kernel">demo model, not built by a CAD kernel</span>
         </div>
       </div>
@@ -600,13 +600,13 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
         <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
         {/* Floating Compact HUD Toolbar (Top-Left of Viewport, Zero Collision) */}
-        <div className="absolute top-2.5 left-2.5 z-20 flex max-w-[calc(100%-1.25rem)] flex-wrap items-center gap-0.5 p-1 bg-[#0d1424]/90 backdrop-blur-md border border-[#1e2c46] rounded-lg shadow-xl shadow-black/40">
+        <div className="absolute top-2.5 left-2.5 z-20 flex max-w-[calc(100%-8rem)] flex-wrap items-center gap-0.5 p-1 bg-[#141414]/90 backdrop-blur-md border border-[#2c2c2c] rounded-lg shadow-xl shadow-black/40">
           <button
             onClick={() => setActiveTool('select')}
             className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
               activeTool === 'select'
-                ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/50'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                ? 'bg-steel-600 text-white shadow-sm '
+                : 'text-neutral-300 hover:text-white hover:bg-neutral-800/60'
             }`}
             title="Select entity (Click to inspect)"
           >
@@ -618,8 +618,8 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
             onClick={() => setActiveTool('rotate')}
             className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
               activeTool === 'rotate'
-                ? 'bg-blue-600 text-white'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                ? 'bg-steel-600 text-white'
+                : 'text-neutral-300 hover:text-white hover:bg-neutral-800/60'
             }`}
             title="Orbit / Rotate (Left Click + Drag)"
           >
@@ -631,8 +631,8 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
             onClick={() => setActiveTool('pan')}
             className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
               activeTool === 'pan'
-                ? 'bg-blue-600 text-white'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                ? 'bg-steel-600 text-white'
+                : 'text-neutral-300 hover:text-white hover:bg-neutral-800/60'
             }`}
             title="Pan (Right Click + Drag)"
           >
@@ -642,21 +642,21 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
 
           <button
             onClick={handleFitToView}
-            className="flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium text-neutral-300 hover:text-white hover:bg-neutral-800/60 transition-colors cursor-pointer"
             title="Fit model to view"
           >
             <Maximize2 className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Fit</span>
           </button>
 
-          <div className="w-[1px] h-4 bg-slate-700/60 mx-0.5" />
+          <div className="w-[1px] h-4 bg-neutral-700/60 mx-0.5" />
 
           <button
             onClick={() => setShowDimensions(!showDimensions)}
             className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
               showDimensions
-                ? 'bg-slate-800 text-cyan-300 border border-blue-500/40'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                ? 'bg-neutral-800 text-steel-300 border border-steel-500/40'
+                : 'text-neutral-300 hover:text-white hover:bg-neutral-800/60'
             }`}
             title="Toggle Engineering Dimensions"
           >
@@ -672,7 +672,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
             className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
               renderMode === 'section'
                 ? 'bg-amber-600 text-white'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                : 'text-neutral-300 hover:text-white hover:bg-neutral-800/60'
             }`}
             title="Section Cut View"
           >
@@ -680,7 +680,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
             <span className="hidden sm:inline">Section</span>
           </button>
 
-          <div className="w-[1px] h-4 bg-slate-700/60 mx-0.5" />
+          <div className="w-[1px] h-4 bg-neutral-700/60 mx-0.5" />
 
           {/* Shading Style Dropdown */}
           <div className="relative">
@@ -690,7 +690,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
                 setShowViewsMenu(false);
               }}
               className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
-                renderMode !== 'shaded' ? 'text-blue-400 bg-slate-800' : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                renderMode !== 'shaded' ? 'text-steel-400 bg-neutral-800' : 'text-neutral-300 hover:text-white hover:bg-neutral-800/60'
               }`}
               title="Rendering mode"
             >
@@ -699,14 +699,14 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
             </button>
 
             {showRenderMenu && (
-              <div className="absolute top-full left-0 mt-1 w-32 bg-[#101728] border border-[#232f48] rounded-md shadow-xl py-1 z-30 font-tech text-xs">
+              <div className="absolute top-full left-0 mt-1 w-32 bg-[#181818] border border-[#2f2f2f] rounded-md shadow-xl py-1 z-30 font-tech text-xs">
                 <button
                   onClick={() => {
                     setRenderMode('shaded');
                     setShowRenderMenu(false);
                   }}
-                  className={`w-full text-left px-3 py-1.5 hover:bg-slate-800 cursor-pointer ${
-                    renderMode === 'shaded' ? 'text-blue-400 font-semibold' : 'text-slate-300'
+                  className={`w-full text-left px-3 py-1.5 hover:bg-neutral-800 cursor-pointer ${
+                    renderMode === 'shaded' ? 'text-steel-400 font-semibold' : 'text-neutral-300'
                   }`}
                 >
                   PBR Shaded
@@ -716,8 +716,8 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
                     setRenderMode('wireframe');
                     setShowRenderMenu(false);
                   }}
-                  className={`w-full text-left px-3 py-1.5 hover:bg-slate-800 cursor-pointer ${
-                    renderMode === 'wireframe' ? 'text-blue-400 font-semibold' : 'text-slate-300'
+                  className={`w-full text-left px-3 py-1.5 hover:bg-neutral-800 cursor-pointer ${
+                    renderMode === 'wireframe' ? 'text-steel-400 font-semibold' : 'text-neutral-300'
                   }`}
                 >
                   Wireframe
@@ -727,8 +727,8 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
                     setRenderMode('xray');
                     setShowRenderMenu(false);
                   }}
-                  className={`w-full text-left px-3 py-1.5 hover:bg-slate-800 cursor-pointer ${
-                    renderMode === 'xray' ? 'text-blue-400 font-semibold' : 'text-slate-300'
+                  className={`w-full text-left px-3 py-1.5 hover:bg-neutral-800 cursor-pointer ${
+                    renderMode === 'xray' ? 'text-steel-400 font-semibold' : 'text-neutral-300'
                   }`}
                 >
                   X-Ray Translucent
@@ -744,7 +744,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
                 setShowViewsMenu(!showViewsMenu);
                 setShowRenderMenu(false);
               }}
-              className="flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium text-neutral-300 hover:text-white hover:bg-neutral-800/60 transition-colors cursor-pointer"
               title="Camera view angles"
             >
               <Eye className="w-3.5 h-3.5" />
@@ -752,7 +752,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
             </button>
 
             {showViewsMenu && (
-              <div className="absolute top-full right-0 mt-1 w-32 bg-[#101728] border border-[#232f48] rounded-md shadow-xl py-1 z-30 font-tech text-xs">
+              <div className="absolute top-full right-0 mt-1 w-32 bg-[#181818] border border-[#2f2f2f] rounded-md shadow-xl py-1 z-30 font-tech text-xs">
                 {(['iso', 'front', 'top', 'right', 'back'] as CameraPreset[]).map((p) => (
                   <button
                     key={p}
@@ -760,8 +760,8 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
                       setCameraPreset(p);
                       setShowViewsMenu(false);
                     }}
-                    className={`w-full text-left px-3 py-1.5 uppercase hover:bg-slate-800 cursor-pointer ${
-                      cameraView === p ? 'text-blue-400 font-semibold' : 'text-slate-300'
+                    className={`w-full text-left px-3 py-1.5 uppercase hover:bg-neutral-800 cursor-pointer ${
+                      cameraView === p ? 'text-steel-400 font-semibold' : 'text-neutral-300'
                     }`}
                   >
                     {p === 'iso' ? 'Isometric' : `${p} View`}
@@ -774,23 +774,23 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
 
         {/* Floating Compact 3D Orientation Gizmo (Top-Right, Zero Collision) */}
         <div className="absolute top-2.5 right-2.5 z-20 flex flex-col items-end gap-1.5">
-          <div className="relative w-11 h-11 bg-[#0d1424]/90 backdrop-blur-md border border-[#1e2c46] rounded-lg shadow-lg flex items-center justify-center p-1">
-            <div className="relative w-9 h-9 border border-blue-500/30 rounded bg-gradient-to-br from-[#162238] to-[#0d1424] flex flex-col items-center justify-center text-[9px] font-tech text-blue-300 font-bold">
-              <span className="text-blue-400 text-[8px]">Z</span>
+          <div className="relative w-11 h-11 bg-[#141414]/90 backdrop-blur-md border border-[#2c2c2c] rounded-lg shadow-lg flex items-center justify-center p-1">
+            <div className="relative w-9 h-9 border border-steel-500/30 rounded bg-[#222222] flex flex-col items-center justify-center text-[9px] font-tech text-steel-300 font-bold">
+              <span className="text-steel-400 text-[8px]">Z</span>
               <div className="flex items-center justify-between w-full px-0.5">
                 <span className="text-emerald-400 text-[8px]">Y</span>
-                <span className="text-slate-200 text-[8px]">TOP</span>
+                <span className="text-neutral-200 text-[8px]">TOP</span>
                 <span className="text-rose-400 text-[8px]">X</span>
               </div>
             </div>
           </div>
 
           {/* Quick Camera Presets Strip */}
-          <div className="flex items-center gap-0.5 bg-[#0d1424]/90 backdrop-blur-md border border-[#1e2c46] rounded p-0.5 text-[9px] font-tech">
+          <div className="flex items-center gap-0.5 bg-[#141414]/90 backdrop-blur-md border border-[#2c2c2c] rounded p-0.5 text-[9px] font-tech">
             <button
               onClick={() => setCameraPreset('iso')}
               className={`px-1.5 py-0.5 rounded cursor-pointer ${
-                cameraView === 'iso' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400 hover:text-white'
+                cameraView === 'iso' ? 'bg-steel-600 text-white font-bold' : 'text-neutral-400 hover:text-white'
               }`}
             >
               ISO
@@ -798,7 +798,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
             <button
               onClick={() => setCameraPreset('front')}
               className={`px-1 py-0.5 rounded cursor-pointer ${
-                cameraView === 'front' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400 hover:text-white'
+                cameraView === 'front' ? 'bg-steel-600 text-white font-bold' : 'text-neutral-400 hover:text-white'
               }`}
             >
               F
@@ -806,7 +806,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
             <button
               onClick={() => setCameraPreset('top')}
               className={`px-1 py-0.5 rounded cursor-pointer ${
-                cameraView === 'top' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400 hover:text-white'
+                cameraView === 'top' ? 'bg-steel-600 text-white font-bold' : 'text-neutral-400 hover:text-white'
               }`}
             >
               T
@@ -814,7 +814,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
             <button
               onClick={() => setCameraPreset('right')}
               className={`px-1 py-0.5 rounded cursor-pointer ${
-                cameraView === 'right' ? 'bg-blue-600 text-white font-bold' : 'text-slate-400 hover:text-white'
+                cameraView === 'right' ? 'bg-steel-600 text-white font-bold' : 'text-neutral-400 hover:text-white'
               }`}
             >
               R
@@ -827,7 +827,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
           <div className="absolute inset-0 pointer-events-none z-10">
             {/* Length Badge */}
             <div
-              className="absolute left-[45%] bottom-[20%] -translate-x-1/2 px-2 py-0.5 bg-[#0b1220]/90 backdrop-blur-sm border border-[#233554] rounded text-slate-200 text-[11px] font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
+              className="absolute left-[45%] bottom-[20%] -translate-x-1/2 px-2 py-0.5 bg-[#121212]/90 backdrop-blur-sm border border-[#353535] rounded text-neutral-200 text-[11px] font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
               title="Base Length"
             >
               {parameters.length.toFixed(0)} mm
@@ -835,7 +835,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
 
             {/* Width Badge */}
             <div
-              className="absolute right-[22%] bottom-[20%] px-2 py-0.5 bg-[#0b1220]/90 backdrop-blur-sm border border-[#233554] rounded text-slate-200 text-[11px] font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
+              className="absolute right-[22%] bottom-[20%] px-2 py-0.5 bg-[#121212]/90 backdrop-blur-sm border border-[#353535] rounded text-neutral-200 text-[11px] font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
               title="Base Width"
             >
               {parameters.width.toFixed(0)} mm
@@ -843,7 +843,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
 
             {/* Flange Height Badge */}
             <div
-              className="absolute left-[36%] top-[42%] -translate-y-1/2 -rotate-90 px-2 py-0.5 bg-[#0b1220]/90 backdrop-blur-sm border border-[#233554] rounded text-slate-200 text-[11px] font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
+              className="absolute left-[36%] top-[42%] -translate-y-1/2 -rotate-90 px-2 py-0.5 bg-[#121212]/90 backdrop-blur-sm border border-[#353535] rounded text-neutral-200 text-[11px] font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
               title="Flange Height"
             >
               {parameters.flangeHeight.toFixed(0)} mm
@@ -851,7 +851,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
 
             {/* Hole Diameter Callout */}
             <div
-              className="absolute right-[28%] top-[46%] px-2 py-0.5 bg-blue-950/90 backdrop-blur-sm border border-blue-500/50 rounded text-cyan-300 text-[11px] font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
+              className="absolute right-[28%] top-[46%] px-2 py-0.5 bg-steel-950/90 backdrop-blur-sm border border-steel-500/50 rounded text-steel-300 text-[11px] font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
               title="4x Mounting Holes"
             >
               Ø{parameters.holeDiameter.toFixed(0)} mm
@@ -860,11 +860,11 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
         )}
 
         {/* Clean Bottom Viewport Metadata Bar */}
-        <div className="absolute bottom-2.5 left-2.5 z-20 flex items-center gap-2 text-[10px] font-tech text-slate-400 bg-[#0d1424]/85 backdrop-blur-sm px-2 py-0.5 rounded border border-[#1e2a40]">
+        <div className="absolute bottom-2.5 left-2.5 z-20 flex items-center gap-2 text-[10px] font-tech text-neutral-400 bg-[#141414]/85 backdrop-blur-sm px-2 py-0.5 rounded border border-[#2a2a2a]">
           <span>Scale 1:1</span>
-          <span className="text-slate-600">·</span>
+          <span className="text-neutral-600">·</span>
           <span>MMGS</span>
-          <span className="text-slate-600">·</span>
+          <span className="text-neutral-600">·</span>
           <span>ISO 2768-m</span>
         </div>
       </div>

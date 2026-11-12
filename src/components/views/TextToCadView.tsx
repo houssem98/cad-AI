@@ -61,25 +61,25 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-[#0b0f19] select-none text-slate-200">
+    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-[#0f0f0f] select-none text-neutral-200">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#1a2336]">
+      <div className="flex items-center justify-between pb-3 border-b border-[#232323]">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            <FileCode2 className="w-5 h-5 text-blue-400" />
+            <FileCode2 className="w-5 h-5 text-steel-400" />
             <span>Text-to-CAD Specification Engine</span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-tech uppercase bg-blue-500/20 text-blue-400 border border-blue-500/30">
+            <span className="px-2 py-0.5 rounded text-[10px] font-tech uppercase bg-steel-500/20 text-steel-400 border border-steel-500/30">
               Parametric B-Rep
             </span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-neutral-400 mt-1">
             Transform natural language engineering requirements into fully constrained parametric CAD feature trees.
           </p>
         </div>
 
         <button
           onClick={onNavigateToAgent}
-          className="flex items-center gap-2 px-3.5 py-1.5 bg-[#141d30] hover:bg-[#1b2742] text-slate-200 rounded-lg text-xs font-medium border border-[#233252] transition-colors"
+          className="flex items-center gap-2 px-3.5 py-1.5 bg-[#1d1d1d] hover:bg-[#282828] text-neutral-200 rounded-lg text-xs font-medium border border-[#333333] transition-colors"
         >
           <span>Open AI CAD Agent</span>
           <ArrowRight className="w-3.5 h-3.5" />
@@ -89,26 +89,26 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Input Configuration */}
         <div className="space-y-4">
-          <div className="p-5 bg-[#101728] border border-[#1e293b] rounded-xl space-y-4">
+          <div className="p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
                 Engineering Design Prompt
               </label>
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 rows={4}
-                className="w-full bg-[#131b2e] border border-[#232f48] rounded-lg p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 leading-relaxed resize-none"
+                className="w-full bg-[#1c1c1c] border border-[#2f2f2f] rounded-lg p-3 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-steel-500 leading-relaxed resize-none"
               />
             </div>
 
             <div className="grid grid-cols-3 gap-3 text-xs">
               <div>
-                <label className="text-slate-400 font-tech text-[11px] block mb-1">Target CAD System</label>
+                <label className="text-neutral-400 font-tech text-[11px] block mb-1">Target CAD System</label>
                 <select
                   value={targetCad}
                   onChange={(e) => setTargetCad(e.target.value)}
-                  className="w-full bg-[#131b2e] border border-[#232f48] rounded p-2 text-slate-200 font-tech text-xs focus:outline-none"
+                  className="w-full bg-[#1c1c1c] border border-[#2f2f2f] rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
                 >
                   <option>SOLIDWORKS 2024</option>
                   <option>Autodesk Fusion 360</option>
@@ -119,11 +119,11 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
               </div>
 
               <div>
-                <label className="text-slate-400 font-tech text-[11px] block mb-1">Material</label>
+                <label className="text-neutral-400 font-tech text-[11px] block mb-1">Material</label>
                 <select
                   value={material}
                   onChange={(e) => setMaterial(e.target.value)}
-                  className="w-full bg-[#131b2e] border border-[#232f48] rounded p-2 text-slate-200 font-tech text-xs focus:outline-none"
+                  className="w-full bg-[#1c1c1c] border border-[#2f2f2f] rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
                 >
                   {AVAILABLE_MATERIALS.map((m) => (
                     <option key={m.id} value={m.name}>{m.name}</option>
@@ -132,11 +132,11 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
               </div>
 
               <div>
-                <label className="text-slate-400 font-tech text-[11px] block mb-1">Units</label>
+                <label className="text-neutral-400 font-tech text-[11px] block mb-1">Units</label>
                 <select
                   value={units}
                   onChange={(e) => setUnits(e.target.value)}
-                  className="w-full bg-[#131b2e] border border-[#232f48] rounded p-2 text-slate-200 font-tech text-xs focus:outline-none"
+                  className="w-full bg-[#1c1c1c] border border-[#2f2f2f] rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
                 >
                   <option value="mm">MMGS (mm, g, s)</option>
                   <option value="in">IPS (inch, lb, s)</option>
@@ -148,13 +148,13 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
             <button
               onClick={handleGenerate}
               disabled={isGenerating}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow-md shadow-blue-600/30 transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-steel-600 hover:bg-steel-500 text-white rounded-lg text-xs font-semibold shadow-md transition-colors"
             >
               {isGenerating ? (
                 <span>Generating Parametric Sequence...</span>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4 text-cyan-200" />
+                  <Sparkles className="w-4 h-4 text-steel-200" />
                   <span>Synthesize Parametric CAD Model</span>
                 </>
               )}
@@ -162,11 +162,11 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
           </div>
 
           {/* Verification Assurance Card */}
-          <div className="p-4 bg-[#101728] border border-[#1e293b] rounded-xl flex items-center gap-3 text-xs text-slate-400">
+          <div className="p-4 bg-[#181818] border border-[#292929] rounded-xl flex items-center gap-3 text-xs text-neutral-400">
             <ShieldCheck className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <div>
-              <span className="text-slate-200 font-medium">B-Rep Mathematical Validity Guaranteed:</span>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <span className="text-neutral-200 font-medium">B-Rep Mathematical Validity Guaranteed:</span>
+              <p className="text-[11px] text-neutral-400 mt-0.5">
                 Every generated feature undergoes Euler boundary validation and non-manifold edge checks prior to execution.
               </p>
             </div>
@@ -174,9 +174,9 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
         </div>
 
         {/* Right: Synthesized Feature Sequence */}
-        <div className="p-5 bg-[#101728] border border-[#1e293b] rounded-xl space-y-4">
+        <div className="p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
           <div className="flex items-center justify-between">
-            <div className="font-semibold text-slate-100 text-sm">
+            <div className="font-semibold text-neutral-100 text-sm">
               Synthesized Parametric Timeline
             </div>
             <span className="text-[10px] text-emerald-400 font-tech uppercase bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
@@ -188,24 +188,24 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
             {generatedPlan?.map((item) => (
               <div
                 key={item.step}
-                className="p-3 bg-[#131b2e] border border-[#202c42] rounded-lg space-y-1 text-xs"
+                className="p-3 bg-[#1c1c1c] border border-[#2c2c2c] rounded-lg space-y-1 text-xs"
               >
                 <div className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-400/40 text-[10px] font-tech font-bold flex items-center justify-center flex-shrink-0">
+                  <span className="w-5 h-5 rounded-full bg-steel-500/20 text-steel-400 border border-steel-400/40 text-[10px] font-tech font-bold flex items-center justify-center flex-shrink-0">
                     {item.step}
                   </span>
-                  <span className="font-semibold text-slate-200">{item.name}</span>
+                  <span className="font-semibold text-neutral-200">{item.name}</span>
                 </div>
-                <p className="text-slate-400 text-[11px] pl-7">{item.desc}</p>
+                <p className="text-neutral-400 text-[11px] pl-7">{item.desc}</p>
               </div>
             ))}
           </div>
 
-          <div className="pt-2 flex items-center justify-between border-t border-[#1e293b]">
-            <span className="text-xs text-slate-400 font-tech">7 Parametric Operations Ready</span>
+          <div className="pt-2 flex items-center justify-between border-t border-[#292929]">
+            <span className="text-xs text-neutral-400 font-tech">7 Parametric Operations Ready</span>
             <button
               onClick={onNavigateToAgent}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow-md shadow-blue-600/30 transition-colors"
+              className="px-4 py-2 bg-steel-600 hover:bg-steel-500 text-white rounded-lg text-xs font-semibold shadow-md transition-colors"
             >
               Execute in CAD Viewport
             </button>

@@ -32,12 +32,12 @@ export function KernelPreview({ glb, onError, onEmpty }: Props) {
     const canvas = renderer.domElement;
     canvas.tabIndex = 0;
     canvas.setAttribute('aria-label', KEYS_HINT);
-    canvas.className = 'outline-none focus-visible:ring-2 focus-visible:ring-sky-400';
+    canvas.className = 'outline-none focus-visible:ring-2 focus-visible:ring-steel-400';
     el.appendChild(canvas);
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0e1116);
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x2a313c, 1.1));
+    scene.background = new THREE.Color(0x111111);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x2e2e2e, 1.1));
     const key = new THREE.DirectionalLight(0xffffff, 1.8);
     key.position.set(1, 2, 1.5);
     scene.add(key);
@@ -55,7 +55,7 @@ export function KernelPreview({ glb, onError, onEmpty }: Props) {
     let disposed = false;
     const loaded = (gltf: { scene: THREE.Object3D }) => {
       if (disposed) return;
-      const material = new THREE.MeshStandardMaterial({ color: 0x9aa6b5, metalness: 0.15, roughness: 0.55 });
+      const material = new THREE.MeshStandardMaterial({ color: 0xa3a3a3, metalness: 0.15, roughness: 0.55 });
       let count = 0;
       gltf.scene.traverse((o) => {
         if (!(o instanceof THREE.Mesh)) return;
@@ -112,11 +112,11 @@ export function KernelPreview({ glb, onError, onEmpty }: Props) {
   }, [glb, onError, onEmpty]);
 
   return (
-    <div className="relative h-full w-full bg-[#0e1116]" data-triangles={triangles} data-size-mm={size}>
+    <div className="relative h-full w-full bg-[#111111]" data-triangles={triangles} data-size-mm={size}>
       <div ref={mount} className="absolute inset-0" />
       <PreviewLabel note="kernel mesh; the execution record is the evidence" />
       {size && (
-        <div className="pointer-events-none absolute bottom-3 left-3 rounded bg-slate-900/80 px-2 py-1 font-tech text-[11px] text-slate-300">
+        <div className="pointer-events-none absolute bottom-3 left-3 rounded bg-neutral-900/80 px-2 py-1 font-tech text-[11px] text-neutral-300">
           mesh bounds {size} mm
         </div>
       )}
@@ -126,8 +126,8 @@ export function KernelPreview({ glb, onError, onEmpty }: Props) {
 
 export function PreviewLabel({ note }: { note: string }) {
   return (
-    <div className="pointer-events-none absolute left-3 top-3 z-10 flex items-center gap-2 rounded border border-slate-600 bg-slate-900/80 px-2 py-1 text-[11px] text-slate-300">
-      <span className="font-semibold uppercase tracking-wider text-slate-100">Preview</span>
+    <div className="pointer-events-none absolute left-3 top-3 z-10 flex items-center gap-2 rounded border border-neutral-600 bg-neutral-900/80 px-2 py-1 text-[11px] text-neutral-300">
+      <span className="font-semibold uppercase tracking-wider text-neutral-100">Preview</span>
       <span>{note}</span>
     </div>
   );

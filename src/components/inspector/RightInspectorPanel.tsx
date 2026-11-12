@@ -89,17 +89,17 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
   // Collapsed rail view (44px)
   if (!isOpen) {
     return (
-      <div className="w-11 bg-[#090e18] border-l border-[#1a2336] flex flex-col items-center py-2.5 justify-between select-none flex-shrink-0 z-20">
+      <div className="w-11 bg-[#0e0e0e] border-l border-[#232323] flex flex-col items-center py-2.5 justify-between select-none flex-shrink-0 z-20">
         <div className="flex flex-col items-center gap-3">
           <button
             onClick={onToggleOpen}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-[#12192a] rounded transition-colors cursor-pointer"
+            className="p-1.5 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] rounded transition-colors cursor-pointer"
             title="Expand Inspector Panel"
           >
-            <Box className="w-4 h-4 text-cyan-400" />
+            <Box className="w-4 h-4 text-steel-400" />
           </button>
 
-          <div className="w-5 h-[1px] bg-[#1a2336]" />
+          <div className="w-5 h-[1px] bg-[#232323]" />
 
           <button
             onClick={() => {
@@ -107,7 +107,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
               setActiveTab('properties');
             }}
             className={`p-1.5 rounded transition-colors cursor-pointer ${
-              activeTab === 'properties' ? 'text-blue-400 bg-blue-950/60' : 'text-slate-400 hover:text-slate-200'
+              activeTab === 'properties' ? 'text-steel-400 bg-steel-950/60' : 'text-neutral-400 hover:text-neutral-200'
             }`}
             title="Properties"
           >
@@ -120,7 +120,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
               setActiveTab('featureTree');
             }}
             className={`p-1.5 rounded transition-colors cursor-pointer ${
-              activeTab === 'featureTree' ? 'text-blue-400 bg-blue-950/60' : 'text-slate-400 hover:text-slate-200'
+              activeTab === 'featureTree' ? 'text-steel-400 bg-steel-950/60' : 'text-neutral-400 hover:text-neutral-200'
             }`}
             title="Feature Tree"
           >
@@ -133,7 +133,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
               setActiveTab('bom');
             }}
             className={`p-1.5 rounded transition-colors cursor-pointer ${
-              activeTab === 'bom' ? 'text-blue-400 bg-blue-950/60' : 'text-slate-400 hover:text-slate-200'
+              activeTab === 'bom' ? 'text-steel-400 bg-steel-950/60' : 'text-neutral-400 hover:text-neutral-200'
             }`}
             title="Bill of Materials"
           >
@@ -145,18 +145,18 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
   }
 
   return (
-    <div className="w-[280px] lg:w-[300px] h-full bg-[#080d17] border-l border-[#1a2336] flex flex-col flex-shrink-0 select-none z-20 transition-all">
+    <div className="w-[280px] lg:w-[300px] h-full bg-[#0d0d0d] border-l border-[#232323] flex flex-col flex-shrink-0 select-none z-20 transition-all">
       {/* 1. Header Segmented Tabs with Collapse Button */}
-      <div className="flex items-center justify-between px-2 py-1.5 border-b border-[#182338] bg-[#0c1220]">
-        <div role="tablist" aria-label="Inspector" className="flex items-center gap-1 p-0.5 bg-[#080d17] border border-[#1a263c] rounded-lg text-xs font-medium flex-1 mr-1">
+      <div className="flex items-center justify-between px-2 py-1.5 border-b border-[#232323] bg-[#121212]">
+        <div role="tablist" aria-label="Inspector" className="flex items-center gap-1 p-0.5 bg-[#0d0d0d] border border-[#262626] rounded-lg text-xs font-medium flex-1 mr-1">
           <button
             role="tab"
             aria-selected={activeTab === 'properties'}
             onClick={() => setActiveTab('properties')}
             className={`flex-1 whitespace-nowrap py-1 px-2 text-center rounded text-[11px] transition-colors cursor-pointer ${
               activeTab === 'properties'
-                ? 'bg-blue-600 text-white font-semibold shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-steel-600 text-white font-semibold shadow-sm'
+                : 'text-neutral-400 hover:text-neutral-200'
             }`}
           >
             Properties
@@ -168,8 +168,8 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
             onClick={() => setActiveTab('featureTree')}
             className={`flex-1 whitespace-nowrap py-1 px-2 text-center rounded text-[11px] transition-colors cursor-pointer ${
               activeTab === 'featureTree'
-                ? 'bg-blue-600 text-white font-semibold shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-steel-600 text-white font-semibold shadow-sm'
+                : 'text-neutral-400 hover:text-neutral-200'
             }`}
           >
             Feature Tree
@@ -181,8 +181,8 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
             onClick={() => setActiveTab('bom')}
             className={`flex-1 whitespace-nowrap py-1 px-2 text-center rounded text-[11px] transition-colors cursor-pointer ${
               activeTab === 'bom'
-                ? 'bg-blue-600 text-white font-semibold shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-steel-600 text-white font-semibold shadow-sm'
+                : 'text-neutral-400 hover:text-neutral-200'
             }`}
           >
             BOM
@@ -192,7 +192,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
         {onToggleOpen && (
           <button
             onClick={onToggleOpen}
-            className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors cursor-pointer"
+            className="p-1 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded transition-colors cursor-pointer"
             title="Collapse Inspector"
           >
             <EyeOff className="w-3.5 h-3.5" />
@@ -208,25 +208,25 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
             {doc ? <RecordProperties doc={doc} /> : (<>
             {/* Part Information Section */}
             <div className="space-y-3">
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 flex items-center justify-between">
                 <span>Part Information</span>
                 <span className="text-[10px] text-amber-300 font-tech">Demo data</span>
               </div>
 
-              <div className="bg-[#12192a] border border-[#202c42] rounded-lg p-3 space-y-2.5">
+              <div className="bg-[#1a1a1a] border border-[#2c2c2c] rounded-lg p-3 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Name</span>
-                  <span className="font-tech text-slate-100 font-semibold">Mounting_Bracket</span>
+                  <span className="text-neutral-400">Name</span>
+                  <span className="font-tech text-neutral-100 font-semibold">Mounting_Bracket</span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="shrink-0 text-slate-400">Material</span>
+                  <span className="shrink-0 text-neutral-400">Material</span>
                   <div className="relative ml-3 min-w-0">
                     <select
                       aria-label="Material"
                       value={currentMaterial.name}
                       onChange={(e) => handleMaterialChange(e.target.value)}
-                      className="max-w-full appearance-none bg-[#182236] border border-[#2d3d5c] rounded px-2.5 py-1 pr-6 text-slate-200 font-tech text-xs focus:outline-none focus:border-blue-500 cursor-pointer"
+                      className="max-w-full appearance-none bg-[#222222] border border-[#3d3d3d] rounded px-2.5 py-1 pr-6 text-neutral-200 font-tech text-xs focus:outline-none focus:border-steel-500 cursor-pointer"
                     >
                       {AVAILABLE_MATERIALS.map((m) => (
                         <option key={m.id} value={m.name}>
@@ -234,33 +234,33 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                         </option>
                       ))}
                     </select>
-                    <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <ChevronDown className="w-3 h-3 text-neutral-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Density</span>
-                  <span className="font-tech text-slate-300">{parameters.density.toFixed(2)} g/cm³</span>
+                  <span className="text-neutral-400">Density</span>
+                  <span className="font-tech text-neutral-300">{parameters.density.toFixed(2)} g/cm³</span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Mass</span>
-                  <span className="font-tech text-slate-300">{parameters.mass.toFixed(2)} kg</span>
+                  <span className="text-neutral-400">Mass</span>
+                  <span className="font-tech text-neutral-300">{parameters.mass.toFixed(2)} kg</span>
                 </div>
               </div>
             </div>
 
             {/* Dimensions Section */}
             <div className="space-y-3">
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 flex items-center justify-between">
                 <span>Dimensions</span>
-                <span className="text-[10px] text-slate-500">Click to edit</span>
+                <span className="text-[10px] text-neutral-500">Click to edit</span>
               </div>
 
-              <div className="bg-[#12192a] border border-[#202c42] rounded-lg p-3 space-y-2.5">
+              <div className="bg-[#1a1a1a] border border-[#2c2c2c] rounded-lg p-3 space-y-2.5">
                 {/* Length */}
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Length</span>
+                  <span className="text-neutral-400">Length</span>
                   {isEditingDim === 'length' ? (
                     <div className="flex items-center gap-1">
                       <input
@@ -269,13 +269,13 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                         onChange={(e) => setTempDimValue(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') handleCommitDimension('length'); if (e.key === 'Escape') setIsEditingDim(null); }}
                         aria-label="New length in mm"
-                        className="w-16 bg-[#182236] border border-blue-500 px-1 py-0.5 text-xs text-white rounded font-tech focus:outline-none"
+                        className="w-16 bg-[#222222] border border-steel-500 px-1 py-0.5 text-xs text-white rounded font-tech focus:outline-none"
                         autoFocus
                       />
                       <button
                         onClick={() => handleCommitDimension('length')}
                         aria-label="Save length"
-                        className="p-1 text-emerald-400 hover:bg-slate-800 rounded"
+                        className="p-1 text-emerald-400 hover:bg-neutral-800 rounded"
                       >
                         <Check className="w-3 h-3" />
                       </button>
@@ -286,7 +286,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                         setIsEditingDim('length');
                         setTempDimValue(parameters.length.toString());
                       }}
-                      className="font-tech text-slate-200 hover:text-blue-400 hover:bg-slate-800/60 px-1.5 py-0.5 rounded transition-colors"
+                      className="font-tech text-neutral-200 hover:text-steel-400 hover:bg-neutral-800/60 px-1.5 py-0.5 rounded transition-colors"
                     >
                       {parameters.length.toFixed(2)} mm
                     </button>
@@ -295,7 +295,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
 
                 {/* Width */}
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Width</span>
+                  <span className="text-neutral-400">Width</span>
                   {isEditingDim === 'width' ? (
                     <div className="flex items-center gap-1">
                       <input
@@ -304,13 +304,13 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                         onChange={(e) => setTempDimValue(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') handleCommitDimension('width'); if (e.key === 'Escape') setIsEditingDim(null); }}
                         aria-label="New width in mm"
-                        className="w-16 bg-[#182236] border border-blue-500 px-1 py-0.5 text-xs text-white rounded font-tech focus:outline-none"
+                        className="w-16 bg-[#222222] border border-steel-500 px-1 py-0.5 text-xs text-white rounded font-tech focus:outline-none"
                         autoFocus
                       />
                       <button
                         onClick={() => handleCommitDimension('width')}
                         aria-label="Save width"
-                        className="p-1 text-emerald-400 hover:bg-slate-800 rounded"
+                        className="p-1 text-emerald-400 hover:bg-neutral-800 rounded"
                       >
                         <Check className="w-3 h-3" />
                       </button>
@@ -321,7 +321,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                         setIsEditingDim('width');
                         setTempDimValue(parameters.width.toString());
                       }}
-                      className="font-tech text-slate-200 hover:text-blue-400 hover:bg-slate-800/60 px-1.5 py-0.5 rounded transition-colors"
+                      className="font-tech text-neutral-200 hover:text-steel-400 hover:bg-neutral-800/60 px-1.5 py-0.5 rounded transition-colors"
                     >
                       {parameters.width.toFixed(2)} mm
                     </button>
@@ -330,7 +330,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
 
                 {/* Thickness */}
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Thickness</span>
+                  <span className="text-neutral-400">Thickness</span>
                   {isEditingDim === 'thickness' ? (
                     <div className="flex items-center gap-1">
                       <input
@@ -339,13 +339,13 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                         onChange={(e) => setTempDimValue(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') handleCommitDimension('thickness'); if (e.key === 'Escape') setIsEditingDim(null); }}
                         aria-label="New thickness in mm"
-                        className="w-16 bg-[#182236] border border-blue-500 px-1 py-0.5 text-xs text-white rounded font-tech focus:outline-none"
+                        className="w-16 bg-[#222222] border border-steel-500 px-1 py-0.5 text-xs text-white rounded font-tech focus:outline-none"
                         autoFocus
                       />
                       <button
                         onClick={() => handleCommitDimension('thickness')}
                         aria-label="Save thickness"
-                        className="p-1 text-emerald-400 hover:bg-slate-800 rounded"
+                        className="p-1 text-emerald-400 hover:bg-neutral-800 rounded"
                       >
                         <Check className="w-3 h-3" />
                       </button>
@@ -356,7 +356,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                         setIsEditingDim('thickness');
                         setTempDimValue(parameters.thickness.toString());
                       }}
-                      className="font-tech text-slate-200 hover:text-blue-400 hover:bg-slate-800/60 px-1.5 py-0.5 rounded transition-colors"
+                      className="font-tech text-neutral-200 hover:text-steel-400 hover:bg-neutral-800/60 px-1.5 py-0.5 rounded transition-colors"
                     >
                       {parameters.thickness.toFixed(2)} mm
                     </button>
@@ -365,7 +365,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
 
                 {/* Hole Diameter */}
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Hole Diameter</span>
+                  <span className="text-neutral-400">Hole Diameter</span>
                   {isEditingDim === 'holeDiameter' ? (
                     <div className="flex items-center gap-1">
                       <input
@@ -374,13 +374,13 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                         onChange={(e) => setTempDimValue(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') handleCommitDimension('holeDiameter'); if (e.key === 'Escape') setIsEditingDim(null); }}
                         aria-label="New hole diameter in mm"
-                        className="w-16 bg-[#182236] border border-blue-500 px-1 py-0.5 text-xs text-white rounded font-tech focus:outline-none"
+                        className="w-16 bg-[#222222] border border-steel-500 px-1 py-0.5 text-xs text-white rounded font-tech focus:outline-none"
                         autoFocus
                       />
                       <button
                         onClick={() => handleCommitDimension('holeDiameter')}
                         aria-label="Save hole diameter"
-                        className="p-1 text-emerald-400 hover:bg-slate-800 rounded"
+                        className="p-1 text-emerald-400 hover:bg-neutral-800 rounded"
                       >
                         <Check className="w-3 h-3" />
                       </button>
@@ -391,7 +391,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                         setIsEditingDim('holeDiameter');
                         setTempDimValue(parameters.holeDiameter.toString());
                       }}
-                      className="font-tech text-slate-200 hover:text-blue-400 hover:bg-slate-800/60 px-1.5 py-0.5 rounded transition-colors"
+                      className="font-tech text-neutral-200 hover:text-steel-400 hover:bg-neutral-800/60 px-1.5 py-0.5 rounded transition-colors"
                     >
                       {parameters.holeDiameter.toFixed(2)} mm
                     </button>
@@ -402,33 +402,33 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
 
             {/* Features Status Section (Matches screenshot checks) */}
             <div className="space-y-3">
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
                 Features
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center gap-2.5 p-2 bg-[#12192a] border border-[#202c42] rounded-lg">
+                <div className="flex items-center gap-2.5 p-2 bg-[#1a1a1a] border border-[#2c2c2c] rounded-lg">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span className="text-slate-200 font-medium">Extrude Boss</span>
-                  <span className="ml-auto text-[10px] text-slate-500 font-tech">Base Plate</span>
+                  <span className="text-neutral-200 font-medium">Extrude Boss</span>
+                  <span className="ml-auto text-[10px] text-neutral-500 font-tech">Base Plate</span>
                 </div>
 
-                <div className="flex items-center gap-2.5 p-2 bg-[#12192a] border border-[#202c42] rounded-lg">
+                <div className="flex items-center gap-2.5 p-2 bg-[#1a1a1a] border border-[#2c2c2c] rounded-lg">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span className="text-slate-200 font-medium">Cut Extrude</span>
-                  <span className="ml-auto text-[10px] text-slate-500 font-tech">Ø24 mm Bore</span>
+                  <span className="text-neutral-200 font-medium">Cut Extrude</span>
+                  <span className="ml-auto text-[10px] text-neutral-500 font-tech">Ø24 mm Bore</span>
                 </div>
 
-                <div className="flex items-center gap-2.5 p-2 bg-[#12192a] border border-[#202c42] rounded-lg">
+                <div className="flex items-center gap-2.5 p-2 bg-[#1a1a1a] border border-[#2c2c2c] rounded-lg">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span className="text-slate-200 font-medium">Fillet (R2)</span>
-                  <span className="ml-auto text-[10px] text-slate-500 font-tech">Tangent Edges</span>
+                  <span className="text-neutral-200 font-medium">Fillet (R2)</span>
+                  <span className="ml-auto text-[10px] text-neutral-500 font-tech">Tangent Edges</span>
                 </div>
 
-                <div className="flex items-center gap-2.5 p-2 bg-[#12192a] border border-[#202c42] rounded-lg">
+                <div className="flex items-center gap-2.5 p-2 bg-[#1a1a1a] border border-[#2c2c2c] rounded-lg">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span className="text-slate-200 font-medium">Hole Wizard (4x)</span>
-                  <span className="ml-auto text-[10px] text-slate-500 font-tech">Through-All</span>
+                  <span className="text-neutral-200 font-medium">Hole Wizard (4x)</span>
+                  <span className="ml-auto text-[10px] text-neutral-500 font-tech">Through-All</span>
                 </div>
               </div>
             </div>
@@ -441,28 +441,28 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
           <PanelFrame panel="tree" label="Feature tree" view={panels.tree ?? COMPLETED}>
           {doc ? <RecordTree doc={doc} /> : (
           <div className="space-y-2">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between mb-2">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 flex items-center justify-between mb-2">
               <span>Demo feature tree</span>
               <span className="text-[10px] text-amber-300 font-tech">not from a CAD kernel</span>
             </div>
 
-            <div className="bg-[#12192a] border border-[#202c42] rounded-lg p-2 space-y-1">
+            <div className="bg-[#1a1a1a] border border-[#2c2c2c] rounded-lg p-2 space-y-1">
               {features.map((feat) => (
                 <div
                   key={feat.id}
                   className={`flex items-center justify-between p-1.5 rounded transition-colors group ${
-                    feat.suppressed ? 'opacity-40 bg-slate-900/40' : 'hover:bg-[#182338]'
+                    feat.suppressed ? 'opacity-40 bg-neutral-900/40' : 'hover:bg-[#232323]'
                   }`}
                 >
                   <div className="flex items-center gap-2 overflow-hidden">
-                    <span className="w-2 h-2 rounded-full bg-blue-500/80 flex-shrink-0" />
-                    <span className="font-tech text-slate-200 text-xs truncate">{feat.name}</span>
+                    <span className="w-2 h-2 rounded-full bg-steel-500/80 flex-shrink-0" />
+                    <span className="font-tech text-neutral-200 text-xs truncate">{feat.name}</span>
                   </div>
 
                   <div className="flex items-center gap-1.5 opacity-80 group-hover:opacity-100">
                     <button
                       onClick={() => toggleFeatureSuppression(feat.id)}
-                      className="p-1 text-slate-400 hover:text-white rounded"
+                      className="p-1 text-neutral-400 hover:text-white rounded"
                       title={feat.suppressed ? 'Unsuppress feature' : 'Suppress feature'}
                     >
                       {feat.suppressed ? <EyeOff className="w-3 h-3 text-amber-500" /> : <Eye className="w-3 h-3" />}
@@ -472,7 +472,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
               ))}
             </div>
 
-            <div className="p-2.5 bg-blue-950/20 border border-blue-800/30 rounded text-[11px] text-slate-400">
+            <div className="p-2.5 bg-steel-950/20 border border-steel-800/30 rounded text-[11px] text-neutral-400">
               Demo data. Open a part to see its real feature tree.
             </div>
           </div>
@@ -482,11 +482,11 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
 
         {/* TAB 3: BOM (Bill of Materials) */}
         {activeTab === 'bom' && doc && (
-          <div className="text-xs text-slate-400">No bill of materials for this document. The kernel records no parts list yet.</div>
+          <div className="text-xs text-neutral-400">No bill of materials for this document. The kernel records no parts list yet.</div>
         )}
         {activeTab === 'bom' && !doc && (
           <div className="space-y-3">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 flex items-center justify-between">
               <span>Structured BOM</span>
               <button
                 onClick={() => {
@@ -499,7 +499,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                   a.download = 'Mounting_Bracket_BOM.csv';
                   a.click();
                 }}
-                className="flex items-center gap-1 text-[10px] text-blue-400 hover:text-blue-300 font-tech"
+                className="flex items-center gap-1 text-[10px] text-steel-400 hover:text-steel-300 font-tech"
               >
                 <Download className="w-3 h-3" />
                 <span>Export CSV</span>
@@ -508,15 +508,15 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
 
             <div className="space-y-2">
               {bomItems.map((item) => (
-                <div key={item.id} className="bg-[#12192a] border border-[#202c42] rounded-lg p-2.5 space-y-1.5">
+                <div key={item.id} className="bg-[#1a1a1a] border border-[#2c2c2c] rounded-lg p-2.5 space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="font-tech font-bold text-blue-400 text-xs">#{item.itemNo} {item.partNumber}</span>
+                    <span className="font-tech font-bold text-steel-400 text-xs">#{item.itemNo} {item.partNumber}</span>
                     <span className="px-1.5 py-0.5 rounded text-[10px] font-tech uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                       {item.status}
                     </span>
                   </div>
-                  <div className="text-slate-300 text-xs">{item.description}</div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 font-tech pt-1 border-t border-[#1e293b]">
+                  <div className="text-neutral-300 text-xs">{item.description}</div>
+                  <div className="flex items-center justify-between text-[11px] text-neutral-400 font-tech pt-1 border-t border-[#292929]">
                     <span>Qty: {item.qty}</span>
                     <span>{item.material}</span>
                     <span>{item.massKg} kg</span>

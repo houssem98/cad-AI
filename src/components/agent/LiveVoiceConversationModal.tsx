@@ -244,21 +244,21 @@ export const LiveVoiceConversationModal: React.FC<LiveVoiceConversationModalProp
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-150">
-      <div className="w-full max-w-lg bg-[#0e1526] border border-[#233554] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="w-full max-w-lg bg-[#161616] border border-[#353535] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#1e293b] bg-[#11192e]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#292929] bg-[#1a1a1a]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
+            <div className="w-8 h-8 rounded-lg bg-steel-600/20 border border-steel-500/40 flex items-center justify-center text-steel-400">
               <Radio className="w-4 h-4 animate-pulse" />
             </div>
             <div>
-              <div className="font-bold text-slate-100 text-sm flex items-center gap-2">
+              <div className="font-bold text-neutral-100 text-sm flex items-center gap-2">
                 <span>Gemini Live Voice Copilot</span>
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-tech font-bold uppercase bg-blue-500/20 text-blue-400 border border-blue-500/40">
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-tech font-bold uppercase bg-steel-500/20 text-steel-400 border border-steel-500/40">
                   gemini-3.8-live
                 </span>
               </div>
-              <div className="text-[11px] text-slate-400 font-tech">
+              <div className="text-[11px] text-neutral-400 font-tech">
                 Full-duplex real-time engineering audio channel (16kHz in / 24kHz out)
               </div>
             </div>
@@ -266,7 +266,7 @@ export const LiveVoiceConversationModal: React.FC<LiveVoiceConversationModalProp
 
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors"
+            className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -278,30 +278,30 @@ export const LiveVoiceConversationModal: React.FC<LiveVoiceConversationModalProp
           <div className="relative w-36 h-36 flex items-center justify-center">
             {/* Outer pulse */}
             <div
-              className={`absolute inset-0 rounded-full border border-blue-500/30 transition-all duration-300 ${
+              className={`absolute inset-0 rounded-full border border-steel-500/30 transition-all duration-300 ${
                 isSpeaking
-                  ? 'scale-125 bg-blue-500/10 border-cyan-400 animate-ping'
+                  ? 'scale-125 bg-steel-500/10 border-steel-400 animate-ping'
                   : audioLevel > 10
-                  ? 'scale-110 bg-blue-500/5'
+                  ? 'scale-110 bg-steel-500/5'
                   : 'scale-100'
               }`}
             />
             {/* Middle pulse */}
             <div
-              className={`absolute inset-4 rounded-full border border-cyan-500/40 transition-all duration-200 ${
+              className={`absolute inset-4 rounded-full border border-steel-500/40 transition-all duration-200 ${
                 isSpeaking
-                  ? 'bg-cyan-500/20 border-cyan-300'
+                  ? 'bg-steel-500/20 border-steel-300'
                   : audioLevel > 20
-                  ? 'bg-blue-600/15'
-                  : 'bg-blue-950/40'
+                  ? 'bg-steel-600/15'
+                  : 'bg-steel-950/40'
               }`}
             />
             {/* Center icon */}
-            <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-xl shadow-blue-600/40 border border-cyan-300/40">
+            <div className="relative w-20 h-20 rounded-full bg-steel-600 flex items-center justify-center shadow-xl border border-steel-300/40">
               {isSpeaking ? (
                 <Volume2 className="w-8 h-8 text-white animate-bounce" />
               ) : isMuted ? (
-                <MicOff className="w-8 h-8 text-slate-300" />
+                <MicOff className="w-8 h-8 text-neutral-300" />
               ) : (
                 <Mic className="w-8 h-8 text-white" />
               )}
@@ -310,20 +310,20 @@ export const LiveVoiceConversationModal: React.FC<LiveVoiceConversationModalProp
 
           {/* Status Text */}
           <div className="space-y-1">
-            <div className="text-sm font-semibold text-slate-200">
+            <div className="text-sm font-semibold text-neutral-200">
               {isSpeaking ? 'MechForge Copilot is speaking...' : isMuted ? 'Microphone Muted' : 'Listening...'}
             </div>
-            <p className="text-xs text-slate-400 font-tech max-w-sm">
+            <p className="text-xs text-neutral-400 font-tech max-w-sm">
               {statusText}
             </p>
           </div>
 
           {/* Suggested Spoken Phrases */}
-          <div className="w-full bg-[#131c30] border border-[#202e48] rounded-xl p-3 text-left space-y-1.5 text-xs">
-            <div className="text-[10px] uppercase font-tech text-slate-400 font-semibold">
+          <div className="w-full bg-[#1d1d1d] border border-[#2e2e2e] rounded-xl p-3 text-left space-y-1.5 text-xs">
+            <div className="text-[10px] uppercase font-tech text-neutral-400 font-semibold">
               Try saying naturally:
             </div>
-            <div className="text-slate-300 font-tech text-[11px] space-y-1">
+            <div className="text-neutral-300 font-tech text-[11px] space-y-1">
               <div>"Increase base plate thickness to 15 millimeters."</div>
               <div>"What is the safety factor under a 3500 Newton vertical load?"</div>
               <div>"Change part material to Titanium Ti-6Al-4V."</div>
@@ -332,13 +332,13 @@ export const LiveVoiceConversationModal: React.FC<LiveVoiceConversationModalProp
         </div>
 
         {/* Footer Controls */}
-        <div className="px-6 py-4 border-t border-[#1e293b] bg-[#0c121e] flex items-center justify-between">
+        <div className="px-6 py-4 border-t border-[#292929] bg-[#121212] flex items-center justify-between">
           <button
             onClick={() => setIsMuted(!isMuted)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-colors ${
               isMuted
                 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                : 'bg-[#182338] text-slate-200 hover:text-white border border-[#2b3a58]'
+                : 'bg-[#232323] text-neutral-200 hover:text-white border border-[#3a3a3a]'
             }`}
           >
             {isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4 text-emerald-400" />}
@@ -347,7 +347,7 @@ export const LiveVoiceConversationModal: React.FC<LiveVoiceConversationModalProp
 
           <button
             onClick={onClose}
-            className="flex items-center gap-2 px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-semibold shadow-md shadow-rose-600/30 transition-colors"
+            className="flex items-center gap-2 px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-semibold shadow-md transition-colors"
           >
             <PhoneOff className="w-4 h-4" />
             <span>End Call</span>

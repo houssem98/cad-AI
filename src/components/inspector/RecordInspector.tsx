@@ -11,8 +11,8 @@ const mm = (v: number) => v.toFixed(2);
 function Row({ name, children, testId }: { name: string; children: React.ReactNode; testId?: string }) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-1">
-      <dt className="text-slate-400">{name}</dt>
-      <dd data-testid={testId} className="font-tech text-right text-slate-100">{children}</dd>
+      <dt className="text-neutral-400">{name}</dt>
+      <dd data-testid={testId} className="font-tech text-right text-neutral-100">{children}</dd>
     </div>
   );
 }
@@ -23,14 +23,14 @@ export function RecordProperties({ doc }: { doc: DocumentView }) {
   const i = doc.inspection;
   return (
     <div className="space-y-2">
-      <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Document</div>
-      <dl className="rounded-lg border border-[#202c42] bg-[#12192a] px-3 py-2 text-xs">
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">Document</div>
+      <dl className="rounded-lg border border-[#2c2c2c] bg-[#1a1a1a] px-3 py-2 text-xs">
         <Row name="Document">{doc.id}</Row>
         <Row name="Revision">{doc.revision}</Row>
         <Row name="Material">{doc.material ?? 'none assigned'}</Row>
       </dl>
-      <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">From the last succeeded record</div>
-      <dl className="rounded-lg border border-[#202c42] bg-[#12192a] px-3 py-2 text-xs">
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">From the last succeeded record</div>
+      <dl className="rounded-lg border border-[#2c2c2c] bg-[#1a1a1a] px-3 py-2 text-xs">
         {i ? (
           <>
             <Row name="Valid solid">{i.valid ? 'yes' : 'no'}</Row>
@@ -52,12 +52,12 @@ export function RecordProperties({ doc }: { doc: DocumentView }) {
 export function RecordTree({ doc }: { doc: DocumentView }) {
   return (
     <div className="space-y-2">
-      <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Features, in build order</div>
-      <ol className="space-y-1 rounded-lg border border-[#202c42] bg-[#12192a] p-2 text-xs">
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">Features, in build order</div>
+      <ol className="space-y-1 rounded-lg border border-[#2c2c2c] bg-[#1a1a1a] p-2 text-xs">
         {doc.features.map((f) => (
           <li key={f.id} className="flex items-center gap-2 rounded p-1.5">
-            <span className="font-tech text-slate-100">{f.id}</span>{' '}
-            <span className="text-slate-400">{label(f.type)}</span>
+            <span className="font-tech text-neutral-100">{f.id}</span>{' '}
+            <span className="text-neutral-400">{label(f.type)}</span>
           </li>
         ))}
       </ol>

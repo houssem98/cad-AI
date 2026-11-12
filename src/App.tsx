@@ -139,7 +139,7 @@ export default function App() {
   );
 
   return (
-    <div className="flex flex-col w-screen h-screen bg-[#080c14] text-slate-200 overflow-hidden font-sans">
+    <div className="flex flex-col w-screen h-screen bg-[#0c0c0c] text-neutral-200 overflow-hidden font-sans">
       {/* 1. Global Top Navigation Header */}
       <TopNavigation
         currentProject={currentProject}
@@ -168,7 +168,7 @@ export default function App() {
         />
 
         {/* Dynamic Center Workstation */}
-        <main className="flex-1 min-w-0 flex flex-col h-full bg-[#080c14] overflow-hidden">
+        <main className="flex-1 min-w-0 flex flex-col h-full bg-[#0c0c0c] overflow-hidden">
           {/* PRIMARY WORKSPACE: AI CAD AGENT (Matches exact screenshot reference) */}
           {currentModule === 'ai-cad-agent' && (
             <div className="flex flex-col h-full w-full overflow-hidden">
@@ -176,7 +176,7 @@ export default function App() {
               <div className="flex flex-1 min-h-0 w-full overflow-hidden">
                 {/* AI CAD Agent Conversation Panel */}
                 <PanelFrame panel="chat" label="Chat" view={panels.chat} className="flex h-full flex-shrink-0"
-                  stateClassName="w-[310px] lg:w-[340px] border-r border-[#1a2336] bg-[#080d17]">
+                  stateClassName="w-[310px] lg:w-[340px] border-r border-[#232323] bg-[#0d0d0d]">
                   <AICADAgentPanel
                     parameters={parameters}
                     onUpdateParameters={handleUpdateParameters}
@@ -209,7 +209,7 @@ export default function App() {
               {/* Lower split: Operation History & Verification Center Console, with background tasks beside it */}
               <div className="flex w-full flex-shrink-0">
                 <PanelFrame panel="history" label="History" view={panels.history} className="min-w-0 flex-1"
-                  stateClassName="h-[185px] border-t border-[#182338] bg-[#080d17]">
+                  stateClassName="h-[185px] border-t border-[#232323] bg-[#0d0d0d]">
                   <BottomConsole
                     operations={operationHistory}
                     onOpenReport={() => setIsVerificationReportOpen(true)}
@@ -221,7 +221,7 @@ export default function App() {
                 </PanelFrame>
                 {isConsoleOpen && (
                   <PanelFrame panel="tasks" label="Tasks" view={panels.tasks}
-                    className="h-[185px] w-[300px] flex-shrink-0 border-l border-t border-[#182338] bg-[#080d17]" />
+                    className="h-[185px] w-[300px] flex-shrink-0 border-l border-t border-[#232323] bg-[#0d0d0d]" />
                 )}
               </div>
             </div>
@@ -370,18 +370,18 @@ export default function App() {
 
       {/* Help Modal */}
       {isHelpOpen && (
-        <Dialog label="Help" onClose={() => setIsHelpOpen(false)} className="w-full max-w-lg bg-[#0f1728] border border-[#232f48] rounded-xl p-6 space-y-4 text-xs">
-            <div className="flex items-center justify-between border-b border-[#1e293b] pb-3">
-              <span className="font-bold text-slate-100 text-sm">MechForge AI — Guide</span>
+        <Dialog label="Help" onClose={() => setIsHelpOpen(false)} className="w-full max-w-lg bg-[#171717] border border-[#2f2f2f] rounded-xl p-6 space-y-4 text-xs">
+            <div className="flex items-center justify-between border-b border-[#292929] pb-3">
+              <span className="font-bold text-neutral-100 text-sm">MechForge AI — Guide</span>
               <button
                 onClick={() => setIsHelpOpen(false)}
                 aria-label="Close help"
-                className="text-slate-400 hover:text-white"
+                className="text-neutral-400 hover:text-white"
               >
                 ✕
               </button>
             </div>
-            <div className="space-y-2 text-slate-300 leading-relaxed">
+            <div className="space-y-2 text-neutral-300 leading-relaxed">
               <p>
                 <strong>3D Viewport Controls:</strong> Left-click and drag to rotate/orbit the model. Right-click and drag to pan. Scroll to zoom. With the viewport focused, arrow keys pan, Shift and arrow keys orbit, and + and − zoom.
               </p>
@@ -389,7 +389,7 @@ export default function App() {
                 <strong>Interactive Parameter Editing:</strong> Click any dimension in the right Properties panel (e.g. Length, Thickness) to edit its value and watch the 3D model update live.
               </p>
               <p>
-                <strong>Command Palette:</strong> Press <kbd className="px-1.5 py-0.5 bg-slate-800 rounded font-tech">Ctrl+K</kbd> anywhere to quickly search across modules and trigger CAD actions.
+                <strong>Command Palette:</strong> Press <kbd className="px-1.5 py-0.5 bg-neutral-800 rounded font-tech">Ctrl+K</kbd> anywhere to quickly search across modules and trigger CAD actions.
               </p>
               <p>
                 <strong>CAD connection:</strong> No CAD application is connected. Parts open with ?part=&lt;document id&gt; come from the built-in kernel; the bracket shown otherwise is a demo model, not a CAD result.
@@ -398,7 +398,7 @@ export default function App() {
             <div className="pt-2 flex justify-end">
               <button
                 onClick={() => setIsHelpOpen(false)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-medium"
+                className="px-4 py-2 bg-steel-600 hover:bg-steel-500 text-white rounded font-medium"
               >
                 Got it
               </button>
