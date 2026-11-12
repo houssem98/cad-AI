@@ -4,7 +4,7 @@ Phase 3 of `docs/roadmap/MECAGENT_ROADMAP.md`, "Premium CAD desktop experience".
 
 Target: `docs/roadmap/MECAGENT_ROADMAP.md#Implement loading, empty, error, running, completed and cancelled states.`
 
-Deciding rule, fixed before T2 starts: T0 to T5 are ticked, `npm run gate` exits 0 with the Playwright suite inside it, and the human's signoff line (T6) is in the Journal.
+Deciding rule, fixed before T2 starts: T0 to T5 are ticked (and T7 and T8, which the human added on 2026-11-12; the rule gained two tasks and lost nothing), `npm run gate` exits 0 with the Playwright suite inside it, and the human's signoff line (T6) is in the Journal.
 
 ## Tasks
 
@@ -14,7 +14,9 @@ Deciding rule, fixed before T2 starts: T0 to T5 are ticked, `npm run gate` exits
 - [x] T3 Viewport. needs: T2. Render the kernel's tessellation (glTF from the worker, through a tessellate request this task adds to the worker protocol in `docs/cad-agent/architecture/API_CONTRACTS.md`) with orbit, pan and zoom, always labeled as a preview (I3). Evidence: e2e: a fixture part loads, the canvas is not blank, the preview label is present.
 - [x] T4 Tree and properties. needs: T2. Both bound to the adapter's inspect output. Evidence: e2e against a fixture part: the tree lists its features, and the properties panel shows volume and bounding box taken from the execution record (its inspection's volume_mm3 and bbox_mm, `cad-AI/src/services/cad/cadStore.ts`).
 - [x] T5 Independent check. needs: T3, T4. A council with the states and clean-room items of the attack list, plus keyboard reachability and icon-only buttons with no name. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
-- [ ] T6 (human) Signoff. needs: T5. Visual quality judged at 1440 × 900 and 1280 × 720. Evidence: the signoff line in the Journal.
+- [ ] T6 (human) Signoff. needs: T5, T7, T8. Visual quality judged at 1440 × 900 and 1280 × 720. Evidence: the signoff line in the Journal.
+- [ ] T7 Layout at 1280 × 720. needs: T5. Added 2026-11-12 by the human. At 1280 × 720 and 1440 × 900, no tab or button label wraps to a second line, the chat's suggestion chips stay inside the chat panel, and every sidebar module can be reached. Evidence: e2e at both sizes: each tab and button label is one line high, no visible element crosses its panel's edge (a row meant to scroll scrolls inside its panel), and each sidebar module is visible or scrolls into view.
+- [ ] T8 Graphite palette. needs: T5. Added 2026-11-12 by the human. The dark direction T1 chose: near-black neutral greys, one steel-blue accent, status colours only for states, no gradients or glow, all from one token set. Evidence: e2e at / and /?part=plate: every visible element's computed text, background and border colour is a neutral grey or one of the tokens (the accent and the success, warning and error colours), and no visible element has a gradient background or a coloured blurred shadow.
 
 ## Journal
 - 2026-11-10 · L4/T0 · started T0 (L3 T2, T3 and T5 wait on the human's approval to install build123d, so by driver rule 3 this sibling loop takes the tick)
@@ -122,3 +124,4 @@ Deciding rule, fixed before T2 starts: T0 to T5 are ticked, `npm run gate` exits
   repeat: a11y Pan/Rotate and viewport load, 3 each · 6 passed
   clean-room-lint after the cad-AI commit: 140 tracked files · clean
   ```
+- 2026-11-12 · L4 · human decision in chat, multiple choice: before the T6 signoff, add T7 Layout at 1280 × 720 (console tab labels wrap to two lines, the chat's suggestion chips overflow, and the sidebar is cut off in the T5 screenshots) and T8 Graphite palette. The remaining false claims outside the workspace (Overview, the Verification Center view, Integrations, the Export modal) were offered and not chosen, so they stay deferred. C23 is left as is: the reference name sits in the human's own planning docs, which the app does not ship. The deciding rule gains T7 and T8, and T6 now needs them. The light theme in T1's direction has no task yet · Direction: still the goal · Next: T7 Layout
