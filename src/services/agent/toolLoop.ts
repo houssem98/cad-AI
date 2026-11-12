@@ -23,35 +23,49 @@ extrude and cut take a sketch id. Holes are drilled along Z from the top of the 
 A document starts with new_part. Give every operation a new id. If an operation is refused or fails, read its error and correct it.
 When the request is done, reply with one line and call no tool.`;
 
+// A failed operation, or a "done" that verify rejects, is a failure; the model replans after each, and the third ends the request.
+export const MAX_REPLANS = 2;
 export interface Outcome { status: string; error: any; inspection: any }
-export interface Step { call: ToolCall; outcome: Outcome }
-export interface LoopResult { status: 'done' | 'step_limit'; text?: string; steps: Step[] }
-export interface LoopContext { complete: Complete; executor: Executor; document: string; requestId: string; signal?: AbortSignal; maxTurns?: number }
+export interface Step { call: ToolCall; outcome: Outcome; operationId: string }
+export interface LoopResult { status: 'done' | 'failed' | 'step_limit'; text?: string; steps: Step[]; problem?: string }
+export interface LoopContext {
+  complete: Complete; executor: Executor; document: string; requestId: string; signal?: AbortSignal; maxTurns?: number;
+  verify?: () => Promise<string | null>; // the kernel's objection to a "done", or null
+}
 
 // Unparsable arguments still go to the executor, so its schema refuses them and the refusal is recorded like any other.
-async function run(call: ToolCall, ctx: LoopContext): Promise<Outcome> {
+async function run(call: ToolCall, ctx: LoopContext): Promise<Step> {
   let args: any = null;
   try { args = JSON.parse(call.arguments || '{}'); } catch { /* refused below as params null */ }
   const proposal = { id: args?.id ?? '', target: { document: ctx.document }, type: call.name, params: args?.params ?? null,
     preconditions: [], status: 'pending', result: null, verification: null, error: null };
   const out = await ctx.executor.execute(proposal, { requestId: ctx.requestId, signal: ctx.signal });
-  return { status: out.status, error: out.record?.errorDetails ?? out.error ?? null, inspection: out.record?.validationResult?.inspection ?? null };
+  return { call, operationId: out.operationId,
+    outcome: { status: out.status, error: out.record?.errorDetails ?? out.error ?? null, inspection: out.record?.validationResult?.inspection ?? null } };
 }
 
 export async function runToolLoop(task: string, ctx: LoopContext): Promise<LoopResult> {
   const exists = ctx.executor.store.document(ctx.document) ? 'exists' : 'does not exist yet';
   const messages: any[] = [{ role: 'system', content: TOOL_PROMPT }, { role: 'user', content: `Document "${ctx.document}" ${exists}.\n${task}` }];
   const steps: Step[] = [];
+  let failures = 0;
   for (let turn = 0; turn < (ctx.maxTurns ?? 20); turn++) {
     const reply = await ctx.complete({ messages, tools: TOOLS, maxTokens: 800 });
-    if (!reply.toolCalls.length) return { status: 'done', text: reply.text, steps };
+    if (!reply.toolCalls.length) {
+      const problem = (await ctx.verify?.()) ?? null;
+      if (!problem) return { status: 'done', text: reply.text, steps };
+      if (++failures > MAX_REPLANS) return { status: 'failed', text: reply.text, steps, problem };
+      messages.push({ role: 'assistant', content: reply.text }, { role: 'user', content: `The kernel says the request is not done: ${problem}. Continue.` });
+      continue;
+    }
     messages.push({ role: 'assistant', content: reply.text || null,
       tool_calls: reply.toolCalls.map((t) => ({ id: t.id, type: 'function', function: { name: t.name, arguments: t.arguments } })) });
     for (const call of reply.toolCalls) {
-      const outcome = await run(call, ctx);
-      steps.push({ call, outcome });
+      const step = await run(call, ctx);
+      steps.push(step);
       // No row ids or times: what the model sees must replay byte for byte.
-      messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify(outcome) });
+      messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify(step.outcome) });
+      if (step.outcome.status !== 'succeeded' && ++failures > MAX_REPLANS) return { status: 'failed', steps, problem: step.outcome.error?.message ?? step.outcome.status };
     }
   }
   return { status: 'step_limit', steps };
