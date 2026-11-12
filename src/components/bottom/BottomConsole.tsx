@@ -82,7 +82,7 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
                 role="tab"
                 aria-selected={activeTab === id}
                 onClick={() => setActiveTab(id)}
-                className={`py-1 px-2.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                className={`whitespace-nowrap py-1 px-2.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
                   activeTab === id ? 'bg-blue-600 text-white font-semibold shadow-sm' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >

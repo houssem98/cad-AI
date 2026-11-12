@@ -153,7 +153,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
             role="tab"
             aria-selected={activeTab === 'properties'}
             onClick={() => setActiveTab('properties')}
-            className={`flex-1 py-1 px-2 text-center rounded text-[11px] transition-colors cursor-pointer ${
+            className={`flex-1 whitespace-nowrap py-1 px-2 text-center rounded text-[11px] transition-colors cursor-pointer ${
               activeTab === 'properties'
                 ? 'bg-blue-600 text-white font-semibold shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
@@ -166,7 +166,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
             role="tab"
             aria-selected={activeTab === 'featureTree'}
             onClick={() => setActiveTab('featureTree')}
-            className={`flex-1 py-1 px-2 text-center rounded text-[11px] transition-colors cursor-pointer ${
+            className={`flex-1 whitespace-nowrap py-1 px-2 text-center rounded text-[11px] transition-colors cursor-pointer ${
               activeTab === 'featureTree'
                 ? 'bg-blue-600 text-white font-semibold shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
@@ -179,7 +179,7 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
             role="tab"
             aria-selected={activeTab === 'bom'}
             onClick={() => setActiveTab('bom')}
-            className={`flex-1 py-1 px-2 text-center rounded text-[11px] transition-colors cursor-pointer ${
+            className={`flex-1 whitespace-nowrap py-1 px-2 text-center rounded text-[11px] transition-colors cursor-pointer ${
               activeTab === 'bom'
                 ? 'bg-blue-600 text-white font-semibold shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
@@ -220,13 +220,13 @@ export const RightInspectorPanel: React.FC<RightInspectorPanelProps> = ({
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Material</span>
-                  <div className="relative">
+                  <span className="shrink-0 text-slate-400">Material</span>
+                  <div className="relative ml-3 min-w-0">
                     <select
                       aria-label="Material"
                       value={currentMaterial.name}
                       onChange={(e) => handleMaterialChange(e.target.value)}
-                      className="appearance-none bg-[#182236] border border-[#2d3d5c] rounded px-2.5 py-1 pr-6 text-slate-200 font-tech text-xs focus:outline-none focus:border-blue-500 cursor-pointer"
+                      className="max-w-full appearance-none bg-[#182236] border border-[#2d3d5c] rounded px-2.5 py-1 pr-6 text-slate-200 font-tech text-xs focus:outline-none focus:border-blue-500 cursor-pointer"
                     >
                       {AVAILABLE_MATERIALS.map((m) => (
                         <option key={m.id} value={m.name}>

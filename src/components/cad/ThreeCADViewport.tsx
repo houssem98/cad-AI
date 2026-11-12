@@ -588,9 +588,9 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
         </div>
 
         {/* Clean Unboxed Document Metadata (Anti-Slop Zero-Pill) */}
-        <div className="flex items-center gap-2 text-[10px] font-tech text-slate-400 shrink-0">
-          <span className="rounded border border-slate-600 px-1.5 py-0.5 font-semibold uppercase tracking-wider text-slate-100">Preview</span>
-          <span className="hidden md:inline">demo model drawn from parameters, not built by a CAD kernel</span>
+        <div className="flex min-w-0 items-center gap-2 text-[10px] font-tech text-slate-400">
+          <span className="shrink-0 rounded border border-slate-600 px-1.5 py-0.5 font-semibold uppercase tracking-wider text-slate-100">Preview</span>
+          <span className="hidden md:inline truncate" title="demo model drawn from parameters, not built by a CAD kernel">demo model, not built by a CAD kernel</span>
         </div>
       </div>
 
@@ -600,7 +600,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
         <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
         {/* Floating Compact HUD Toolbar (Top-Left of Viewport, Zero Collision) */}
-        <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-0.5 p-1 bg-[#0d1424]/90 backdrop-blur-md border border-[#1e2c46] rounded-lg shadow-xl shadow-black/40">
+        <div className="absolute top-2.5 left-2.5 z-20 flex max-w-[calc(100%-1.25rem)] flex-wrap items-center gap-0.5 p-1 bg-[#0d1424]/90 backdrop-blur-md border border-[#1e2c46] rounded-lg shadow-xl shadow-black/40">
           <button
             onClick={() => setActiveTool('select')}
             className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${

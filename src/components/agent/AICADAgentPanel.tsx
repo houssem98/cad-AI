@@ -403,9 +403,9 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
     <>
       <div className="w-[310px] lg:w-[340px] h-full bg-[#080d17] border-r border-[#1a2336] flex flex-col flex-shrink-0 select-none z-20 transition-all">
         {/* 1. Header with Model Selector & Live Voice Button */}
-        <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-[#1e293b] bg-[#101728]">
+        <div className="flex flex-wrap items-center justify-between gap-y-1.5 px-3.5 py-2.5 border-b border-[#1e293b] bg-[#101728]">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-slate-100 text-xs tracking-tight">AI CAD Agent</span>
+            <span className="whitespace-nowrap font-semibold text-slate-100 text-xs tracking-tight">AI CAD Agent</span>
             <span className="px-1.5 py-0.2 text-[9px] bg-blue-950 text-blue-400 border border-blue-800/60 rounded font-bold uppercase tracking-wider">
               Beta
             </span>
@@ -414,7 +414,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
             <div className="relative">
               <button
                 onClick={() => setShowModelMenu(!showModelMenu)}
-                className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-tech font-semibold rounded bg-blue-950/80 text-blue-400 border border-blue-800/60 hover:bg-blue-900/60 transition-colors"
+                className="flex items-center gap-1 whitespace-nowrap px-2 py-0.5 text-[10px] font-tech font-semibold rounded bg-blue-950/80 text-blue-400 border border-blue-800/60 hover:bg-blue-900/60 transition-colors"
                 title="Select Gemini Engine"
               >
                 <Cpu className="w-3 h-3 text-cyan-400" />
@@ -469,11 +469,11 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
           </div>
 
           {/* Live Voice Button & Minimize / Close */}
-          <div className="flex items-center gap-1.5 text-slate-400">
+          <div className="ml-auto flex items-center gap-1.5 text-slate-400">
             {onOpenLiveVoice && (
               <button
                 onClick={onOpenLiveVoice}
-                className="flex items-center gap-1 px-2 py-1 rounded bg-blue-600/20 hover:bg-blue-600/30 text-cyan-300 border border-blue-500/40 text-[10px] font-tech font-bold transition-all shadow-sm"
+                className="flex items-center gap-1 whitespace-nowrap px-2 py-1 rounded bg-blue-600/20 hover:bg-blue-600/30 text-cyan-300 border border-blue-500/40 text-[10px] font-tech font-bold transition-all shadow-sm"
                 title="Launch Live Voice conversation with gemini-3.8-live"
               >
                 <Mic className="w-3 h-3 text-cyan-400" />
@@ -733,7 +733,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="text-[11px] font-semibold text-slate-200 truncate">STEP AP242</div>
-                              <div className="text-[9px] font-tech text-slate-500">ISO-10303 B-Rep</div>
+                              <div className="text-[9px] font-tech text-slate-500 truncate">ISO-10303 B-Rep</div>
                             </div>
                           </button>
 
@@ -748,7 +748,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="text-[11px] font-semibold text-slate-200 truncate">STL Mesh</div>
-                              <div className="text-[9px] font-tech text-slate-500">3D Printing</div>
+                              <div className="text-[9px] font-tech text-slate-500 truncate">3D Printing</div>
                             </div>
                           </button>
 
@@ -763,7 +763,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="text-[11px] font-semibold text-slate-200 truncate">SW Macro (.vbs)</div>
-                              <div className="text-[9px] font-tech text-slate-500">COM Dispatch</div>
+                              <div className="text-[9px] font-tech text-slate-500 truncate">COM Dispatch</div>
                             </div>
                           </button>
 
@@ -778,7 +778,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="text-[11px] font-semibold text-slate-200 truncate">Python Script</div>
-                              <div className="text-[9px] font-tech text-slate-500">pywin32 bridge</div>
+                              <div className="text-[9px] font-tech text-slate-500 truncate">pywin32 bridge</div>
                             </div>
                           </button>
                         </div>
@@ -824,7 +824,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({
         </div>
 
         {/* 3. Quick Suggestions Pills */}
-        <div className="px-3 py-1.5 border-t border-[#1a2336] bg-[#0c111c] flex items-center gap-1.5 overflow-x-auto text-[11px] text-slate-300 no-scrollbar">
+        <div className="px-3 py-1.5 border-t border-[#1a2336] bg-[#0c111c] flex flex-wrap items-center gap-1.5 text-[11px] text-slate-300">
           <button
             onClick={() => handleSendMessage('Increase thickness to 15mm')}
             className="whitespace-nowrap px-2.5 py-1 bg-[#141b2b] hover:bg-[#1e283d] border border-[#243350] rounded-full text-slate-300 hover:text-white transition-colors cursor-pointer"
