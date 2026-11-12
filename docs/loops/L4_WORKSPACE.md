@@ -16,7 +16,7 @@ Deciding rule, fixed before T2 starts: T0 to T5 are ticked (and T7 and T8, which
 - [x] T5 Independent check. needs: T3, T4. A council with the states and clean-room items of the attack list, plus keyboard reachability and icon-only buttons with no name. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
 - [ ] T6 (human) Signoff. needs: T5, T7, T8. Visual quality judged at 1440 × 900 and 1280 × 720. Evidence: the signoff line in the Journal.
 - [x] T7 Layout at 1280 × 720. needs: T5. Added 2026-11-12 by the human. At 1280 × 720 and 1440 × 900, no tab or button label wraps to a second line, the chat's suggestion chips stay inside the chat panel, and every sidebar module can be reached. Evidence: e2e at both sizes: each tab and button label is one line high, no visible element crosses its panel's edge (a row meant to scroll scrolls inside its panel), and each sidebar module is visible or scrolls into view.
-- [ ] T8 Graphite palette. needs: T5. Added 2026-11-12 by the human. The dark direction T1 chose: near-black neutral greys, one steel-blue accent, status colours only for states, no gradients or glow, all from one token set. Evidence: e2e at / and /?part=plate: every visible element's computed text, background and border colour is a neutral grey or one of the tokens (the accent and the success, warning and error colours), and no visible element has a gradient background or a coloured blurred shadow.
+- [x] T8 Graphite palette. needs: T5. Added 2026-11-12 by the human. The dark direction T1 chose: near-black neutral greys, one steel-blue accent, status colours only for states, no gradients or glow, all from one token set. Evidence: e2e at / and /?part=plate: every visible element's computed text, background and border colour is a neutral grey or one of the tokens (the accent and the success, warning and error colours), and no visible element has a gradient background or a coloured blurred shadow.
 
 ## Journal
 - 2026-11-10 · L4/T0 · started T0 (L3 T2, T3 and T5 wait on the human's approval to install build123d, so by driver rule 3 this sibling loop takes the tick)
@@ -140,6 +140,26 @@ Deciding rule, fixed before T2 starts: T0 to T5 are ticked (and T7 and T8, which
   52 passed in 8.50s
   Running 28 tests using 1 worker
     28 passed (2.2m)
+  gate exit=0
+  gate-guard in cad-AI: clean
+  clean-room-lint after the cad-AI commit: clean
+  ```
+- 2026-11-12 · L4/T8 · started T8
+- 2026-11-12 · L4/T8 · passed · gate green · commit loop(L4/T8) (this entry's own commit; cad-AI commit 233bb25) · `cad-AI/e2e/palette.e2e.ts` was written first. On / and /?part=plate it reads every visible element's computed text, background and border colour, converts it to OKLCH (rgb, oklab, oklch and color(srgb) syntaxes), and accepts only these: a neutral grey (chroma under 0.015), the steel accent (hue 245 ± 6, chroma at most 0.13), or a status hue (success 140–175, warning 50–95, error 10–35). It also rejects a gradient with more than one colour or any non-neutral stop, and any blurred shadow that is not neutral. A third test plants a violet background, cyan text, a colour gradient and a coloured glow, and requires all four to be flagged, so the check cannot pass by seeing nothing. Red first: 904 findings (881 off-palette colours, 9 gradients, 14 glows) and 0 unparsed. The fix was a one-shot mechanical retoken of cad-AI/src (script kept outside the repo). `cad-AI/src/index.css#--color-steel-600: oklch(0.546 0.105 245);` heads an 11-step steel ramp at Tailwind blue's lightness levels. 452 blue, cyan, sky and indigo classes became steel. 583 slate classes became Tailwind's neutral greys. 498 navy arbitrary hex values became the grey of equal OKLab lightness, which keeps the surface hierarchy. 10 gradients became their first colour and 26 coloured shadows were dropped. The logo's gradient text became steel text. Body, scrollbar and both 3D scenes (background, grid, cyan rim light) moved to greys. Emerald, amber and red stay, for states. Screenshots of both routes at 1440 × 900 were checked by eye. They showed the demo viewport's toolbar sliding under the view cube, so the toolbar's maximum width now leaves room for it (layout spec still green). Not checked: hover and focus colours, colours drawn inside the 3D canvas, and modules other than the workspace (they got the same retoken). The light theme in T1's direction still has no task · Direction: still the goal · Next: T6 (human) signoff. By driver rule 3, no loop has an agent task (L5 needs L4), so the loop stops and escalates T6
+
+  ```
+  red first: e2e palette 2 failed · 904 findings (off 881, gradient 9, glow 14, unparsed 0)
+  retoken: steel 452 · neutral 583 · hex 498 · gradient 10 · from 14 · via/to 15 · shadow 26
+  graph-lint: 30 docs · 206 citations (105 file, 1 line range, 96 literal, 4 planned)
+  graph-lint: clean
+  clean-room-lint: 141 tracked files · 0 fingerprints · 241 identifiers
+  clean-room-lint: clean
+  gate-guard: clean · HEAD..working tree
+   Test Files  4 passed (4)
+        Tests  43 passed (43)
+  52 passed in 8.59s
+  Running 31 tests using 1 worker
+    31 passed (1.8m)
   gate exit=0
   gate-guard in cad-AI: clean
   clean-room-lint after the cad-AI commit: clean
