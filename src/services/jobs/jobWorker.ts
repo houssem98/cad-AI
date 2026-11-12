@@ -1,3 +1,4 @@
+import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { iso, move, openJobDb } from './jobEngine';
 
@@ -11,7 +12,7 @@ if (!job || !move(db, id, 'RUNNING', ['PENDING'], { pid: process.pid, started_at
 const beat = setInterval(() => db.prepare("UPDATE jobs SET heartbeat_at = ? WHERE id = ? AND state IN ('RUNNING', 'VERIFYING')").run(iso(), id), 2_000);
 try {
   const { handlers } = await import(pathToFileURL(handlersPath).href);
-  const out = await handlers[job.type](JSON.parse(job.input_json));
+  const out = await handlers[job.type](JSON.parse(job.input_json), { jobId: id, dir: join(dirname(dbPath), 'jobs', id) });
   move(db, id, 'VERIFYING', ['RUNNING']);
   if (out?.verified) move(db, id, 'COMPLETED', ['VERIFYING'], { finished_at: iso(), result_json: JSON.stringify(out.result ?? null) });
   else move(db, id, 'FAILED', ['VERIFYING'], { finished_at: iso(), result_json: JSON.stringify(out?.result ?? null),

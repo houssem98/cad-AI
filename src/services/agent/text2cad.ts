@@ -7,8 +7,8 @@ import { runToolLoop } from './toolLoop';
 // L5 T4: request → spec or question → tool loop → the kernel's verdict. The report is built from execution records only,
 // never from the model's text (docs/LOOP_CONVENTIONS.md I3).
 const DIR = fileURLToPath(new URL('./recordings/', import.meta.url));
-// Live by default, as the eval runner calls it; spend joins the recordings' ledger under the human's $3 cap for L5.
-const live = () => modelClient({ mode: 'live', recordings: DIR, spendFile: `${DIR}spend.json`, capUsd: 3, key: process.env.DEEPSEEK_API_KEY });
+// Live by default, as the eval runner calls it, or as MODEL_MODE says (a job's tests replay); spend joins the recordings' ledger under the human's $3 cap for L5.
+const live = () => modelClient({ mode: (process.env.MODEL_MODE as 'live' | 'replay' | 'record' | undefined) ?? 'live', recordings: DIR, spendFile: `${DIR}spend.json`, capUsd: 3, key: process.env.DEEPSEEK_API_KEY });
 
 export interface Report {
   operations: { record: string; type: string; status: string; error: string | null }[];

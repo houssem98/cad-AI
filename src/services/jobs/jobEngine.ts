@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
@@ -46,7 +46,12 @@ export function move(db: DatabaseSync, id: string, to: JobState, from: JobState[
 }
 
 const alive = (pid: number | null) => { if (!pid) return false; try { process.kill(pid, 0); return true; } catch { return false; } };
-const stop = (pid: number | null) => { try { if (pid) process.kill(pid); } catch { /* already gone */ } };
+// The whole tree: a job's worker starts its own kernel process, which must not outlive it.
+const stop = (pid: number | null) => {
+  if (!pid) return;
+  if (process.platform === 'win32') spawnSync('taskkill', ['/pid', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true });
+  else try { process.kill(pid); } catch { /* already gone */ }
+};
 const row = (r: any): Job => ({
   id: r.id, type: r.type, input: JSON.parse(r.input_json), key: r.idem_key, state: r.state, pid: r.pid,
   result: r.result_json ? JSON.parse(r.result_json) : null, error: r.error_json ? JSON.parse(r.error_json) : null,
