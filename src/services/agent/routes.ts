@@ -56,7 +56,7 @@ export function agentRoutes(executor: Executor, complete: Complete, opts: { appr
       const out = await text2cad(run.text, { executor, document: run.document, requestId: run.id, signal: run.abort.signal, complete,
         onEvent: (type, data) => emit(run, type, data) });
       if (out.kind === 'asks') emit(run, 'question', { question: out.question, missing: out.missing });
-      else emit(run, 'done', { status: out.kind === 'part' ? 'succeeded' : out.kind, document: run.document, report: out.report });
+      else emit(run, 'done', { status: out.kind === 'part' ? (out.report.unresolved.length ? 'incomplete' : 'succeeded') : out.kind, document: run.document, report: out.report });
     } catch (e) {
       emit(run, 'done', { status: 'failed', document: run.document, report: { text: `Failed: ${(e as Error).message}`, operations: [], inspection: null } });
     } finally {

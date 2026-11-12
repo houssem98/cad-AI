@@ -51,6 +51,35 @@ describe('the agent checks the part against the request', { timeout: 180000 }, (
   });
 });
 
+describe('a part with a requested operation that never succeeded is incomplete (T8 finding)', { timeout: 180000 }, () => {
+  const usage = { prompt_tokens: 0, completion_tokens: 0 };
+  const spec = JSON.stringify({ part: 'plate', missing: [], assumptions: [], envelope: null, dimensions: [{ name: 'side', value: 100, unit: 'mm' }] });
+  const run = (holes: string[]): Complete => {
+    const turns = [['new_part', '{"id":"p","params":{"name":"plate"}}'], ['sketch_rectangle', '{"id":"s","params":{"plane":"top","width":{"value":100,"unit":"mm"},"height":{"value":60,"unit":"mm"}}}'],
+      ['extrude', '{"id":"x","params":{"sketch":"s","depth":{"value":5,"unit":"mm"}}}'], ...holes.map((h) => ['hole', h])];
+    let n = 0;
+    return async (r) => (r.json ? { text: spec, toolCalls: [], usage }
+      : n < turns.length ? { text: '', toolCalls: [{ id: `t${n}`, name: turns[n][0], arguments: turns[n++][1] }], usage } : { text: 'Done.', toolCalls: [], usage });
+  };
+  const hole = (id: string, x: number, diameter: number | string = 5) => `{"id":"${id}","params":{"diameter":{"value":${diameter},"unit":"mm"},"through_all":true,"positions":[{"x":{"value":${x},"unit":"mm"},"y":{"value":0,"unit":"mm"}}]}}`;
+
+  it('reports a hole the kernel refused and the model never built', async () => {
+    ex = await open(['--adapter', 'kernel']);
+    const out = await text2cad('Plate 100 mm by 60 mm by 5 mm.', { executor: ex, document: 'plate', requestId: 'r5', complete: run([hole('h1', 0), hole('h2', 300)]) });
+    expect(out.kind).toBe('part');
+    if (out.kind !== 'part') return;
+    expect(out.report.unresolved.map((u) => u.type)).toEqual(['hole']);
+    expect(out.report.text).toMatch(/Incomplete: 1 requested operation failed and was not redone: hole: hole at \(300, 0\) removed no material/);
+  });
+
+  it('does not count a call the schema refused once the model fixed it', async () => {
+    ex = await open(['--adapter', 'kernel']);
+    const out = await text2cad('Plate 100 mm by 60 mm by 5 mm.', { executor: ex, document: 'plate', requestId: 'r6', complete: run([hole('h1', 0, '"five"'), hole('h2', 0)]) });
+    expect(out.kind).toBe('part');
+    if (out.kind === 'part') expect(out.report.unresolved).toEqual([]);
+  });
+});
+
 describe('verify and recover on recorded responses', { timeout: 180000 }, () => {
   it('stops after two replans when the kernel keeps failing, and reports only what the records hold', async () => {
     ex = await open(['--adapter', 'double', '--fail', 'extrude']);

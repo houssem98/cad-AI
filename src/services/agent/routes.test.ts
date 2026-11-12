@@ -67,6 +67,7 @@ describe('agent routes', { timeout: 120000 }, () => {
     const denied = events.split('\n\n').find((e) => e.startsWith('event: record') && e.includes('"type":"modify_dimension"'));
     expect(denied).toContain('"status":"cancelled"');
     expect(denied).toContain('approval_denied');
-    expect(events).toMatch(/event: done\ndata: \{"status":"succeeded"/);
+    // The denied change was never made, so the part is reported incomplete, not built as asked (T8 finding).
+    expect(events).toMatch(/event: done\ndata: \{"status":"incomplete"/);
   });
 });

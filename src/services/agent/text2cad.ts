@@ -12,6 +12,7 @@ const live = () => modelClient({ mode: 'live', recordings: DIR, spendFile: `${DI
 
 export interface Report {
   operations: { record: string; type: string; status: string; error: string | null }[];
+  unresolved: { record: string; type: string; error: string | null }[]; // requested operations that failed and were never built
   inspection: any;
   text: string;
 }
@@ -50,20 +51,29 @@ export async function text2cad(request: string, ctx: Text2CadContext): Promise<T
     const r = executor.store.record(s.operationId);
     return { record: s.operationId, type: r?.requestedOperation?.type ?? s.call.name, status: r?.status ?? 'not recorded', error: r?.errorDetails?.message ?? null };
   });
+  // A failed operation stands unless a later one of its type succeeded: after a schema refusal any such success counts (the model
+  // fixed its call); after a kernel refusal only the same parameters count (the requested feature itself was built). A part
+  // with one standing is reported incomplete, never plainly built (I12; found in the human's T8 drone frame).
+  const records = res.steps.map((s) => ({ id: s.operationId, r: executor.store.record(s.operationId) }));
+  const unresolved = records.filter(({ r }, i) => r && r.status !== 'succeeded' && !['inspect', 'new_part'].includes(r.requestedOperation.type)
+    && !records.slice(i + 1).some(({ r: q }) => q?.status === 'succeeded' && q.requestedOperation.type === r.requestedOperation.type
+      && (r.errorDetails?.code === 'validation_failed' || JSON.stringify(q.requestedOperation.params) === JSON.stringify(r.requestedOperation.params))))
+    .map(({ id, r }) => ({ record: id, type: r.requestedOperation.type, error: r.errorDetails?.message ?? r.status }));
   const last = [...res.steps].reverse().find((s) => executor.store.record(s.operationId)?.status === 'succeeded');
   const inspection = last ? executor.store.record(last.operationId).validationResult.inspection ?? null : null;
   const recorded = operations.filter((o) => o.status === 'succeeded').length;
   if (res.status === 'done' && inspection?.valid) {
     const assumed = spec.spec.assumptions.length ? ` Assumed: ${spec.spec.assumptions.join('; ')}.` : '';
-    return { kind: 'part', report: { operations, inspection,
-      text: `${document}: ${recorded} operations recorded; the kernel measures one valid solid, ${n(inspection.volume_mm3)} mm3, ${extents(inspection).map(n).join(' × ')} mm.${assumed}` } };
+    const incomplete = unresolved.length ? ` Incomplete: ${unresolved.length} requested operation${unresolved.length > 1 ? 's' : ''} failed and ${unresolved.length > 1 ? 'were' : 'was'} not redone: ${unresolved.map((u) => `${u.type}: ${u.error}`).join('; ')}.` : '';
+    return { kind: 'part', report: { operations, unresolved, inspection,
+      text: `${document}: ${recorded} operations recorded; the kernel measures one valid solid, ${n(inspection.volume_mm3)} mm3, ${extents(inspection).map(n).join(' × ')} mm.${incomplete}${assumed}` } };
   }
   if (res.status === 'cancelled') {
     const message = `Cancelled by the user; ${recorded} operations had been recorded.`;
-    return { kind: 'cancelled', message, report: { operations, inspection, text: message } };
+    return { kind: 'cancelled', message, report: { operations, unresolved, inspection, text: message } };
   }
   const why = res.problemFrom === 'kernel' ? `the kernel's last objection: ${res.problem}`
     : res.problemFrom === 'record' ? `the last failed record: ${operations.at(-1)!.type}: ${res.problem}` : `stopped after ${res.steps.length} operations without finishing`;
   const message = `Failed after ${res.failures} failures; ${why}.`;
-  return { kind: 'failed', message, report: { operations, inspection, text: message } };
+  return { kind: 'failed', message, report: { operations, unresolved, inspection, text: message } };
 }

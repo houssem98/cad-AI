@@ -264,8 +264,8 @@ function RequestView({ run, onDecide, onExport }: { run: AgentRun; onDecide: (r:
         })}
         {done && (
           <div className="pt-1 space-y-1.5">
-            <p data-testid="report" data-status={done.status} className={done.status === 'succeeded' ? 'text-neutral-100' : done.status === 'cancelled' ? 'text-neutral-400' : 'text-red-400'}>{done.report.text}</p>
-            {done.status === 'succeeded' && (
+            <p data-testid="report" data-status={done.status} className={done.status === 'succeeded' ? 'text-neutral-100' : done.status === 'incomplete' ? 'text-amber-300' : done.status === 'cancelled' ? 'text-neutral-400' : 'text-red-400'}>{done.report.text}</p>
+            {['succeeded', 'incomplete'].includes(done.status) && (
               <div className="flex flex-wrap items-center gap-2">
                 <a href={`/?part=${encodeURIComponent(done.document)}`} className="inline-flex items-center gap-1 px-2.5 py-1 bg-steel-600 hover:bg-steel-500 text-white rounded text-xs"><ExternalLink className="w-3 h-3" />Open part</a>
                 {run.export?.artifact ? (
