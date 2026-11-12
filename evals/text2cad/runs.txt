@@ -1,0 +1,6 @@
+2026-11-12T16:35:13.865Z improvement run 1: 24 of 25 passed (bar 20), 5 of 5 missing-dimension cases asked · meets the rule (agent, run 1 of 1)
+2026-11-12T16:35:13.867Z improvement: meets the rule over 1 run(s); model spend $0.0289
+2026-11-12T16:37:33.540Z holdout run 1: 14 of 15 passed (bar 12), 3 of 3 missing-dimension cases asked · meets the rule (agent, run 1 of 3)
+2026-11-12T16:39:38.583Z holdout run 2: 14 of 15 passed (bar 12), 3 of 3 missing-dimension cases asked · meets the rule (agent, run 2 of 3)
+2026-11-12T16:41:50.968Z holdout run 3: 15 of 15 passed (bar 12), 3 of 3 missing-dimension cases asked · meets the rule (agent, run 3 of 3)
+2026-11-12T16:41:50.974Z holdout: meets the rule over 3 run(s); model spend $0.0622

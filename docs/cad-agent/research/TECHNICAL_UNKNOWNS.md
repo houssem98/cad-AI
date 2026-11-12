@@ -83,12 +83,12 @@ cad-AI's state comes from `docs/cad-agent/CAD_AI_TRUTH_AUDIT.md` (its findings a
 | P0 | Document intelligence | Active document, selection and feature tree read as data | Feature tree is fixed demo data (`cad-AI/src/components/inspector/RightInspectorPanel.tsx#featureTree = INITIAL_FEATURE_TREE,`) | L3 T2 inspection, L4 T4, L9 T1 |
 | P0 | CAD tool execution | Typed operations with records | Timers stand in for execution (audit finding 2) | L3 T4, L5 T3 |
 | P0 | Verification engine | Effect report, document fingerprint, result record | Constants stand in for checks (audit finding 3) | L3 |
-| P1 | Live AI agent | Prepare, send, streamed progress, questions, confirmation, cancel, rerun | One chat route (`cad-AI/server.ts#app.post('/api/chat'`) and an approve card, then timers | L5 |
+| P1 | Live AI agent | Prepare, send, streamed progress, questions, confirmation, cancel, rerun | Was one Gemini chat route, an approve card and timers; since L5 T5 and T7 the server's agent routes (`cad-AI/src/services/agent/routes.ts`) stream plan, records, questions and approvals, with cancel; the Gemini route was removed | L5 |
 | P1 | Text-to-CAD | Live and as a background task | Model text returned unchecked, canned output without a key (audit finding 8) | L5, L6 T2 |
 | P1 | STEP-to-CAD | Attach a STEP file, get a native part | No import; the STEP export is invalid (audit finding 5) | L3 T3, L6 T3 |
 | P1 | Background tasks | Server-side tasks with updates, cancel, retry, download | Fixed demo list (`cad-AI/src/components/views/BackgroundTasksView.tsx#import { BACKGROUND_TASKS_LIST } from '../../data/mockCadData';`) | L6 |
 | P2 | Drawing-to-CAD | Image or PDF to an editable part | A view exists; not inspected | L7 T2 |
-| P2 | CAD-to-Drawing | Wizard to a dimensioned drawing | A drawing export route exists (`cad-AI/server.ts#app.post('/api/cad/export-drawing'`); not inspected | L7 T1 |
+| P2 | CAD-to-Drawing | Wizard to a dimensioned drawing | A template drawing export route existed until L5 T7 removed it with the other template exports (council C5); nothing replaces it yet | L7 T1 |
 | P2 | Automation library | Saved macros with categories and sharing | A workflow runner kept in memory (`cad-AI/src/components/views/AutomationStudioView.tsx#DAGWorkflowEngine.executeWorkflow`); nothing is saved, since no storage call exists in cad-AI's TypeScript (grep for localStorage, indexedDB, sqlite and writeFile: 0 matches) | L7 T4 |
 | P3 | Other CAD adapters | Listed as coming | None | No loop, as the roadmap advises |
 | none | General knowledge | Document folders used as context | Not inspected | L7 T5 |

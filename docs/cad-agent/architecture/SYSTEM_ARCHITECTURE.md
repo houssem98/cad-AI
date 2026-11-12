@@ -6,7 +6,7 @@ L2 T2, written 2026-11-10 against the L2 T1 stack decision (`docs/loops/L2_ARCHI
 
 | Layer | Choice | Why |
 |---|---|---|
-| App | cad-AI: React 19, TypeScript, Vite, Express (`cad-AI/server.ts#app.post('/api/chat'`) | Existing codebase, changed in place (I13) |
+| App | cad-AI: React 19, TypeScript, Vite, Express (`cad-AI/server.ts#const agent = agentRoutes(`) | Existing codebase, changed in place (I13) |
 | Kernel | build123d on OpenCascade, Python 3.12 worker | Free, headless, STEP-native, so geometry tests run in the gate (I3) |
 | Model | DeepSeek through its OpenAI-compatible HTTP API, plain fetch, key in DEEPSEEK_API_KEY | Human's choice; one model-client module keeps providers swappable |
 | Store | One SQLite file behind one storage module | No running service in the gate; Supabase is the upgrade path |
