@@ -373,3 +373,24 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
     - `node scripts/eval-step2cad.mjs`, with no self-check line: "step2cad: 16 of 16 cases pass (13 to rebuild, 3 unsupported)", every rebuild at "difference 0.00e+0 mm3", and "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes" under the new bound. The holdout's per-case lines were filtered out of what the maker read.
   - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  107 passed (107)", pytest "60 passed in 7.24s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 16 of 16 cases pass (13 to rebuild, 3 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "36 passed (2.0m)", exit 0.
   - Direction: still the goal. On a part of any size, a missing feature now fails the job instead of offering the wrong STEP. Next: G5 records, tests and docs (D9, D10, D12, D13, D14, D17, D22, D24).
+- 2026-11-13 · L6/T5 · started G5 (D9, D10, D12, D13, D14, D17, D22, D24)
+- 2026-11-13 · L6/T5 · G5 passed (D9, D10, D12, D13, D14, D17, D22, D24; T5 stays open) · gate green · commit loop(L6/T5) (this entry's own commit), cad-AI 0fa023c:
+  - D17: an operation's CAD command is now written to its row the moment it is sent (`cad-AI/src/services/cad/cadStore.ts#setStatus(rowId: string, status: string, command?: object)`; the executor passes it with `running`).
+    - The job close-out and the executor's own restart recovery (L3 T4) both record that command instead of null.
+    - A store from before this change gains the `command_json` column when it is opened. DATABASE_DESIGN lists it.
+  - D13: a second cancel of a job that is already CANCELLED answers 409 (`cad-AI/src/services/jobs/jobRoutes.ts`), as API_CONTRACTS now says.
+  - Failing checks first, on cad-AI dfe21e3:
+    - D17, close-out: "AssertionError: expected null to match object { call: Anything, …(1) }", in the mid-operation cancel test of `cad-AI/src/services/jobs/jobEngine.test.ts`.
+    - D17, executor recovery: "expected null to deeply equal { call: 'extrude', …(1) }", in `cad-AI/src/services/cad/executor.test.ts`.
+    - D13: "expected 204 to be 409", in `cad-AI/src/services/jobs/jobRoutes.test.ts`.
+  - Passed on their first run, so these were test gaps:
+    - D9: on the `midop` fixture, a timeout (maxMs 12 s) and a killed worker each end FAILED with their code. Worker and kernel are gone within 10 s, and the running operation's record is `failed` with that code and an unchanged revision.
+    - D24: with `maxWorkers` 1, the route answers 409 with "1 job is already running".
+  - Corrected rows:
+    - D10: AGENT_ORCHESTRATION now says the process-group kill off Windows has never run.
+    - D12: AGENT_ORCHESTRATION's T1 test row and DATABASE_DESIGN no longer say "resumed".
+    - D14: AGENT_ORCHESTRATION says VERIFYING itself only re-hashes the file, and the kernel's re-import check runs in the handler.
+    - D22: API_CONTRACTS gives the server's $3 cap (`cad-AI/server.ts#capUsd: 3`) below L2's $10 per loop, and describes the job row as status, events and result. SYSTEM_ARCHITECTURE gives both caps.
+  - Evidence: `npx vitest run src/services/jobs src/services/cad src/services/agent` "Test Files  11 passed (11)", "Tests  95 passed (95)".
+  - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  110 passed (110)", pytest "60 passed in 9.88s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 16 of 16 cases pass (13 to rebuild, 3 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "36 passed (2.5m)", exit 0.
+  - Direction: still the goal. Every stopped operation's record now names the command that was running. Next: G6 dashboard (D20, D21).

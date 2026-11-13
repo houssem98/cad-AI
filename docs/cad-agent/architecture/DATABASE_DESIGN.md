@@ -13,7 +13,7 @@ Durable state for requests, operations, records, jobs, artifacts, automations an
 | documents | id, kind (part, assembly, drawing), adapter, revision, checkpoint, state (ok, unknown), created_at | revision increments on every succeeded operation; checkpoint is the path of what the adapter saved after it, used by Restore |
 | requests | id, chat_id, text, state (agent state machine), spec_json, error_json, created_at, finished_at | one per user request; error_json holds a model or storage error |
 | events | id, request_id or job_id, seq, type, payload_json, created_at | the SSE stream, replayed on reconnect |
-| operations | row_id (server uuid), op_id (the envelope's id), request_id, document_id, seq, envelope_json, status | every proposal, written before validation; status moves before each adapter call (write-ahead) |
+| operations | row_id (server uuid), op_id (the envelope's id), request_id, document_id, seq, envelope_json, status, command_json | every proposal, written before validation; status moves before each adapter call (write-ahead), and the CAD command is written when it is sent, so a record closed after a crash, cancel or timeout still names it (L6 council D17) |
 | records | id, operation_row_id, document_id, revision_before, revision_after, command_json, result_json, validation_json, approval_json, error_json, artifacts_json, started_at, ended_at | append-only; fields per `docs/cad-agent/architecture/EXECUTION_AND_VERIFICATION.md`; written in one transaction with the document change and the status (`cad-AI/src/services/cad/cadStore.ts`) |
 | artifacts | id, kind (step, brep, gltf, svg, pdf, dxf), path, sha256, bytes, expires_at, created_at | files live in a data folder beside the database; the sha256 is computed by the executor, not taken from the worker; each record lists its artifacts' id and sha256 in records.artifacts_json; expires_at lands with L6 |
 | jobs | id, type, state, idempotency_key unique, input_json, worker_pid, heartbeat_at, error_json, created_at | states per `docs/roadmap/MECAGENT_ROADMAP.md#Define job states:` |
@@ -34,6 +34,6 @@ A failed write ends the operation with `storage_error` and the request fails; th
 ## Tests
 
 - Migration up from empty and from the prior version.
-- Restart: a RUNNING job without a heartbeat becomes FAILED or resumes (L6 T1); an operation left running or inspecting is restored and recorded (L3 T4).
+- Restart: a RUNNING job without a heartbeat becomes FAILED, and nothing is resumed (L6 T1, council D12); an operation left running or inspecting is restored and recorded (L3 T4).
 - Replay: events for a request replay in seq order after reconnect.
 - Duplicate idempotency key returns the same job.

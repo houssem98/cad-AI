@@ -42,8 +42,8 @@ stdin and stdout, one JSON object per line, UTF-8. Request: `{ "kind": "op", "op
 | POST /api/requests/:id/approve | operation id, approved true or false | 204 |
 | POST /api/requests/:id/cancel | none | 204 |
 | POST /api/jobs | type, input, idempotency key | job id. The same key with the same type and input returns the same id; the same key with another request is 409 `precondition_failed` (L6 council C14), and so is a new job while 2 are already live (C21) |
-| GET /api/jobs, GET /api/jobs/:id | none | job list or job with status and artifacts |
-| POST /api/jobs/:id/cancel | none | 204 when the job is now CANCELLED; 409 `precondition_failed` when it had already finished (L6 council C15) |
+| GET /api/jobs, GET /api/jobs/:id | none | job list, or one job with its status, events and result; a verified STEP is the result's `step` (council D22) |
+| POST /api/jobs/:id/cancel | none | 204 when this cancel made the job CANCELLED; 409 `precondition_failed` when it had already finished, or was already cancelled (L6 council C15, D13) |
 | GET /api/jobs/:id/step | none | the job's STEP as a file download. It is served only once the job is COMPLETED (its export passed the kernel's re-import) and only while the file still has the sha256 the job recorded. Otherwise the answer is 409 `precondition_failed`, or 404 for an unknown job (L6 council C16, C25). Added in L6 T4 for the tasks dashboard, which polls GET /api/jobs every second because jobs live in the store |
 | GET /api/artifacts/:id | none | file download |
 | POST /api/documents/:id/export | none | the kernel's STEP export as an `export` operation with its record: artifact id and record id. Added in L5 T5, when the human replaced the chat's template deliverables with it |
@@ -56,6 +56,6 @@ Every response error body is `{ "error": { "code", "message", "details" } }` wit
 
 ## 4. Model client
 
-One module, one function: `complete({ messages, tools, temperature }) → { text, toolCalls, usage }`. Implementation: DeepSeek's OpenAI-compatible chat completions endpoint over fetch. Usage tokens are summed per loop against the $10 eval cap; the client refuses calls once the cap is reached. Live calls from every process that shares a spend file take turns on an exclusive SQLite lock beside it (`spend.json.lock.db`), so parallel job workers cannot all pass the cap check at once (L6 council C18). The system releases that lock when its holder exits or is killed, so no turn outlives its holder, and a caller waiting for its turn stops when its request is cancelled (D4). Tests run on recorded responses, never live, except the L5 holdout run.
+One module, one function: `complete({ messages, tools, temperature }) → { text, toolCalls, usage }`. Implementation: DeepSeek's OpenAI-compatible chat completions endpoint over fetch. Usage tokens are summed in a spend file against the cap its caller sets, and the client refuses calls once the cap is reached. The server's cap is $3 (`cad-AI/server.ts#capUsd: 3`), the human's L5 live cap, below L2's $10 per loop (council D22). Live calls from every process that shares a spend file take turns on an exclusive SQLite lock beside it (`spend.json.lock.db`), so parallel job workers cannot all pass the cap check at once (L6 council C18). The system releases that lock when its holder exits or is killed, so no turn outlives its holder, and a caller waiting for its turn stops when its request is cancelled (D4). Tests run on recorded responses, never live, except the L5 holdout run.
 
 **Errors.** `model_error` with the HTTP status; a timeout of 60 s; no retry on 4xx, at most two retries on 5xx.

@@ -55,4 +55,4 @@ Every boundary returns a typed error, never a thrown string: `validation_failed`
 - Unit: schema, executor, agent steps on recorded model responses (Vitest, pytest).
 - Geometry: kernel worker against analytic values (pytest; L3 T2).
 - End to end: UI states and flows (Playwright; L4 T2).
-- Evals: text-to-CAD holdout, $10 model spend cap per loop (L5 T1).
+- Evals: text-to-CAD holdout; model spend at most $10 per loop (L2 T1), and the model client's live cap is $3 (L5).
