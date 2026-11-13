@@ -1,12 +1,14 @@
+import { spawn } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
-import { JobEngine, type JobOptions } from './jobEngine';
+import { JobEngine, openJobDb, type JobOptions } from './jobEngine';
 
 const FIXTURES = fileURLToPath(new URL('./jobs.fixtures.ts', import.meta.url));
-const TYPES = ['quick', 'unverified', 'slow', 'hang', 'count'];
+const TYPES = ['quick', 'unverified', 'slow', 'hang', 'count', 'crash'];
 const engines: JobEngine[] = [];
 afterEach(() => { for (const e of engines.splice(0)) e.close(true); });
 
@@ -93,6 +95,38 @@ describe('job engine (L6 T1)', { timeout: 60_000 }, () => {
     await until(() => alive(running.pid!), (a) => !a, 5_000);
     await new Promise((r) => setTimeout(r, 2_500));
     expect(e.get(job.id)!.state).toBe('CANCELLED');
+  });
+
+  // Council C3 and C8: after a reboot or a long outage a stored pid may belong to another program. The job fails, and that
+  // program lives. An hour-old RUNNING row would otherwise be a timeout, and a PENDING row with a live pid was never failed.
+  for (const [state, cols] of [['RUNNING', ', started_at, heartbeat_at'], ['PENDING', '']] as const) {
+    it(`fails a ${state} job whose stored pid now runs another program, and leaves that program alive`, async () => {
+      const other = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1e9)'], { stdio: 'ignore' });
+      try {
+        const db = join(dir(), 'jobs.db'), old = new Date(Date.now() - 3_600_000).toISOString(), id = randomUUID();
+        const raw = openJobDb(db);
+        raw.prepare(`INSERT INTO jobs (id, type, input_json, state, pid, created_at${cols}) VALUES (?, 'slow', 'null', ?, ?, ?${cols ? ', ?, ?' : ''})`)
+          .run(id, state, other.pid!, old, ...(cols ? [old, old] : []));
+        raw.close();
+        const e = open(db, { watchdogMs: 300 });
+        const failed = await until(() => e.get(id)!, (j) => j.state === 'FAILED', 20_000);
+        expect(failed.error?.code).toBe('worker_crashed');
+        await new Promise((r) => setTimeout(r, 1_000));
+        expect(alive(other.pid!)).toBe(true);
+      } finally {
+        other.kill();
+      }
+    });
+  }
+
+  it('keeps what a crashed worker printed and names it in the job error (council C22)', async () => {
+    const d = dir();
+    const e = open(join(d, 'jobs.db'), { watchdogMs: 300 });
+    const job = e.submit('crash', {});
+    const failed = await until(() => e.get(job.id)!, (j) => j.state === 'FAILED', 20_000);
+    expect(failed.error?.code).toBe('worker_crashed');
+    expect(failed.error?.message).toContain('fixture crash: out of memory');
+    expect(readFileSync(join(d, 'jobs', job.id, 'worker.log'), 'utf8')).toContain('fixture crash: out of memory');
   });
 
   it('refuses a job type it does not know', () => {

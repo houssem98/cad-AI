@@ -9,4 +9,5 @@ export const handlers = {
   slow: async () => { await sleep(120_000); return { verified: true, result: {} }; }, // heartbeats keep going
   hang: async () => { for (;;); }, // blocks the event loop, so no heartbeat is sent
   count: async (input: { file: string }) => { appendFileSync(input.file, 'ran\n'); await sleep(200); return { verified: true, result: {} }; },
+  crash: async () => { process.stderr.write('fixture crash: out of memory\n'); process.exit(1); }, // dies outside the worker's try
 };

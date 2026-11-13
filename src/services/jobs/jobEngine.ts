@@ -1,5 +1,7 @@
-import { spawn, spawnSync } from 'node:child_process';
+import { execFile, spawn, spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
+import { closeSync, mkdirSync, openSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 
@@ -18,6 +20,7 @@ export interface JobOptions {
   types: string[];
   watchdogMs?: number;
   staleMs?: number;
+  startMs?: number; // a worker that has not started its job after this long is hung; 60 s by default
   maxMs?: Record<string, number>; // maximum duration per job type; 10 minutes by default
 }
 
@@ -37,21 +40,38 @@ export function openJobDb(path: string) {
 }
 
 // A state change happens only from the given states and is logged; that guard keeps a cancelled or failed job from being overwritten.
+// The change and its event commit together, so no reader sees a state its events do not show.
 export function move(db: DatabaseSync, id: string, to: JobState, from: JobState[], set: Record<string, string | number | null> = {}) {
   const cols = Object.keys(set);
-  const r = db.prepare(`UPDATE jobs SET state = ?${cols.map((c) => `, ${c} = ?`).join('')} WHERE id = ? AND state IN (${from.map(() => '?').join(', ')})`)
-    .run(to, ...cols.map((c) => set[c]), id, ...from);
-  if (r.changes) db.prepare('INSERT INTO job_events (job_id, state, at, data_json) VALUES (?, ?, ?, ?)').run(id, to, iso(), set.error_json ?? set.result_json ?? null);
-  return r.changes > 0;
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    const r = db.prepare(`UPDATE jobs SET state = ?${cols.map((c) => `, ${c} = ?`).join('')} WHERE id = ? AND state IN (${from.map(() => '?').join(', ')})`)
+      .run(to, ...cols.map((c) => set[c]), id, ...from);
+    if (r.changes) db.prepare('INSERT INTO job_events (job_id, state, at, data_json) VALUES (?, ?, ?, ?)').run(id, to, iso(), set.error_json ?? set.result_json ?? null);
+    db.exec('COMMIT');
+    return r.changes > 0;
+  } catch (e) {
+    db.exec('ROLLBACK');
+    throw e;
+  }
 }
 
 const alive = (pid: number | null) => { if (!pid) return false; try { process.kill(pid, 0); return true; } catch { return false; } };
-// The whole tree: a job's worker starts its own kernel process, which must not outlive it.
+// The whole tree: a job's worker starts its own kernel process, which must not outlive it. Off Windows the worker leads its own
+// process group (council C17).
 const stop = (pid: number | null) => {
   if (!pid) return;
   if (process.platform === 'win32') spawnSync('taskkill', ['/pid', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true });
-  else try { process.kill(pid); } catch { /* already gone */ }
+  else try { process.kill(-pid, 'SIGKILL'); } catch { /* already gone */ }
 };
+// Whether a stored pid still runs this job's worker: its command line names the job. After a reboot or a long outage the system
+// may have given the pid to another program, which must never be killed (council C3). Any doubt answers no.
+const runs = (pid: number, id: string) => new Promise<boolean>((resolve) => {
+  const [cmd, args] = process.platform === 'win32'
+    ? ['powershell', ['-NoProfile', '-Command', `(Get-CimInstance Win32_Process -Filter "ProcessId=${pid}").CommandLine`]]
+    : ['ps', ['-o', 'args=', '-p', String(pid)]];
+  execFile(cmd, args, { windowsHide: true }, (_e, out) => resolve(String(out ?? '').includes('jobWorker') && String(out).includes(id)));
+});
 const row = (r: any): Job => ({
   id: r.id, type: r.type, input: JSON.parse(r.input_json), key: r.idem_key, state: r.state, pid: r.pid,
   result: r.result_json ? JSON.parse(r.result_json) : null, error: r.error_json ? JSON.parse(r.error_json) : null,
@@ -60,7 +80,10 @@ const row = (r: any): Job => ({
 
 export class JobEngine {
   private timer?: ReturnType<typeof setInterval>;
+  private ours = new Map<string, boolean>(); // job id → whether its stored pid is its worker; known for workers spawned here
+  private asking = new Set<string>();
   private constructor(private db: DatabaseSync, private o: JobOptions) {}
+  private dir = (id: string) => join(dirname(this.o.dbPath), 'jobs', id);
 
   static open(o: JobOptions) {
     const e = new JobEngine(openJobDb(o.dbPath), o);
@@ -79,8 +102,13 @@ export class JobEngine {
     this.db.prepare('INSERT INTO jobs (id, type, input_json, idem_key, state, created_at) VALUES (?, ?, ?, ?, ?, ?)')
       .run(id, type, JSON.stringify(input ?? null), key ?? null, 'CREATED', iso());
     this.db.prepare('INSERT INTO job_events (job_id, state, at, data_json) VALUES (?, ?, ?, NULL)').run(id, 'CREATED', iso());
-    const child = spawn(process.execPath, ['--import', 'tsx', WORKER, this.o.dbPath, id, this.o.handlers], { cwd: CAD_ROOT, stdio: 'ignore', windowsHide: true });
+    mkdirSync(this.dir(id), { recursive: true });
+    const log = openSync(join(this.dir(id), 'worker.log'), 'a'); // what a crashing worker prints is kept (council C22)
+    const child = spawn(process.execPath, ['--import', 'tsx', WORKER, this.o.dbPath, id, this.o.handlers],
+      { cwd: CAD_ROOT, stdio: ['ignore', log, log], windowsHide: true, detached: process.platform !== 'win32' });
+    closeSync(log);
     child.unref(); // a worker outlives a server restart; the watchdog decides what happens to its job
+    this.ours.set(id, true);
     move(this.db, id, 'PENDING', ['CREATED'], { pid: child.pid ?? null });
     return this.get(id)!;
   }
@@ -101,27 +129,55 @@ export class JobEngine {
 
   cancel(id: string): Job | undefined {
     const job = this.get(id);
-    if (job && move(this.db, id, 'CANCELLED', LIVE, { finished_at: iso() })) stop(job.pid);
+    if (job && move(this.db, id, 'CANCELLED', LIVE, { finished_at: iso() })) this.kill(job);
     return this.get(id);
   }
 
   close(stopWorkers = false) {
     if (!this.db.isOpen) return;
     clearInterval(this.timer);
-    if (stopWorkers) for (const j of this.list()) if (LIVE.includes(j.state)) stop(j.pid);
+    if (stopWorkers) for (const j of this.list()) if (LIVE.includes(j.state) && this.ours.get(j.id)) stop(j.pid);
     this.db.close();
   }
 
+  private kill(j: Job) {
+    if (this.ours.get(j.id)) stop(j.pid);
+    else if (!this.ours.has(j.id) && j.pid) runs(j.pid, j.id).then((mine) => mine && stop(j.pid));
+  }
+
+  // A pid not known to be the job's worker is asked about once, off the watchdog's path; the job is decided on the next pass.
+  private ask(j: Job) {
+    if (this.asking.has(j.id)) return;
+    this.asking.add(j.id);
+    runs(j.pid!, j.id).then((mine) => {
+      this.ours.set(j.id, mine);
+      this.asking.delete(j.id);
+      if (this.db.isOpen) this.watchdog();
+    });
+  }
+
   private watchdog() {
-    const now = Date.now(), stale = this.o.staleMs ?? 10_000;
+    const now = Date.now(), stale = this.o.staleMs ?? 10_000, start = this.o.startMs ?? 60_000;
     for (const j of this.list().filter((j) => LIVE.includes(j.state))) {
       const fail = (code: string, message: string) => {
-        if (move(this.db, j.id, 'FAILED', LIVE, { finished_at: iso(), error_json: JSON.stringify({ code, message }) })) stop(j.pid);
+        if (move(this.db, j.id, 'FAILED', LIVE, { finished_at: iso(), error_json: JSON.stringify({ code, message }) })) this.kill(j);
       };
       const max = this.o.maxMs?.[j.type] ?? 600_000;
-      if (j.startedAt && now - Date.parse(j.startedAt) > max) fail('timeout', `the job ran longer than its maximum of ${max} ms`);
-      else if (!alive(j.pid)) { if (j.state !== 'CREATED' || now - Date.parse(j.createdAt) > stale) fail('worker_crashed', 'the worker process is gone'); }
-      else if (j.heartbeatAt && now - Date.parse(j.heartbeatAt) > stale) fail('worker_crashed', `no heartbeat for ${stale} ms: the worker hung`);
+      if (!alive(j.pid)) {
+        if (j.state !== 'CREATED' || now - Date.parse(j.createdAt) > stale) {
+          let said = '';
+          try { said = readFileSync(join(this.dir(j.id), 'worker.log'), 'utf8').trim().slice(-500); } catch { /* no log */ }
+          fail('worker_crashed', `the worker process is gone${said ? `; it printed: ${said}` : ''}`);
+        }
+        continue;
+      }
+      const overdue = j.startedAt && now - Date.parse(j.startedAt) > max;
+      const silent = j.heartbeatAt ? now - Date.parse(j.heartbeatAt) > stale : now - Date.parse(j.createdAt) > start;
+      if (!overdue && !silent) continue;
+      if (!this.ours.has(j.id)) this.ask(j);
+      else if (!this.ours.get(j.id)) fail('worker_crashed', 'the worker process is gone; its pid now runs another program');
+      else if (overdue) fail('timeout', `the job ran longer than its maximum of ${max} ms`);
+      else fail('worker_crashed', j.heartbeatAt ? `no heartbeat for ${stale} ms: the worker hung` : `the worker did not start the job within ${start} ms`);
     }
   }
 }
