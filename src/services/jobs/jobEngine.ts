@@ -1,9 +1,10 @@
 import { execFile, spawn, spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { closeSync, mkdirSync, openSync, readFileSync } from 'node:fs';
+import { closeSync, existsSync, mkdirSync, openSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
+import { CadStore } from '../cad/cadStore';
 
 // L6 T1, docs/cad-agent/architecture/AGENT_ORCHESTRATION.md "Job engine": durable jobs in SQLite, each run by its own worker
 // process that heartbeats every 2 s. A watchdog, at start and every 5 s, fails a job whose worker is gone, silent for 10 s or
@@ -72,6 +73,21 @@ const runs = (pid: number, id: string) => new Promise<boolean>((resolve) => {
     : ['ps', ['-o', 'args=', '-p', String(pid)]];
   execFile(cmd, args, { windowsHide: true }, (_e, out) => resolve(String(out ?? '').includes('jobWorker') && String(out).includes(id)));
 });
+// A stopped worker leaves the operation it was running unfinished in the job's own store. Its record is closed with the job's
+// ending; the document keeps its stored revision, since the change never committed (council C5).
+const closeOut = (dir: string, code: string, message: string) => {
+  if (!existsSync(join(dir, 'cad.db'))) return;
+  const store = new CadStore(join(dir, 'cad.db'));
+  try {
+    for (const op of store.unfinished()) {
+      const now = iso(), rev = store.document(op.docId)?.revision ?? 0, status = code === 'cancelled' ? 'cancelled' : 'failed';
+      store.commit(op, status, { revisionBefore: rev, revisionAfter: rev, command: null, result: { status, result: null, started: now, ended: now },
+        validation: {}, approval: { required: false, decision: null }, error: { code, message }, artifacts: [], started: now, ended: now });
+    }
+  } finally {
+    store.close();
+  }
+};
 const row = (r: any): Job => ({
   id: r.id, type: r.type, input: JSON.parse(r.input_json), key: r.idem_key, state: r.state, pid: r.pid,
   result: r.result_json ? JSON.parse(r.result_json) : null, error: r.error_json ? JSON.parse(r.error_json) : null,
@@ -129,7 +145,7 @@ export class JobEngine {
 
   cancel(id: string): Job | undefined {
     const job = this.get(id);
-    if (job && move(this.db, id, 'CANCELLED', LIVE, { finished_at: iso() })) this.kill(job);
+    if (job && move(this.db, id, 'CANCELLED', LIVE, { finished_at: iso() })) this.kill(job, 'cancelled', 'the job was cancelled while this operation ran');
     return this.get(id);
   }
 
@@ -140,9 +156,12 @@ export class JobEngine {
     this.db.close();
   }
 
-  private kill(j: Job) {
-    if (this.ours.get(j.id)) stop(j.pid);
-    else if (!this.ours.has(j.id) && j.pid) runs(j.pid, j.id).then((mine) => mine && stop(j.pid));
+  // Stops the job's worker when it is provably the job's, then closes the records it left open.
+  private kill(j: Job, code: string, message: string) {
+    const after = () => { try { closeOut(this.dir(j.id), code, message); } catch (e) { console.error('job close-out', j.id, e); } };
+    if (this.ours.get(j.id)) { stop(j.pid); after(); }
+    else if (!this.ours.has(j.id) && alive(j.pid)) runs(j.pid!, j.id).then((mine) => { if (mine) stop(j.pid); after(); });
+    else after();
   }
 
   // A pid not known to be the job's worker is asked about once, off the watchdog's path; the job is decided on the next pass.
@@ -160,7 +179,7 @@ export class JobEngine {
     const now = Date.now(), stale = this.o.staleMs ?? 10_000, start = this.o.startMs ?? 60_000;
     for (const j of this.list().filter((j) => LIVE.includes(j.state))) {
       const fail = (code: string, message: string) => {
-        if (move(this.db, j.id, 'FAILED', LIVE, { finished_at: iso(), error_json: JSON.stringify({ code, message }) })) this.kill(j);
+        if (move(this.db, j.id, 'FAILED', LIVE, { finished_at: iso(), error_json: JSON.stringify({ code, message }) })) this.kill(j, code, message);
       };
       const max = this.o.maxMs?.[j.type] ?? 600_000;
       if (!alive(j.pid)) {

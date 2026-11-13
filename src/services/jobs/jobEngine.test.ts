@@ -1,14 +1,15 @@
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { mkdtempSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
+import { CadStore } from '../cad/cadStore';
 import { JobEngine, openJobDb, type JobOptions } from './jobEngine';
 
 const FIXTURES = fileURLToPath(new URL('./jobs.fixtures.ts', import.meta.url));
-const TYPES = ['quick', 'unverified', 'bare', 'tampered', 'slow', 'hang', 'count', 'crash'];
+const TYPES = ['quick', 'unverified', 'bare', 'tampered', 'slow', 'hang', 'count', 'crash', 'midop'];
 const engines: JobEngine[] = [];
 afterEach(() => { for (const e of engines.splice(0)) e.close(true); });
 
@@ -131,6 +132,29 @@ describe('job engine (L6 T1)', { timeout: 60_000 }, () => {
       }
     });
   }
+
+  it('cancels a job mid-operation: its worker and kernel stop, and the operation record says cancelled (council C5, C7)', async () => {
+    const d = dir();
+    const e = open(join(d, 'jobs.db'));
+    const job = e.submit('midop', {});
+    const jobDir = join(d, 'jobs', job.id);
+    const unfinished = () => { const s = new CadStore(join(jobDir, 'cad.db')); try { return s.unfinished(); } finally { s.close(); } };
+    const [row] = await until(() => (existsSync(join(jobDir, 'kernel.pid')) ? unfinished() : []), (rows) => rows.some((r) => r.status === 'running'), 30_000);
+    const worker = e.get(job.id)!.pid!, kernel = Number(readFileSync(join(jobDir, 'kernel.pid'), 'utf8'));
+    expect(alive(kernel)).toBe(true);
+    expect(e.cancel(job.id)!.state).toBe('CANCELLED');
+    await until(() => alive(worker) || alive(kernel), (a) => !a, 10_000);
+    expect(unfinished()).toEqual([]);
+    const s = new CadStore(join(jobDir, 'cad.db'));
+    try {
+      const rec = s.record(row.rowId);
+      expect(rec.status).toBe('cancelled');
+      expect(rec.errorDetails.code).toBe('cancelled');
+      expect(rec.targetDocument.revisionAfter).toBe(rec.targetDocument.revisionBefore);
+    } finally {
+      s.close();
+    }
+  });
 
   it('keeps what a crashed worker printed and names it in the job error (council C22)', async () => {
     const d = dir();

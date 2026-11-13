@@ -21,4 +21,13 @@ export const handlers = {
   hang: async () => { for (;;); }, // blocks the event loop, so no heartbeat is sent
   count: async (input: { file: string }, ctx: Ctx) => { appendFileSync(input.file, 'ran\n'); await sleep(200); return { verified: true, result: { step: artifact(ctx) } }; },
   crash: async () => { process.stderr.write('fixture crash: out of memory\n'); process.exit(1); }, // dies outside the worker's try
+  // Mid-operation: the executor's real Python worker, on the test double, hangs inside new_part; its pid goes to kernel.pid.
+  midop: async (_: unknown, ctx: Ctx) => {
+    const { Executor } = await import('../cad/executor');
+    const ex = await Executor.open({ dbPath: join(ctx.dir, 'cad.db'), dataDir: ctx.dir, workerArgs: ['--adapter', 'double', '--hang', 'new_part'] });
+    writeFileSync(join(ctx.dir, 'kernel.pid'), String((ex as any).worker.proc.pid));
+    await ex.execute({ id: 'p', target: { document: 'part' }, type: 'new_part', params: { name: 'p' }, preconditions: [], status: 'pending',
+      result: null, verification: null, error: null }, { requestId: 'midop' });
+    return { verified: false };
+  },
 };
