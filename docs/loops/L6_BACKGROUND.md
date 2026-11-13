@@ -198,4 +198,22 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
   - Docs: the AGENT_ORCHESTRATION cancel row now says what the record holds.
   - Gate: "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  87 passed (87)", pytest "60 passed in 10.70s", "improvement: 25 of 25 cases build their reference, pass every check, and catch every planted fault", "holdout: 15 of 15 …", "step2cad: 13 of 13 cases pass (11 to rebuild, 2 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "33 passed (2.2m)", exit 0. graph-lint ran first in the same chain.
   - Direction: still the goal. A stopped job no longer leaves an operation without its record. Next: F5 routes (C4, C13, C14, C15; C25 was done in F3).
+- 2026-11-13 · L6/T5 · started F5 (C4, C13, C14, C15)
+- 2026-11-13 · L6/T5 · F5 passed (C4, C13, C14, C15, and the roadmap's "Artifact recovery" and "Invalid input files" tests; T5 stays open) · gate green · commit loop(L6/T5) (this entry's own commit), cad-AI 0e6f527:
+  - C4: every /api/jobs route, reads included, goes through `local()` (`cad-AI/src/services/jobs/jobRoutes.ts`), and API_CONTRACTS now lists the job routes as local-only.
+  - C14: `submit` inserts with `ON CONFLICT(idem_key) DO NOTHING` (`cad-AI/src/services/jobs/jobEngine.ts`). The same key with the same type and input returns the existing job; another request with that key is a `JobConflict`, which the route answers with 409. Because the insert decides, two servers sharing one store cannot both run the job.
+  - C15: a cancel that finds the job finished answers 409.
+  - C13: a missing STEP path is `precondition_failed` (`cad-AI/src/services/jobs/handlers.ts`).
+  - Failing checks first:
+    - C4, in `cad-AI/src/services/jobs/jobRoutes.test.ts`: "GET /api/jobs: expected 200 to be 403".
+    - C14: "expected 201 to be 409".
+    - C13, in the new `cad-AI/src/services/jobs/step2cadJob.test.ts`: '{"code":"job_error","message":"ENOENT: …nope.step'"}'.
+  - Two tests passed on their first run, so these were test gaps:
+    - Artifact recovery: a COMPLETED job and its STEP are served again, byte for byte, by a new engine on the same store.
+    - step2cad through the engine and its worker: a STEP the kernel wrote ends COMPLETED with an `extrude`, and a truncated STEP ends FAILED with a typed code and no STEP.
+  - Evidence: `npx vitest run src/services/jobs` "Tests  21 passed (21)", three runs in a row.
+  - New failure mode, observed once and not reproduced: in the first of four runs, the T1 restart test failed with "Error: disk I/O error" when it reopened the store right after killing a worker, under parallel load. The next three runs passed. The cause is not yet known, so no code was changed for it. It is listed for council round 2.
+  - Docs: API_CONTRACTS gives the 409 for a submit with a conflicting key and for a cancel, and the local-only list. AGENT_ORCHESTRATION gives the idempotency rule.
+  - Gate: "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  91 passed (91)", pytest "60 passed in 11.42s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 13 of 13 cases pass (11 to rebuild, 2 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "33 passed (3.0m)", exit 0. graph-lint ran first in the same chain.
+  - Direction: still the goal. Jobs are this machine's, and a key cannot run two requests. Next: F6 docs (C9's remaining rows, C12's task line).
 - 2026-11-13 · L6/T5 · human decision: the tick budget may be raised "if necessary". The loop raises it only when the ticks left cannot cover the planned fixes, council round 2 and its fixes. It adds 5 ticks at most, follows L5's precedent, and edits the L6 line in `docs/LOOP_GRAPH.md` with the date and reason. A raise beyond +5, or any raise of the $25 spend cap, is still escalated.
