@@ -473,3 +473,18 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
     - `npx playwright test e2e/local-only.e2e.ts` "1 passed (23.1s)", once the old server was stopped.
   - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  113 passed (113)", pytest "60 passed in 8.68s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 16 of 16 cases pass (13 to rebuild, 3 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "38 passed (2.3m)", exit 0.
   - Direction: still the goal. No port of the server reaches another machine, and a stopped operation always gets its record. Next: H2 (R3, R4).
+- 2026-11-14 · L6/T5 · started H2 (R3, R4)
+- 2026-11-14 · L6/T5 · H2 passed (R3, R4; T5 stays open) · gate green · commit loop(L6/T5) (this entry's own commit), cad-AI 10842d4:
+  - R3:
+    - In `cad-AI/src/components/views/BackgroundTasksView.tsx`, a refresh asked for after a cancel or submit while a list read is in flight runs once that read lands. A list read gives up after 10 s (`AbortSignal.timeout`).
+    - So the list neither shows the state from before the action nor freezes. Poll ticks still skip while a read is pending (D21).
+  - R4: each live model call is written to the spend file before it is sent, at an upper bound: request bytes at the input price plus `maxTokens` at the output price (a token covers at least one byte). The real usage replaces it when the answer arrives (`cad-AI/src/services/model/modelClient.ts`). A call cut off after the provider billed it is therefore counted.
+  - Failing checks first, on cad-AI 38c7eaf:
+    - R3, refresh, in `cad-AI/e2e/tasks.e2e.ts`: the page's clock is paused right after one poll tick, whose read is held, so no tick can stand in. Cancel, release the read: "Expected: "CANCELLED" Received: "RUNNING"".
+      - My first version only installed the clock, which keeps time flowing. It passed on the old code because an ordinary tick did the refresh. It was corrected to pause the clock before any fix.
+    - R3, freeze: the first list read is never answered. "element(s) not found" for `jobs-empty`: the list never loaded.
+    - R4, in `cad-AI/src/services/model/modelClient.test.ts`: a call cancelled mid-fetch left no spend at all: "Error: ENOENT: no such file or directory, open '…\not-yet\spend.json'".
+  - Evidence: `npx vitest run src/services/model src/services/agent src/services/jobs` "Test Files  9 passed (9)", "Tests  71 passed (71)". The C18 cap-edge test still makes one billed call. `npx playwright test e2e/tasks.e2e.ts` "7 passed (57.6s)".
+  - Docs: AGENT_ORCHESTRATION's progress row (R3) and API_CONTRACTS §4 (R4).
+  - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  114 passed (114)", pytest "60 passed in 7.57s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 16 of 16 cases pass (13 to rebuild, 3 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "40 passed (2.5m)", exit 0.
+  - Direction: still the goal. The dashboard shows what the store holds after every action, and no billed call escapes the spend count. Next: H3 (R5 to R11), the last tick of the budget.
