@@ -43,10 +43,12 @@ const text2cadJob: Handler = async (input, ctx) => {
 
 // The rebuilt solid stands for the imported one when its volume is within 0.1 %, every bounding-box bound within 0.001 mm, and the
 // kernel's symmetric difference of the two is at most a 1e-6 mm skin over the imported surface: a moved or mirrored feature keeps
-// volume and box but not the space it fills (council C1).
+// volume and box but not the space it fills (council C1). That skin never exceeds 1e-3 mm3, so on a large part a small missing
+// feature still counts (council D5).
+export const sameLimit = (area: number) => Math.min(1e-6 * area, 1e-3);
 export const sameSolid = (a: any, b: any, difference: number, area: number) => Math.abs(a.volume_mm3 - b.volume_mm3) <= 1e-3 * Math.abs(b.volume_mm3)
   && (['min', 'max'] as const).every((end) => (['x', 'y', 'z'] as const).every((k) => Math.abs(a.bbox_mm[end][k] - b.bbox_mm[end][k]) <= 1e-3))
-  && difference <= 1e-6 * area;
+  && difference <= sameLimit(area);
 
 // A STEP-to-CAD job imports the file, asks the kernel for a plan of editable features, runs it in a new document through the
 // executor (so every feature has its record), and is done only when the rebuilt solid is the imported one (sameSolid) and its
@@ -78,8 +80,11 @@ const step2cadJob: Handler = async (input, ctx) => {
     const step = stepOf(executor, exported);
     return {
       verified: Boolean(step),
-      result: { operations: plan.operations!.map((o) => o.type), records: [imported.operationId, ...done.map((o) => o.operationId)],
-        volume_mm3: { source: source.volume_mm3, rebuilt: rebuilt?.volume_mm3 ?? null }, difference_mm3: diff?.difference_mm3 ?? null, step },
+      result: { operations: plan.operations!.map((o) => o.type), plan: plan.operations, records: [imported.operationId, ...done.map((o) => o.operationId)],
+        volume_mm3: { source: source.volume_mm3, rebuilt: rebuilt?.volume_mm3 ?? null }, difference_mm3: diff?.difference_mm3 ?? null,
+        // Every input of the same-solid verdict, so it can be checked again from the job alone (council D16).
+        check: { area_mm2: looked.result.area_mm2, limit_mm3: sameLimit(looked.result.area_mm2), difference_mm3: diff?.difference_mm3 ?? null,
+          bbox_mm: { source: source.bbox_mm, rebuilt: rebuilt?.bbox_mm ?? null } }, step },
       ...(!built ? { error: done.at(-1)!.error } : !same ? { error: { code: 'verification_failed', message: 'the rebuilt solid differs from the imported one' } } : {}),
     };
   } finally {
