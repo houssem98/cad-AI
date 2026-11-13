@@ -123,3 +123,7 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
     - F8 rest: C18, C21, C26
     - Then council round 2.
   - Direction: still the goal. C1 is the one that matters, because a job offered a download that is not the imported part. Next: T5 fix tick F1 (geometry).
+- 2026-11-13 · L6/T5 · human decisions on the council's escalations:
+  - C12: reword the T1 task line to the separate `jobs.db`, with no code change (done in F6).
+  - C19: a fresh agent writes the step2cad holdout fixtures, which include a pin in a pocket, a moved hole and a mirrored part. Only the eval runner reads them; the maker never opens them (done in F1).
+  - Budget: stays at 20 ticks, and all 28 items are fixed in the grouped ticks. If the budget runs out, the loop stops and escalates.
