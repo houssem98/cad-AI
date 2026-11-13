@@ -1,6 +1,8 @@
+import { spawn } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { cost, modelClient, MODEL } from './modelClient';
 
@@ -67,6 +69,53 @@ describe('model client', () => {
     expect(out.map((o) => o.status).sort()).toEqual(['fulfilled', 'rejected']);
     expect(calls).toBe(1);
     expect(JSON.parse(readFileSync(spendFile, 'utf8')).usd).toBeCloseTo(3.15, 6);
+  });
+
+  // Council D4: the turn must never outlive its holder, and a caller waiting for it can still be cancelled.
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  for (const [name, content] of [['a pid now used by another program', String(process.pid)], ['nothing', '']] as const) {
+    it(`is not blocked by a lock file left behind that names ${name} (council D4)`, async () => {
+      const s = setup();
+      mkdirSync(dirname(s.spendFile), { recursive: true });
+      writeFileSync(`${s.spendFile}.lock`, content);
+      await expect(Promise.race([s.client('live')(msg).then(() => 'called'), sleep(3_000).then(() => 'still waiting')])).resolves.toBe('called');
+    });
+  }
+
+  it('stops waiting for its turn when the request is cancelled (council D4)', async () => {
+    const s = setup();
+    let release!: () => void;
+    const held = new Promise<void>((r) => { release = r; });
+    const slow = (async () => { await held; return { ok: true, status: 200, headers: new Headers(), json: async () => answer } as Response; }) as typeof globalThis.fetch;
+    const holder = modelClient({ mode: 'live', recordings: join(dirname(s.spendFile), 'rec'), spendFile: s.spendFile, capUsd: 3, key: 'k', fetch: slow })(msg);
+    await sleep(200);
+    const stop = new AbortController();
+    const waiter = s.client('live')({ ...msg, signal: stop.signal });
+    await sleep(200);
+    stop.abort();
+    await expect(Promise.race([waiter, sleep(2_000).then(() => 'still waiting')])).rejects.toThrow(/cancelled/);
+    expect(s.calls).toHaveLength(0);
+    release();
+    await holder;
+  });
+
+  it('gives the turn to the next caller as soon as a holder is killed mid-call (council D4)', async () => {
+    const s = setup();
+    mkdirSync(dirname(s.spendFile), { recursive: true });
+    const client = JSON.stringify(pathToFileURL(fileURLToPath(new URL('./modelClient.ts', import.meta.url))).href);
+    const script = `const { modelClient } = await import(${client});
+      setInterval(() => {}, 1e9);
+      modelClient({ mode: 'live', recordings: ${JSON.stringify(join(dirname(s.spendFile), 'rec'))}, spendFile: ${JSON.stringify(s.spendFile)}, capUsd: 3, key: 'k',
+        fetch: () => { console.log('holding'); return new Promise(() => {}); } })({ messages: [] });`;
+    const child = spawn(process.execPath, ['--import', 'tsx', '--input-type=module', '-e', script], { cwd: fileURLToPath(new URL('../../../', import.meta.url)), stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((r) => child.stdout!.once('data', r));
+      child.kill('SIGKILL');
+      await new Promise((r) => child.once('exit', r));
+      await expect(Promise.race([s.client('live')(msg).then(() => 'called'), sleep(3_000).then(() => 'still waiting')])).resolves.toBe('called');
+    } finally {
+      child.kill('SIGKILL');
+    }
   });
 
   it('fails a reply with no text and no tool call instead of returning an empty answer, and still counts its spend', async () => {

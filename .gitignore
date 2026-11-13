@@ -13,3 +13,4 @@ test-results/
 playwright-report/
 e2e/.fixtures/
 data/
+*.lock.db

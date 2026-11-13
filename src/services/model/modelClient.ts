@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 
 // docs/cad-agent/architecture/API_CONTRACTS.md §4: DeepSeek's OpenAI-compatible chat completions over fetch, spend summed against a cap.
 const ENDPOINT = 'https://api.deepseek.com/chat/completions';
@@ -76,7 +77,7 @@ export function modelClient(o: ClientOptions): Complete {
     if (o.mode !== 'live' && existsSync(file)) return parse(JSON.parse(readFileSync(file, 'utf8')).response);
     if (o.mode === 'replay') throw new ModelError(`no recorded response ${file}`);
     mkdirSync(dirname(o.spendFile), { recursive: true }); // before the call: a billed call must always be counted
-    return turn(o.spendFile, async () => {
+    return turn(o.spendFile, signal, async () => {
       const before = spent(o.spendFile);
       if (before.usd >= o.capUsd) throw new ModelError(`the $${o.capUsd} eval cap is reached ($${before.usd.toFixed(4)} spent)`);
       const res = await call(body, signal);
@@ -91,17 +92,20 @@ export function modelClient(o: ClientOptions): Complete {
   };
 }
 
-const alive = (pid: number) => { try { process.kill(pid, 0); return true; } catch { return false; } };
 // Live calls from every process sharing a spend file take turns, so each cap check sees every call before it: parallel job
-// workers cannot all pass the check at once (council C18). A lock left by a process that died is taken over.
-async function turn<T>(spendFile: string, f: () => Promise<T>): Promise<T> {
-  const lock = `${spendFile}.lock`;
-  for (;;) {
-    try { writeFileSync(lock, String(process.pid), { flag: 'wx' }); break; } catch { /* held */ }
-    let holder = 0;
-    try { holder = Number(readFileSync(lock, 'utf8')); } catch { continue; }
-    if (holder && !alive(holder)) rmSync(lock, { force: true });
-    else await new Promise((r) => setTimeout(r, 50));
+// workers cannot all pass the check at once (council C18). The turn is an exclusive SQLite lock, which the system releases
+// when its holder exits or is killed, so no lock outlives its holder and none is taken over. A holder's call ends within its
+// timeouts; a caller waiting for the turn stops when its request is cancelled (council D4).
+async function turn<T>(spendFile: string, signal: AbortSignal | undefined, f: () => Promise<T>): Promise<T> {
+  const lock = new DatabaseSync(`${spendFile}.lock.db`);
+  try {
+    for (;;) {
+      try { lock.exec('BEGIN EXCLUSIVE'); break; } catch (e) { if ((e as { errcode?: number }).errcode !== 5) throw e; }
+      if (signal?.aborted) throw new ModelError('cancelled by the user');
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    try { return await f(); } finally { lock.exec('ROLLBACK'); }
+  } finally {
+    lock.close();
   }
-  try { return await f(); } finally { rmSync(lock, { force: true }); }
 }
