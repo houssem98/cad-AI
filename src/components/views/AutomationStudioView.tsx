@@ -92,9 +92,9 @@ export const AutomationStudioView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-[#0f0f0f] select-none text-neutral-200">
+    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-graphite-0f select-none text-neutral-200">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#232323]">
+      <div className="flex items-center justify-between pb-3 border-b border-graphite-23">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             <Workflow className="w-5 h-5 text-steel-400" />
@@ -121,7 +121,7 @@ export const AutomationStudioView: React.FC = () => {
       </div>
 
       {/* Visual Canvas with Directed Graph Nodes */}
-      <div className="relative w-full min-h-[500px] bg-[#131313] border border-[#2e2e2e] rounded-xl p-8 cad-grid-bg flex flex-col items-center justify-center shadow-inner space-y-4">
+      <div className="relative w-full min-h-[500px] bg-graphite-13 border border-graphite-2e rounded-xl p-8 cad-grid-bg flex flex-col items-center justify-center shadow-inner space-y-4">
         <div className="max-w-2xl w-full space-y-3">
           {nodes.map((node, index) => {
             const isCompleted = node.status === 'completed';
@@ -130,12 +130,12 @@ export const AutomationStudioView: React.FC = () => {
             return (
               <React.Fragment key={node.id}>
                 <div
-                  className={`p-4 rounded-xl border transition-all ${
+                  className={`p-4 rounded-xl border transition ${
                     isCurrent
                       ? 'bg-steel-950/90 border-steel-400 shadow-xl scale-[1.01]'
                       : isCompleted
-                      ? 'bg-[#1d1d1d] border-emerald-500/50 text-neutral-300'
-                      : 'bg-[#181818] border-[#313131] text-neutral-400'
+                      ? 'bg-graphite-1d border-emerald-500/50 text-neutral-300'
+                      : 'bg-graphite-18 border-graphite-31 text-neutral-400'
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -145,8 +145,8 @@ export const AutomationStudioView: React.FC = () => {
                           isCompleted
                             ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
                             : isCurrent
-                            ? 'bg-steel-600 text-white border-steel-400 animate-pulse'
-                            : 'bg-[#232323] border-[#3e3e3e] text-steel-400'
+                            ? 'bg-steel-600 text-white border-steel-400 animate-pulse motion-reduce:animate-none'
+                            : 'bg-graphite-23 border-graphite-3e text-steel-400'
                         }`}
                       >
                         {index + 1}
@@ -162,7 +162,7 @@ export const AutomationStudioView: React.FC = () => {
                         </span>
                       )}
                       {isCurrent && (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-tech font-bold bg-steel-500 text-white animate-pulse">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-tech font-bold bg-steel-500 text-white animate-pulse motion-reduce:animate-none">
                           Running
                         </span>
                       )}
@@ -174,7 +174,7 @@ export const AutomationStudioView: React.FC = () => {
                   </p>
 
                   {node.outputSummary && (
-                    <div className="mt-2.5 ml-9 p-2 rounded bg-[#101010] border border-steel-500/20 font-tech text-[11px] text-steel-300">
+                    <div className="mt-2.5 ml-9 p-2 rounded bg-graphite-10 border border-steel-500/20 font-tech text-[11px] text-steel-300">
                       Output: {node.outputSummary}
                     </div>
                   )}

@@ -21,9 +21,9 @@ export const AssemblyIntelligenceView: React.FC = () => {
   const [selectedComponent, setSelectedComponent] = useState('MF-BRK-084-AL');
 
   return (
-    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-[#0f0f0f] select-none text-neutral-200">
+    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-graphite-0f select-none text-neutral-200">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#232323]">
+      <div className="flex items-center justify-between pb-3 border-b border-graphite-23">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             <GitFork className="w-5 h-5 text-steel-400" />
@@ -44,7 +44,7 @@ export const AssemblyIntelligenceView: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: 3D Assembly Interactive Canvas with Exploded View Slider (2 cols) */}
-        <div className="lg:col-span-2 p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
+        <div className="lg:col-span-2 p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-4">
           <div className="flex items-center justify-between">
             <div className="font-semibold text-neutral-100 text-sm">
               EV Subframe Bracket Assembly (ASM-084)
@@ -64,11 +64,11 @@ export const AssemblyIntelligenceView: React.FC = () => {
           </div>
 
           {/* Graphic Assembly Viewer */}
-          <div className="relative w-full h-[380px] bg-[#131313] border border-[#343434] rounded-lg flex items-center justify-center cad-grid-bg overflow-hidden shadow-inner">
-            <div className="relative flex flex-col items-center justify-center transition-all duration-300">
+          <div className="relative w-full h-[380px] bg-graphite-13 border border-graphite-34 rounded-lg flex items-center justify-center cad-grid-bg overflow-hidden shadow-inner">
+            <div className="relative flex flex-col items-center justify-center transition duration-300">
               {/* Screws floating above with exploded ratio */}
               <div
-                className="flex gap-16 transition-all duration-300"
+                className="flex gap-16 transition duration-300"
                 style={{ transform: `translateY(-${explodedRatio * 1.2}px)` }}
               >
                 <div className="w-4 h-10 bg-neutral-300 rounded-t border border-neutral-600 flex flex-col items-center shadow-lg">
@@ -86,7 +86,7 @@ export const AssemblyIntelligenceView: React.FC = () => {
 
               {/* Base chassis mount plate below */}
               <div
-                className="w-72 h-8 bg-neutral-700 border-2 border-neutral-600 rounded mt-2 flex items-center justify-center font-tech text-xs text-neutral-300 shadow-xl transition-all duration-300"
+                className="w-72 h-8 bg-neutral-700 border-2 border-neutral-600 rounded mt-2 flex items-center justify-center font-tech text-xs text-neutral-300 shadow-xl transition duration-300"
                 style={{ transform: `translateY(${explodedRatio * 0.8}px)` }}
               >
                 Chassis Ground Plate Subframe
@@ -104,7 +104,7 @@ export const AssemblyIntelligenceView: React.FC = () => {
         </div>
 
         {/* Right: Component Explorer & BOM Rollup */}
-        <div className="p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
+        <div className="p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-4">
           <div className="font-semibold text-neutral-100 text-sm">
             Component Hierarchy & Mates
           </div>
@@ -117,7 +117,7 @@ export const AssemblyIntelligenceView: React.FC = () => {
                 className={`p-3 rounded-lg border cursor-pointer transition-colors ${
                   selectedComponent === part.partNumber
                     ? 'bg-steel-950/60 border-steel-500 text-white'
-                    : 'bg-[#1c1c1c] border-[#2c2c2c] text-neutral-300 hover:border-neutral-500'
+                    : 'bg-graphite-1c border-graphite-2c text-neutral-300 hover:border-neutral-500'
                 }`}
               >
                 <div className="flex justify-between font-semibold">
@@ -125,7 +125,7 @@ export const AssemblyIntelligenceView: React.FC = () => {
                   <span className="font-tech text-steel-400">Qty: {part.qty}</span>
                 </div>
                 <div className="text-[11px] text-neutral-400 mt-1">{part.description}</div>
-                <div className="flex justify-between text-[10px] font-tech text-neutral-500 pt-1.5 mt-1 border-t border-[#292929]">
+                <div className="flex justify-between text-[10px] font-tech text-neutral-500 pt-1.5 mt-1 border-t border-graphite-29">
                   <span>{part.material}</span>
                   <span>{part.massKg} kg</span>
                 </div>

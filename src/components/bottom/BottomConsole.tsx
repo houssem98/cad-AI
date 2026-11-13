@@ -46,7 +46,7 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
 
   if (!isOpen) {
     return (
-      <div className="h-7 bg-[#0d0d0d] border-t border-[#232323] flex items-center justify-between px-3 text-xs select-none flex-shrink-0 z-20">
+      <div className="h-7 bg-graphite-0d border-t border-graphite-23 flex items-center justify-between px-3 text-xs select-none flex-shrink-0 z-20">
         <div className="flex items-center gap-3 text-[11px] font-tech text-neutral-400">
           <span className="flex items-center gap-1.5 text-neutral-300">
             <span className={`w-1.5 h-1.5 rounded-full ${v.ok ? 'bg-emerald-400' : 'bg-neutral-500'}`} />
@@ -70,12 +70,12 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
   }
 
   return (
-    <div className="h-[185px] bg-[#0d0d0d] border-t border-[#232323] flex select-none flex-shrink-0 z-20 transition-all">
+    <div className="h-[185px] bg-graphite-0d border-t border-graphite-23 flex select-none flex-shrink-0 z-20">
       {/* 1. Left Section: Tabs and Table View */}
-      <div className="flex-1 flex flex-col border-r border-[#232323] min-w-0">
+      <div className="flex-1 flex flex-col border-r border-graphite-23 min-w-0">
         {/* Tab Headers with Collapse Button */}
-        <div className="flex items-center justify-between px-3 py-1.5 border-b border-[#232323] bg-[#121212] text-xs">
-          <div role="tablist" aria-label="Console" className="flex items-center gap-1 p-0.5 bg-[#0d0d0d] border border-[#262626] rounded-lg">
+        <div className="flex items-center justify-between px-3 py-1.5 border-b border-graphite-23 bg-graphite-12 text-xs">
+          <div role="tablist" aria-label="Console" className="flex items-center gap-1 p-0.5 bg-graphite-0d border border-graphite-26 rounded-lg">
             {TABS.map(([id, label]) => (
               <button
                 key={id}
@@ -110,16 +110,16 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
               <div className="mb-2 text-[10px] font-tech uppercase tracking-wider text-amber-300/90">Demo data · these rows are samples, not execution records</div>
               <table className="w-full text-left text-xs font-tech">
                 <thead>
-                  <tr className="text-neutral-400 border-b border-[#292929] pb-1.5 font-medium">
+                  <tr className="text-neutral-400 border-b border-graphite-29 pb-1.5 font-medium">
                     <th className="pb-2 font-medium w-24">Time</th>
                     <th className="pb-2 font-medium w-48">Action</th>
                     <th className="pb-2 font-medium w-28">Status</th>
                     <th className="pb-2 font-medium">Details</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#202020]">
+                <tbody className="divide-y divide-graphite-20">
                   {operations.map((op) => (
-                    <tr key={op.id} className="hover:bg-[#1c1c1c] transition-colors">
+                    <tr key={op.id} className="hover:bg-graphite-1c transition-colors">
                       <td className="py-2 text-neutral-400">{op.time}</td>
                       <td className="py-2 text-neutral-200 font-sans font-medium">{op.action}</td>
                       <td className="py-2">
@@ -141,7 +141,7 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
               <div className="text-[11px] text-neutral-300">{v.title}{doc?.inspection ? ` · ${v.detail}` : ''}</div>
               <div className="text-[10px] font-tech uppercase tracking-wider text-amber-300/90">Demo checks · samples of what a verification will list, not results</div>
               {verificationChecks.map((chk) => (
-                <div key={chk.id} className="flex items-center justify-between p-2 bg-[#1a1a1a] border border-[#292929] rounded text-xs">
+                <div key={chk.id} className="flex items-center justify-between p-2 bg-graphite-1a border border-graphite-29 rounded text-xs">
                   <div className="flex items-center gap-2.5">
                     <CircleDashed className="w-4 h-4 text-neutral-500 flex-shrink-0" />
                     <div>
@@ -171,7 +171,7 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
       </div>
 
       {/* 2. Right Section: Verification Center Card */}
-      <div className="w-[240px] md:w-[260px] lg:w-[280px] p-3 flex flex-col justify-between bg-[#101010] shrink-0 border-l border-[#232323]">
+      <div className="w-[240px] md:w-[260px] lg:w-[280px] p-3 flex flex-col justify-between bg-graphite-10 shrink-0 border-l border-graphite-23">
         <div className="flex items-center justify-between text-xs font-medium text-neutral-300">
           <span className="font-semibold text-neutral-200">Verification Center</span>
           <span className={`w-2 h-2 rounded-full ${v.ok ? 'bg-emerald-400' : 'bg-neutral-500'}`} />
@@ -194,7 +194,7 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
               if (onOpenReport) onOpenReport();
               else if (onNavigateVerification) onNavigateVerification();
             }}
-            className="flex items-center gap-1.5 px-3 py-1 bg-[#1e1e1e] hover:bg-steel-600 border border-[#343434] hover:border-steel-500 rounded text-xs font-medium text-neutral-200 hover:text-white transition-all shadow-sm cursor-pointer group"
+            className="flex items-center gap-1.5 px-3 py-1 bg-graphite-1e hover:bg-steel-600 border border-graphite-34 hover:border-steel-500 rounded text-xs font-medium text-neutral-200 hover:text-white transition-colors shadow-sm cursor-pointer group"
           >
             <span>View Report</span>
             <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />

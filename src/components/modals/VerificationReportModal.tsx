@@ -36,15 +36,15 @@ export const VerificationReportModal: React.FC<VerificationReportModalProps> = (
 
   return (
     <Dialog label="Verification report" onClose={onClose}
-      className="w-full max-w-3xl bg-[#171717] border border-[#2f2f2f] rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-[#292929] bg-[#1b1b1b]">
+      className="w-full max-w-3xl bg-graphite-17 border border-graphite-2f rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-graphite-29 bg-graphite-1b">
         <div>
           <div className="text-sm font-bold text-neutral-100">Verification report</div>
           <div className="text-[11px] text-neutral-400 font-tech">Demo · no verification has run</div>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={downloadJson}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#232323] hover:bg-steel-600 border border-[#3a3a3a] rounded text-xs text-neutral-200 hover:text-white transition-colors">
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-graphite-23 hover:bg-steel-600 border border-graphite-3a rounded text-xs text-neutral-200 hover:text-white transition-colors">
             <Download className="w-3.5 h-3.5" />
             <span>Download JSON</span>
           </button>
@@ -54,7 +54,7 @@ export const VerificationReportModal: React.FC<VerificationReportModalProps> = (
         </div>
       </div>
 
-      <div className="p-6 border-b border-[#292929] space-y-1">
+      <div className="p-6 border-b border-graphite-29 space-y-1">
         <span className="px-2 py-0.5 rounded text-[10px] font-tech font-bold uppercase bg-amber-500/10 text-amber-300 border border-amber-500/30">
           Not verified
         </span>
@@ -65,7 +65,7 @@ export const VerificationReportModal: React.FC<VerificationReportModalProps> = (
 
       <div className="flex-1 overflow-y-auto p-6 space-y-2.5">
         {checks.map((chk) => (
-          <div key={chk.id} className="p-3 bg-[#1a1a1a] border border-[#2c2c2c] rounded-lg text-xs space-y-1.5">
+          <div key={chk.id} className="p-3 bg-graphite-1a border border-graphite-2c rounded-lg text-xs space-y-1.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 font-medium text-neutral-200">
                 <CircleDashed className="w-4 h-4 text-neutral-500 flex-shrink-0" />
@@ -82,7 +82,7 @@ export const VerificationReportModal: React.FC<VerificationReportModalProps> = (
         ))}
       </div>
 
-      <div className="px-6 py-3 border-t border-[#292929] bg-[#121212] flex items-center justify-end">
+      <div className="px-6 py-3 border-t border-graphite-29 bg-graphite-12 flex items-center justify-end">
         <button onClick={onClose} className="px-4 py-1.5 bg-steel-600 hover:bg-steel-500 text-white rounded text-xs font-medium transition-colors">
           Close report
         </button>

@@ -87,12 +87,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className={`h-full bg-[#0c0c0c] border-r border-[#232323] flex flex-col justify-between select-none flex-shrink-0 transition-all duration-200 z-30 ${
+      className={`h-full bg-graphite-0c border-r border-graphite-23 flex flex-col justify-between select-none flex-shrink-0 transition-[width] duration-200 z-30 ${
         isCollapsed ? 'w-14' : 'w-[208px]'
       }`}
     >
       {/* 1. Header with Collapse Toggle */}
-      <div className="flex items-center justify-between px-2.5 py-2 border-b border-[#1d1d1d]">
+      <div className="flex items-center justify-between px-2.5 py-2 border-b border-graphite-1d">
         {!isCollapsed && (
           <span className="text-[10px] uppercase font-tech font-bold tracking-wider text-neutral-500 pl-1.5">
             Modules
@@ -100,7 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
         <button
           onClick={toggle}
-          className={`p-1 text-neutral-400 hover:text-white hover:bg-[#1a1a1a] rounded transition-colors cursor-pointer ${
+          className={`p-1 text-neutral-400 hover:text-white hover:bg-graphite-1a rounded transition-colors cursor-pointer ${
             isCollapsed ? 'mx-auto' : ''
           }`}
           title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
@@ -119,12 +119,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               key={item.id}
               onClick={() => onSelectModule(item.id)}
-              className={`w-full flex items-center rounded-lg font-medium transition-all group cursor-pointer ${
+              className={`w-full flex items-center rounded-lg font-medium transition-colors group cursor-pointer ${
                 isCollapsed ? 'justify-center p-2' : 'justify-between px-2.5 py-1.5'
               } ${
                 isActive
                   ? 'bg-steel-600 text-white shadow-md '
-                  : 'text-neutral-400 hover:text-neutral-100 hover:bg-[#191919]'
+                  : 'text-neutral-400 hover:text-neutral-100 hover:bg-graphite-19'
               }`}
               title={isCollapsed ? item.label : undefined}
             >
@@ -145,7 +145,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         })}
 
         {/* Divider */}
-        <div className="my-2 mx-1 border-t border-[#202020]" />
+        <div className="my-2 mx-1 border-t border-graphite-20" />
 
         {/* Secondary Category / Governance */}
         {adminNavItems.map((item) => {
@@ -156,12 +156,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               key={item.id}
               onClick={() => onSelectModule(item.id)}
-              className={`w-full flex items-center rounded-lg font-medium transition-all group cursor-pointer ${
+              className={`w-full flex items-center rounded-lg font-medium transition-colors group cursor-pointer ${
                 isCollapsed ? 'justify-center p-2' : 'justify-between px-2.5 py-1.5'
               } ${
                 isActive
                   ? 'bg-steel-600 text-white shadow-md '
-                  : 'text-neutral-400 hover:text-neutral-100 hover:bg-[#191919]'
+                  : 'text-neutral-400 hover:text-neutral-100 hover:bg-graphite-19'
               }`}
               title={isCollapsed ? item.label : undefined}
             >
@@ -180,8 +180,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* 3. Bottom Enterprise Badge */}
       {!isCollapsed ? (
-        <div className="p-2 border-t border-[#202020] bg-[#0d0d0d]">
-          <div className="p-2.5 bg-[#171717] border border-[#2a2a2a] rounded-lg space-y-1.5">
+        <div className="p-2 border-t border-graphite-20 bg-graphite-0d">
+          <div className="p-2.5 bg-graphite-17 border border-graphite-2a rounded-lg space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="font-semibold text-neutral-200 text-xs">Enterprise Edition</span>
               <ChevronDown className="w-3 h-3 text-neutral-400" />
@@ -191,7 +191,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </p>
             <button
               onClick={onOpenPricing}
-              className="w-full flex items-center justify-center gap-1 py-1 px-2 bg-steel-600 hover:bg-steel-500 text-white font-medium text-xs rounded transition-all shadow-sm cursor-pointer"
+              className="w-full flex items-center justify-center gap-1 py-1 px-2 bg-steel-600 hover:bg-steel-500 text-white font-medium text-xs rounded transition-colors shadow-sm cursor-pointer"
             >
               <Sparkles className="w-3 h-3 text-steel-200" />
               <span>Upgrade Plan</span>
@@ -199,7 +199,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
       ) : (
-        <div className="p-2 border-t border-[#202020] flex justify-center">
+        <div className="p-2 border-t border-graphite-20 flex justify-center">
           <button
             onClick={onOpenPricing}
             className="p-1.5 rounded-lg bg-steel-600 text-white hover:bg-steel-500 transition-colors cursor-pointer"

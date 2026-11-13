@@ -344,9 +344,9 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-150">
-      <div className="w-full max-w-xl bg-[#171717] border border-[#2f2f2f] rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="w-full max-w-xl bg-graphite-17 border border-graphite-2f rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#292929] bg-[#1b1b1b]">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-graphite-29 bg-graphite-1b">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-steel-600/20 text-steel-400 border border-steel-500/30">
               <Package className="w-4 h-4" />
@@ -374,25 +374,25 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
         {/* Body Content */}
         <div className="p-5 overflow-y-auto space-y-4 text-xs">
           {/* Quick Presets & Batch Select Controls */}
-          <div className="flex items-center justify-between bg-[#1c1c1c] p-2.5 rounded-lg border border-[#313131]">
+          <div className="flex items-center justify-between bg-graphite-1c p-2.5 rounded-lg border border-graphite-31">
             <div className="flex items-center gap-1.5 text-neutral-300">
               <Sparkles className="w-3.5 h-3.5 text-steel-400" />
               <span className="font-semibold text-[11px]">Presets:</span>
               <button
                 onClick={() => handlePresetSelect('all')}
-                className="px-2 py-0.5 text-[10px] font-tech rounded bg-[#292929] hover:bg-steel-600/30 text-steel-300 border border-steel-800/40 transition-colors cursor-pointer"
+                className="px-2 py-0.5 text-[10px] font-tech rounded bg-graphite-29 hover:bg-steel-600/30 text-steel-300 border border-steel-800/40 transition-colors cursor-pointer"
               >
                 All 5 Formats
               </button>
               <button
                 onClick={() => handlePresetSelect('cad-drawing')}
-                className="px-2 py-0.5 text-[10px] font-tech rounded bg-[#292929] hover:bg-steel-600/30 text-steel-300 border border-steel-800/40 transition-colors cursor-pointer"
+                className="px-2 py-0.5 text-[10px] font-tech rounded bg-graphite-29 hover:bg-steel-600/30 text-steel-300 border border-steel-800/40 transition-colors cursor-pointer"
               >
                 CAD + Drawing
               </button>
               <button
                 onClick={() => handlePresetSelect('manufacturing')}
-                className="px-2 py-0.5 text-[10px] font-tech rounded bg-[#292929] hover:bg-steel-600/30 text-steel-300 border border-steel-800/40 transition-colors cursor-pointer"
+                className="px-2 py-0.5 text-[10px] font-tech rounded bg-graphite-29 hover:bg-steel-600/30 text-steel-300 border border-steel-800/40 transition-colors cursor-pointer"
               >
                 Production (STEP/STL/SVG)
               </button>
@@ -433,10 +433,10 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
                   <div
                     key={fmt.id}
                     onClick={() => toggleFormat(fmt.id)}
-                    className={`flex items-start gap-3 p-3 rounded-lg border transition-all cursor-pointer ${
+                    className={`flex items-start gap-3 p-3 rounded-lg border transition-colors cursor-pointer ${
                       isSelected
                         ? 'bg-steel-950/30 border-steel-500/80 shadow-sm '
-                        : 'bg-[#1a1a1a] border-[#2c2c2c] opacity-70 hover:opacity-100 hover:border-neutral-600'
+                        : 'bg-graphite-1a border-graphite-2c opacity-70 hover:opacity-100 hover:border-neutral-600'
                     }`}
                   >
                     <div className="pt-0.5">
@@ -445,7 +445,7 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
                           <Check className="w-3 h-3 stroke-[3]" />
                         </div>
                       ) : (
-                        <div className="w-4 h-4 rounded border border-neutral-600 bg-[#141414]" />
+                        <div className="w-4 h-4 rounded border border-neutral-600 bg-graphite-14" />
                       )}
                     </div>
 
@@ -455,7 +455,7 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
                           <span className="font-semibold text-neutral-100 text-xs">{fmt.label}</span>
                           <span className="text-[10px] font-tech text-neutral-500">{fmt.ext}</span>
                         </div>
-                        <span className="text-[9px] font-tech px-1.5 py-0.2 rounded bg-[#232323] text-neutral-400 border border-neutral-700">
+                        <span className="text-[9px] font-tech px-1.5 py-0.2 rounded bg-graphite-23 text-neutral-400 border border-neutral-700">
                           {fmt.badge}
                         </span>
                       </div>
@@ -472,10 +472,10 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
             {/* ZIP Packaging Toggle */}
             <div
               onClick={() => setPackageAsZip(true)}
-              className={`p-3 rounded-lg border transition-all cursor-pointer ${
+              className={`p-3 rounded-lg border transition-colors cursor-pointer ${
                 packageAsZip
                   ? 'bg-steel-900/20 border-steel-500 text-white'
-                  : 'bg-[#1a1a1a] border-[#2c2c2c] text-neutral-400 hover:border-neutral-600'
+                  : 'bg-graphite-1a border-graphite-2c text-neutral-400 hover:border-neutral-600'
               }`}
             >
               <div className="flex items-center gap-2">
@@ -490,10 +490,10 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
             {/* Individual Files Toggle */}
             <div
               onClick={() => setPackageAsZip(false)}
-              className={`p-3 rounded-lg border transition-all cursor-pointer ${
+              className={`p-3 rounded-lg border transition-colors cursor-pointer ${
                 !packageAsZip
                   ? 'bg-steel-900/20 border-steel-500 text-white'
-                  : 'bg-[#1a1a1a] border-[#2c2c2c] text-neutral-400 hover:border-neutral-600'
+                  : 'bg-graphite-1a border-graphite-2c text-neutral-400 hover:border-neutral-600'
               }`}
             >
               <div className="flex items-center gap-2">
@@ -514,7 +514,7 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
             <select
               value={precision}
               onChange={(e) => setPrecision(e.target.value as any)}
-              className="w-full bg-[#1a1a1a] border border-[#2c2c2c] rounded-lg p-2 text-neutral-200 font-tech text-xs focus:outline-none focus:border-steel-500"
+              className="w-full bg-graphite-1a border border-graphite-2c rounded-lg p-2 text-neutral-200 font-tech text-xs focus:outline-none focus:border-steel-500"
             >
               <option value="manufacturing">Tooling Grade (ASME Y14.5 / Tolerance 0.001 mm)</option>
               <option value="high">Fine Visual (Chord Height 0.005 mm)</option>
@@ -523,7 +523,7 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
           </div>
 
           {/* Model Spec & Package Summary */}
-          <div className="p-3 bg-[#191919] border border-[#2c2c2c] rounded-lg font-tech text-[11px] space-y-1.5 text-neutral-400">
+          <div className="p-3 bg-graphite-19 border border-graphite-2c rounded-lg font-tech text-[11px] space-y-1.5 text-neutral-400">
             <div className="flex justify-between items-center text-neutral-200 font-semibold pb-1 border-b border-neutral-800">
               <span>Target Part:</span>
               <span className="text-steel-400">Mounting_Bracket ({parameters.length}×{parameters.width}×{parameters.thickness}mm)</span>
@@ -552,8 +552,8 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
 
           {/* Progress / Success State */}
           {isExporting && (
-            <div className="p-3 bg-steel-950/40 border border-steel-800/60 rounded-lg flex items-center gap-2.5 text-xs text-steel-300 animate-pulse">
-              <Loader2 className="w-4 h-4 animate-spin text-steel-400 flex-shrink-0" />
+            <div className="p-3 bg-steel-950/40 border border-steel-800/60 rounded-lg flex items-center gap-2.5 text-xs text-steel-300 animate-pulse motion-reduce:animate-none">
+              <Loader2 className="w-4 h-4 animate-spin motion-reduce:animate-none text-steel-400 flex-shrink-0" />
               <span>{exportProgressStage || 'Preparing engineering deliverables...'}</span>
             </div>
           )}
@@ -575,7 +575,7 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3.5 border-t border-[#292929] bg-[#121212] flex items-center justify-between">
+        <div className="px-5 py-3.5 border-t border-graphite-29 bg-graphite-12 flex items-center justify-between">
           <button
             onClick={onClose}
             className="px-3.5 py-1.5 text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer"
@@ -586,7 +586,7 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
           <button
             onClick={handleExport}
             disabled={isExporting || selectedCount === 0}
-            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-semibold shadow-md transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-semibold shadow-md transition cursor-pointer ${
               selectedCount === 0
                 ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
                 : 'bg-steel-600 hover:bg-steel-500 text-white '
@@ -594,7 +594,7 @@ Verified with MechForge Parasolid B-Rep Kernel. All checks passed.
           >
             {isExporting ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none" />
                 <span>Building Package...</span>
               </>
             ) : (

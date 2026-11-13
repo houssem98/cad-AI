@@ -98,14 +98,14 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({ onAddOperation
   if (!isOpen || isMinimized) {
     const handleExpand = onToggleOpen || (() => setIsMinimized(false));
     return (
-      <div className="w-11 bg-[#0e0e0e] border-r border-[#232323] flex flex-col items-center py-2.5 justify-between select-none flex-shrink-0 z-20">
+      <div className="w-11 bg-graphite-0e border-r border-graphite-23 flex flex-col items-center py-2.5 justify-between select-none flex-shrink-0 z-20">
         <div className="flex flex-col items-center gap-3">
           <button onClick={handleExpand} className="p-1.5 text-steel-400 hover:text-white bg-steel-950/60 rounded border border-steel-700/50 transition-colors cursor-pointer" title="Expand AI CAD Agent">
             <Bot className="w-4 h-4 text-steel-400" />
           </button>
-          <div className="w-5 h-[1px] bg-[#232323]" />
+          <div className="w-5 h-[1px] bg-graphite-23" />
           {onOpenLiveVoice && (
-            <button onClick={onOpenLiveVoice} className="p-1.5 text-steel-400 hover:text-white hover:bg-[#1a1a1a] rounded transition-colors cursor-pointer" title="Start Live Voice">
+            <button onClick={onOpenLiveVoice} className="p-1.5 text-steel-400 hover:text-white hover:bg-graphite-1a rounded transition-colors cursor-pointer" title="Start Live Voice">
               <Mic className="w-4 h-4" />
             </button>
           )}
@@ -118,8 +118,8 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({ onAddOperation
   const handleCollapse = onToggleOpen || (() => setIsMinimized(true));
 
   return (
-    <div className="w-[310px] lg:w-[340px] h-full bg-[#0d0d0d] border-r border-[#232323] flex flex-col flex-shrink-0 select-none z-20 transition-all">
-      <div className="flex flex-wrap items-center justify-between gap-y-1.5 px-3.5 py-2.5 border-b border-[#292929] bg-[#181818]">
+    <div className="w-[310px] lg:w-[340px] h-full bg-graphite-0d border-r border-graphite-23 flex flex-col flex-shrink-0 select-none z-20">
+      <div className="flex flex-wrap items-center justify-between gap-y-1.5 px-3.5 py-2.5 border-b border-graphite-29 bg-graphite-18">
         <div className="flex items-center gap-2">
           <span className="whitespace-nowrap font-semibold text-neutral-100 text-xs tracking-tight">AI CAD Agent</span>
           <span className="flex items-center gap-1 whitespace-nowrap px-2 py-0.5 text-[10px] font-tech font-semibold rounded bg-steel-950/80 text-steel-400 border border-steel-800/60" title="Model: deepseek-flash, thinking off">
@@ -129,7 +129,7 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({ onAddOperation
         </div>
         <div className="ml-auto flex items-center gap-1.5 text-neutral-400">
           {onOpenLiveVoice && (
-            <button onClick={onOpenLiveVoice} className="flex items-center gap-1 whitespace-nowrap px-2 py-1 rounded bg-steel-600/20 hover:bg-steel-600/30 text-steel-300 border border-steel-500/40 text-[10px] font-tech font-bold transition-all shadow-sm" title="Launch Live Voice conversation with gemini-3.8-live">
+            <button onClick={onOpenLiveVoice} className="flex items-center gap-1 whitespace-nowrap px-2 py-1 rounded bg-steel-600/20 hover:bg-steel-600/30 text-steel-300 border border-steel-500/40 text-[10px] font-tech font-bold transition-colors shadow-sm" title="Launch Live Voice conversation with gemini-3.8-live">
               <Mic className="w-3 h-3 text-steel-400" />
               <span>Live Voice</span>
             </button>
@@ -154,11 +154,11 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({ onAddOperation
         {runs.map((run) => <RequestView key={run.id} run={run} onDecide={decide} onExport={exportStep} />)}
         {busy && (
           <div className="flex items-center gap-2 text-xs text-steel-400 bg-steel-950/30 border border-steel-800/40 px-3 py-2 rounded-lg">
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-steel-400" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none text-steel-400" />
             <span>Running…</span>
             <button
               onClick={() => { const run = runs.find((r) => !finished(r)); if (run) post(`/api/requests/${run.id}/cancel`, {}).catch((e) => setError(e.message)); }}
-              className="ml-auto px-2 py-0.5 rounded border border-neutral-700 text-neutral-300 hover:text-white hover:bg-[#232323]"
+              className="ml-auto px-2 py-0.5 rounded border border-neutral-700 text-neutral-300 hover:text-white hover:bg-graphite-23"
             >
               Cancel
             </button>
@@ -168,14 +168,14 @@ export const AICADAgentPanel: React.FC<AICADAgentPanelProps> = ({ onAddOperation
         <div ref={scrollBottomRef} />
       </div>
 
-      <div className="px-3 py-1.5 border-t border-[#232323] bg-[#111111] flex flex-wrap items-center gap-1.5 text-[11px] text-neutral-300">
-        <button onClick={() => handleSendMessage(EXAMPLE)} disabled={busy} className="whitespace-nowrap px-2.5 py-1 bg-[#1b1b1b] hover:bg-[#282828] border border-[#333333] rounded-full text-neutral-300 hover:text-white transition-colors cursor-pointer">
+      <div className="px-3 py-1.5 border-t border-graphite-23 bg-graphite-11 flex flex-wrap items-center gap-1.5 text-[11px] text-neutral-300">
+        <button onClick={() => handleSendMessage(EXAMPLE)} disabled={busy} className="whitespace-nowrap px-2.5 py-1 bg-graphite-1b hover:bg-graphite-28 border border-graphite-33 rounded-full text-neutral-300 hover:text-white transition-colors cursor-pointer">
           Plate 100 × 60 × 5 mm
         </button>
       </div>
 
-      <div className="p-3 border-t border-[#292929] bg-[#171717]">
-        <div className="relative bg-[#1c1c1c] border border-[#323232] rounded-xl focus-within:border-steel-500/80 transition-colors shadow-inner">
+      <div className="p-3 border-t border-graphite-29 bg-graphite-17">
+        <div className="relative bg-graphite-1c border border-graphite-32 rounded-xl focus-within:border-steel-500/80 transition-colors shadow-inner">
           <textarea
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
@@ -223,9 +223,9 @@ function RequestView({ run, onDecide, onExport }: { run: AgentRun; onDecide: (r:
   return (
     <div data-testid="agent-request" className="space-y-2">
       {run.said.map((s, i) => (
-        <div key={i} className="bg-[#232323] text-neutral-200 text-xs leading-relaxed px-3.5 py-2.5 rounded-2xl rounded-tr-sm border border-[#3a3a3a] whitespace-pre-line">{s}</div>
+        <div key={i} className="bg-graphite-23 text-neutral-200 text-xs leading-relaxed px-3.5 py-2.5 rounded-2xl rounded-tr-sm border border-graphite-3a whitespace-pre-line">{s}</div>
       ))}
-      <div className="bg-[#1c1c1c] text-neutral-200 text-xs leading-relaxed px-3.5 py-2.5 rounded-2xl rounded-tl-sm border border-[#2f2f2f] space-y-1.5">
+      <div className="bg-graphite-1c text-neutral-200 text-xs leading-relaxed px-3.5 py-2.5 rounded-2xl rounded-tl-sm border border-graphite-2f space-y-1.5">
         {run.events.map((e, i) => {
           if (e.type === 'plan')
             return (
@@ -248,12 +248,12 @@ function RequestView({ run, onDecide, onExport }: { run: AgentRun; onDecide: (r:
           if (e.type === 'approval') {
             const open = !run.decided.includes(e.data.operation);
             return (
-              <div key={i} className="p-2 rounded-lg border border-steel-500/40 bg-[#1d1d1d] space-y-1.5">
+              <div key={i} className="p-2 rounded-lg border border-steel-500/40 bg-graphite-1d space-y-1.5">
                 <p>Approve {e.data.type} {e.data.operation}? It changes the part.</p>
                 {open && (
                   <div className="flex gap-2">
                     <button onClick={() => onDecide(run, e.data.operation, true)} className="flex items-center gap-1 px-2.5 py-1 bg-steel-600 hover:bg-steel-500 text-white rounded text-xs"><Check className="w-3 h-3" />Approve</button>
-                    <button onClick={() => onDecide(run, e.data.operation, false)} className="flex items-center gap-1 px-2.5 py-1 bg-[#232323] border border-neutral-700 text-neutral-300 rounded text-xs"><X className="w-3 h-3" />Deny</button>
+                    <button onClick={() => onDecide(run, e.data.operation, false)} className="flex items-center gap-1 px-2.5 py-1 bg-graphite-23 border border-neutral-700 text-neutral-300 rounded text-xs"><X className="w-3 h-3" />Deny</button>
                   </div>
                 )}
               </div>
@@ -269,9 +269,9 @@ function RequestView({ run, onDecide, onExport }: { run: AgentRun; onDecide: (r:
               <div className="flex flex-wrap items-center gap-2">
                 <a href={`/?part=${encodeURIComponent(done.document)}`} className="inline-flex items-center gap-1 px-2.5 py-1 bg-steel-600 hover:bg-steel-500 text-white rounded text-xs"><ExternalLink className="w-3 h-3" />Open part</a>
                 {run.export?.artifact ? (
-                  <a href={`/api/artifacts/${run.export.artifact}`} className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#252525] border border-steel-500/30 rounded text-xs text-steel-300"><Download className="w-3 h-3" />Download STEP</a>
+                  <a href={`/api/artifacts/${run.export.artifact}`} className="inline-flex items-center gap-1 px-2.5 py-1 bg-graphite-25 border border-steel-500/30 rounded text-xs text-steel-300"><Download className="w-3 h-3" />Download STEP</a>
                 ) : (
-                  <button onClick={() => onExport(run)} className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#252525] border border-steel-500/30 rounded text-xs text-steel-300"><Download className="w-3 h-3" />Export STEP</button>
+                  <button onClick={() => onExport(run)} className="inline-flex items-center gap-1 px-2.5 py-1 bg-graphite-25 border border-steel-500/30 rounded text-xs text-steel-300"><Download className="w-3 h-3" />Export STEP</button>
                 )}
                 {run.export?.error && <span className="text-red-400 text-[11px]">{run.export.error}</span>}
               </div>

@@ -46,9 +46,9 @@ export const SimulationIntelligenceView: React.FC<SimulationIntelligenceViewProp
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-[#0f0f0f] select-none text-neutral-200">
+    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-graphite-0f select-none text-neutral-200">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#232323]">
+      <div className="flex items-center justify-between pb-3 border-b border-graphite-23">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             <Activity className="w-5 h-5 text-steel-400" />
@@ -64,7 +64,7 @@ export const SimulationIntelligenceView: React.FC<SimulationIntelligenceViewProp
 
         <button
           onClick={onNavigateToAgent}
-          className="flex items-center gap-2 px-3.5 py-1.5 bg-[#1d1d1d] hover:bg-[#282828] text-neutral-200 rounded-lg text-xs font-medium border border-[#333333] transition-colors"
+          className="flex items-center gap-2 px-3.5 py-1.5 bg-graphite-1d hover:bg-graphite-28 text-neutral-200 rounded-lg text-xs font-medium border border-graphite-33 transition-colors"
         >
           <span>Return to CAD Agent</span>
           <ArrowRight className="w-3.5 h-3.5" />
@@ -73,7 +73,7 @@ export const SimulationIntelligenceView: React.FC<SimulationIntelligenceViewProp
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: 3D FEA Heatmap Contour Simulation Graphic (2 cols) */}
-        <div className="lg:col-span-2 p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
+        <div className="lg:col-span-2 p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-4">
           <div className="flex items-center justify-between">
             <div className="font-semibold text-neutral-100 text-sm">
               Von Mises Stress Distribution (Static Structural)
@@ -84,9 +84,9 @@ export const SimulationIntelligenceView: React.FC<SimulationIntelligenceViewProp
           </div>
 
           {/* FEA Contour Visualizer */}
-          <div className="relative w-full h-[380px] bg-[#131313] border border-[#343434] rounded-lg flex items-center justify-center cad-grid-bg overflow-hidden shadow-inner">
+          <div className="relative w-full h-[380px] bg-graphite-13 border border-graphite-34 rounded-lg flex items-center justify-center cad-grid-bg overflow-hidden shadow-inner">
             {/* Stress Contour Palette Spectrum Bar */}
-            <div className="absolute top-4 right-4 bg-[#111111]/90 border border-[#343434] p-2.5 rounded font-tech text-[10px] space-y-1 w-32 shadow-xl z-20">
+            <div className="absolute top-4 right-4 bg-graphite-11/90 border border-graphite-34 p-2.5 rounded font-tech text-[10px] space-y-1 w-32 shadow-xl z-20">
               <div className="text-neutral-300 font-bold mb-1">Von Mises (MPa)</div>
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-sm bg-rose-500" />
@@ -120,7 +120,7 @@ export const SimulationIntelligenceView: React.FC<SimulationIntelligenceViewProp
                 }}
               >
                 {/* Center hole cutout */}
-                <div className="w-16 h-16 rounded-full bg-[#131313] border-2 border-amber-400 shadow-inner flex items-center justify-center font-tech text-[10px] text-amber-300 font-bold">
+                <div className="w-16 h-16 rounded-full bg-graphite-13 border-2 border-amber-400 shadow-inner flex items-center justify-center font-tech text-[10px] text-amber-300 font-bold">
                   Bore
                 </div>
 
@@ -137,8 +137,8 @@ export const SimulationIntelligenceView: React.FC<SimulationIntelligenceViewProp
                   background: 'linear-gradient(90deg, #172554 0%, #1e3a8a 50%, #172554 100%)',
                 }}
               >
-                <div className="w-4 h-4 rounded-full bg-[#131313] border border-steel-400" />
-                <div className="w-4 h-4 rounded-full bg-[#131313] border border-steel-400" />
+                <div className="w-4 h-4 rounded-full bg-graphite-13 border border-steel-400" />
+                <div className="w-4 h-4 rounded-full bg-graphite-13 border border-steel-400" />
               </div>
 
               {/* Fixed boundary constraint icons (triangles) */}
@@ -150,21 +150,21 @@ export const SimulationIntelligenceView: React.FC<SimulationIntelligenceViewProp
           </div>
 
           <div className="grid grid-cols-3 gap-3 text-xs font-tech">
-            <div className="p-3 bg-[#1c1c1c] border border-[#2c2c2c] rounded-lg">
+            <div className="p-3 bg-graphite-1c border border-graphite-2c rounded-lg">
               <span className="text-neutral-500 block text-[11px]">Maximum Stress</span>
               <span className={`text-base font-bold ${isSafe ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {maxStressMPa} MPa
               </span>
             </div>
 
-            <div className="p-3 bg-[#1c1c1c] border border-[#2c2c2c] rounded-lg">
+            <div className="p-3 bg-graphite-1c border border-graphite-2c rounded-lg">
               <span className="text-neutral-500 block text-[11px]">Material Yield Limit</span>
               <span className="text-base font-bold text-neutral-200">
                 {yieldStrengthMPa} MPa ({parameters.material})
               </span>
             </div>
 
-            <div className="p-3 bg-[#1c1c1c] border border-[#2c2c2c] rounded-lg">
+            <div className="p-3 bg-graphite-1c border border-graphite-2c rounded-lg">
               <span className="text-neutral-500 block text-[11px]">Factor of Safety (FoS)</span>
               <span className={`text-base font-bold ${isSafe ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {factorOfSafety}x {isSafe ? '(Acceptable)' : '(Critical Yield)'}
@@ -174,7 +174,7 @@ export const SimulationIntelligenceView: React.FC<SimulationIntelligenceViewProp
         </div>
 
         {/* Right: Load Case & Boundary Condition Configuration (1 col) */}
-        <div className="p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
+        <div className="p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-4">
           <div className="font-semibold text-neutral-100 text-sm">
             Load & Boundary Conditions
           </div>
@@ -198,7 +198,7 @@ export const SimulationIntelligenceView: React.FC<SimulationIntelligenceViewProp
               </div>
             </div>
 
-            <div className="p-3 bg-[#1c1c1c] border border-[#2c2c2c] rounded-lg space-y-2">
+            <div className="p-3 bg-graphite-1c border border-graphite-2c rounded-lg space-y-2">
               <div className="flex justify-between font-tech text-[11px]">
                 <span className="text-neutral-400">Boundary Constraint:</span>
                 <span className="text-neutral-200 font-medium">4x Base Holes Bolted Rigid</span>

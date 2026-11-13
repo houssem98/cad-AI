@@ -24,13 +24,13 @@ export function RecordProperties({ doc }: { doc: DocumentView }) {
   return (
     <div className="space-y-2">
       <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">Document</div>
-      <dl className="rounded-lg border border-[#2c2c2c] bg-[#1a1a1a] px-3 py-2 text-xs">
+      <dl className="rounded-lg border border-graphite-2c bg-graphite-1a px-3 py-2 text-xs">
         <Row name="Document">{doc.id}</Row>
         <Row name="Revision">{doc.revision}</Row>
         <Row name="Material">{doc.material ?? 'none assigned'}</Row>
       </dl>
       <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">From the last succeeded record</div>
-      <dl className="rounded-lg border border-[#2c2c2c] bg-[#1a1a1a] px-3 py-2 text-xs">
+      <dl className="rounded-lg border border-graphite-2c bg-graphite-1a px-3 py-2 text-xs">
         {i ? (
           <>
             <Row name="Valid solid">{i.valid ? 'yes' : 'no'}</Row>
@@ -53,7 +53,7 @@ export function RecordTree({ doc }: { doc: DocumentView }) {
   return (
     <div className="space-y-2">
       <div className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">Features, in build order</div>
-      <ol className="space-y-1 rounded-lg border border-[#2c2c2c] bg-[#1a1a1a] p-2 text-xs">
+      <ol className="space-y-1 rounded-lg border border-graphite-2c bg-graphite-1a p-2 text-xs">
         {doc.features.map((f) => (
           <li key={f.id} className="flex items-center gap-2 rounded p-1.5">
             <span className="font-tech text-neutral-100">{f.id}</span>{' '}

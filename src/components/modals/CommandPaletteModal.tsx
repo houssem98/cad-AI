@@ -79,9 +79,9 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-150">
-      <div className="w-full max-w-xl bg-[#171717] border border-[#2f2f2f] rounded-xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="w-full max-w-xl bg-graphite-17 border border-graphite-2f rounded-xl shadow-2xl overflow-hidden flex flex-col">
         {/* Search Input */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-[#292929] bg-[#1b1b1b]">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-graphite-29 bg-graphite-1b">
           <Search className="w-4 h-4 text-neutral-400" />
           <input
             type="text"
@@ -119,7 +119,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
                     }
                     onClose();
                   }}
-                  className="w-full flex items-center justify-between p-2.5 rounded-lg text-xs text-neutral-300 hover:text-white hover:bg-[#252525] transition-colors text-left group"
+                  className="w-full flex items-center justify-between p-2.5 rounded-lg text-xs text-neutral-300 hover:text-white hover:bg-graphite-25 transition-colors text-left group"
                 >
                   <div className="flex items-center gap-3">
                     <Icon className="w-4 h-4 text-steel-400 group-hover:text-steel-300" />
@@ -135,7 +135,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
         </div>
 
         {/* Footer shortcuts */}
-        <div className="px-4 py-2 border-t border-[#292929] bg-[#121212] flex items-center justify-between text-[11px] text-neutral-500 font-tech">
+        <div className="px-4 py-2 border-t border-graphite-29 bg-graphite-12 flex items-center justify-between text-[11px] text-neutral-500 font-tech">
           <span>Navigate with arrows • Press Enter to select</span>
           <span>Esc to exit</span>
         </div>

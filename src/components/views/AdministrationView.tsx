@@ -26,8 +26,8 @@ export const AdministrationView: React.FC = () => {
   ];
 
   return (
-    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-[#0f0f0f] select-none text-neutral-200">
-      <div className="flex items-center justify-between pb-3 border-b border-[#232323]">
+    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-graphite-0f select-none text-neutral-200">
+      <div className="flex items-center justify-between pb-3 border-b border-graphite-23">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             <Settings className="w-5 h-5 text-steel-400" />
@@ -42,7 +42,7 @@ export const AdministrationView: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex gap-2 border-b border-[#232323] pb-2 text-xs">
+      <div className="flex gap-2 border-b border-graphite-23 pb-2 text-xs">
         <button
           onClick={() => setActiveTab('access')}
           className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
@@ -70,11 +70,11 @@ export const AdministrationView: React.FC = () => {
       </div>
 
       {activeTab === 'audit' ? (
-        <div className="p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
+        <div className="p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-4">
           <div className="font-semibold text-neutral-100 text-sm">Immutable CAD Operation Ledger</div>
           <table className="w-full text-left text-xs font-tech">
             <thead>
-              <tr className="text-neutral-400 border-b border-[#292929] pb-2">
+              <tr className="text-neutral-400 border-b border-graphite-29 pb-2">
                 <th className="pb-2">Timestamp</th>
                 <th className="pb-2">Engineer</th>
                 <th className="pb-2">Operation</th>
@@ -82,9 +82,9 @@ export const AdministrationView: React.FC = () => {
                 <th className="pb-2">Verification</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#232323]">
+            <tbody className="divide-y divide-graphite-23">
               {auditLogs.map((log, i) => (
-                <tr key={i} className="hover:bg-[#1c1c1c]">
+                <tr key={i} className="hover:bg-graphite-1c">
                   <td className="py-2.5 text-neutral-400">{log.time}</td>
                   <td className="py-2.5 text-neutral-200 font-sans">{log.user}</td>
                   <td className="py-2.5 text-steel-400 font-sans">{log.action}</td>
@@ -97,17 +97,17 @@ export const AdministrationView: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-3 text-xs">
+          <div className="p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-3 text-xs">
             <div className="font-semibold text-neutral-100 text-sm">Engineering Roles & Privileges</div>
             <div className="space-y-2">
-              <div className="p-3 bg-[#1c1c1c] rounded-lg border border-[#2c2c2c] flex justify-between">
+              <div className="p-3 bg-graphite-1c rounded-lg border border-graphite-2c flex justify-between">
                 <div>
                   <div className="font-bold text-neutral-200">Senior Mechanical Engineer</div>
                   <div className="text-[11px] text-neutral-400">Can instruct agent, rebuild features, and release models</div>
                 </div>
                 <span className="text-emerald-400 font-tech">Active</span>
               </div>
-              <div className="p-3 bg-[#1c1c1c] rounded-lg border border-[#2c2c2c] flex justify-between">
+              <div className="p-3 bg-graphite-1c rounded-lg border border-graphite-2c flex justify-between">
                 <div>
                   <div className="font-bold text-neutral-200">CAD Specialist / Modeler</div>
                   <div className="text-[11px] text-neutral-400">Can view 3D viewport, export neutral files, run FEA</div>
@@ -117,7 +117,7 @@ export const AdministrationView: React.FC = () => {
             </div>
           </div>
 
-          <div className="p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-3 text-xs">
+          <div className="p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-3 text-xs">
             <div className="font-semibold text-neutral-100 text-sm">Human Approval Checkpoints</div>
             <div className="space-y-2 text-neutral-300">
               <div className="flex items-center gap-2">

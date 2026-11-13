@@ -60,7 +60,7 @@ function StateBody({ label, status, message }: { label: string; status: PanelSta
   return (
     <div data-state-body role={status === 'error' ? 'alert' : 'status'} className="flex h-full w-full items-center justify-center p-4">
       <div className={`flex max-w-[260px] flex-col items-center gap-2 rounded-lg border px-4 py-5 text-center text-xs ${tone}`}>
-        <Icon aria-hidden className={`h-5 w-5 ${status === 'loading' ? 'animate-spin' : ''}`} />
+        <Icon aria-hidden className={`h-5 w-5 ${status === 'loading' ? 'animate-spin motion-reduce:animate-none' : ''}`} />
         <span className="font-semibold">{title}</span>
         <span className="text-[11px] text-neutral-400">{message ? `${label}: ${message}` : label}</span>
         {status === 'running' && <span aria-hidden className="h-1 w-24 rounded bg-steel-500/70" />}

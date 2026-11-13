@@ -25,8 +25,8 @@ export const DrawingAutomationView: React.FC<DrawingAutomationViewProps> = ({
   const [sheetSize, setSheetSize] = useState('A3 (420 x 297 mm)');
 
   return (
-    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-[#0f0f0f] select-none text-neutral-200">
-      <div className="flex items-center justify-between pb-3 border-b border-[#232323]">
+    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-graphite-0f select-none text-neutral-200">
+      <div className="flex items-center justify-between pb-3 border-b border-graphite-23">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             <FileSpreadsheet className="w-5 h-5 text-steel-400" />
@@ -61,7 +61,7 @@ export const DrawingAutomationView: React.FC<DrawingAutomationViewProps> = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Drawing Canvas */}
-        <div className="lg:col-span-2 p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
+        <div className="lg:col-span-2 p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-4">
           <div className="flex items-center justify-between">
             <span className="font-semibold text-neutral-100 text-sm">Sheet 1: Orthographic & Isometric Layout</span>
             <span className="text-[10px] font-tech text-steel-400 bg-steel-500/10 px-2 py-0.5 rounded border border-steel-500/20">
@@ -69,7 +69,7 @@ export const DrawingAutomationView: React.FC<DrawingAutomationViewProps> = ({
             </span>
           </div>
 
-          <div className="relative w-full h-[400px] bg-[#131313] border-2 border-[#2c2c2c] rounded-lg p-6 flex flex-col justify-between cad-grid-bg shadow-inner">
+          <div className="relative w-full h-[400px] bg-graphite-13 border-2 border-graphite-2c rounded-lg p-6 flex flex-col justify-between cad-grid-bg shadow-inner">
             {/* Top Row: Top View + Isometric */}
             <div className="flex justify-around items-center">
               <div className="p-4 border border-steel-500/30 rounded bg-steel-950/20 text-center font-tech text-xs">
@@ -105,7 +105,7 @@ export const DrawingAutomationView: React.FC<DrawingAutomationViewProps> = ({
             </div>
 
             {/* Title Block on bottom right */}
-            <div className="self-end bg-[#0f0f0f] border border-steel-500/40 p-2.5 rounded font-tech text-[10px] w-64 text-neutral-300">
+            <div className="self-end bg-graphite-0f border border-steel-500/40 p-2.5 rounded font-tech text-[10px] w-64 text-neutral-300">
               <div className="font-bold text-steel-400">AUTONOVA CORP — DWG-084-AL</div>
               <div>TITLE: MOUNTING BRACKET PROJECTION</div>
               <div>MATERIAL: {parameters.material}</div>
@@ -115,7 +115,7 @@ export const DrawingAutomationView: React.FC<DrawingAutomationViewProps> = ({
         </div>
 
         {/* Configuration settings */}
-        <div className="p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4 text-xs">
+        <div className="p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-4 text-xs">
           <div className="font-semibold text-neutral-100 text-sm">Drawing Configuration</div>
 
           <div className="space-y-3">
@@ -125,7 +125,7 @@ export const DrawingAutomationView: React.FC<DrawingAutomationViewProps> = ({
                 <button
                   onClick={() => setStandard('ASME')}
                   className={`flex-1 py-1.5 rounded border ${
-                    standard === 'ASME' ? 'bg-steel-600 border-steel-500 text-white' : 'bg-[#1c1c1c] border-[#2c2c2c] text-neutral-400'
+                    standard === 'ASME' ? 'bg-steel-600 border-steel-500 text-white' : 'bg-graphite-1c border-graphite-2c text-neutral-400'
                   }`}
                 >
                   ASME Y14.5M
@@ -133,7 +133,7 @@ export const DrawingAutomationView: React.FC<DrawingAutomationViewProps> = ({
                 <button
                   onClick={() => setStandard('ISO')}
                   className={`flex-1 py-1.5 rounded border ${
-                    standard === 'ISO' ? 'bg-steel-600 border-steel-500 text-white' : 'bg-[#1c1c1c] border-[#2c2c2c] text-neutral-400'
+                    standard === 'ISO' ? 'bg-steel-600 border-steel-500 text-white' : 'bg-graphite-1c border-graphite-2c text-neutral-400'
                   }`}
                 >
                   ISO 128
@@ -146,7 +146,7 @@ export const DrawingAutomationView: React.FC<DrawingAutomationViewProps> = ({
               <select
                 value={sheetSize}
                 onChange={(e) => setSheetSize(e.target.value)}
-                className="w-full bg-[#1c1c1c] border border-[#2c2c2c] rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
+                className="w-full bg-graphite-1c border border-graphite-2c rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
               >
                 <option>A3 (420 x 297 mm)</option>
                 <option>A4 (297 x 210 mm)</option>
@@ -155,7 +155,7 @@ export const DrawingAutomationView: React.FC<DrawingAutomationViewProps> = ({
               </select>
             </div>
 
-            <div className="p-3 bg-[#1c1c1c] border border-[#2c2c2c] rounded-lg space-y-1.5 font-tech text-[11px] text-neutral-400">
+            <div className="p-3 bg-graphite-1c border border-graphite-2c rounded-lg space-y-1.5 font-tech text-[11px] text-neutral-400">
               <div className="flex justify-between">
                 <span>Total Dimensions:</span>
                 <span className="text-neutral-200">24 Callouts</span>

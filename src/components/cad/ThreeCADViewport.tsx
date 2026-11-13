@@ -556,9 +556,9 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full flex flex-col bg-[#0c0c0c] select-none overflow-hidden">
+    <div className="relative w-full h-full flex flex-col bg-graphite-0c select-none overflow-hidden">
       {/* 1. Clean CAD Document Tab Bar */}
-      <div className="h-8 bg-[#0e0e0e] border-b border-[#232323] flex items-center justify-between px-2.5 z-10 flex-shrink-0 text-xs">
+      <div className="h-8 bg-graphite-0e border-b border-graphite-23 flex items-center justify-between px-2.5 z-10 flex-shrink-0 text-xs">
         <div className="flex items-center gap-1 min-w-0">
           <button
             title="CAD Workspace"
@@ -568,7 +568,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
           </button>
 
           {/* Active Document Tab */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#1b1b1b] border-t-2 border-t-steel-500 border-x border-[#2c2c2c] rounded-t text-neutral-200 font-medium text-[11px] truncate max-w-[200px]">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-graphite-1b border-t-2 border-t-steel-500 border-x border-graphite-2c rounded-t text-neutral-200 font-medium text-[11px] truncate max-w-[200px]">
             <span className="w-1.5 h-1.5 rounded-full bg-steel-400 shrink-0" />
             <span className="font-tech tracking-tight truncate">{activeTab}</span>
             <button
@@ -600,7 +600,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
         <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
         {/* Floating Compact HUD Toolbar (Top-Left of Viewport, Zero Collision) */}
-        <div className="absolute top-2.5 left-2.5 z-20 flex max-w-[calc(100%-8rem)] flex-wrap items-center gap-0.5 p-1 bg-[#141414]/90 backdrop-blur-md border border-[#2c2c2c] rounded-lg shadow-xl shadow-black/40">
+        <div className="absolute top-2.5 left-2.5 z-20 flex max-w-[calc(100%-8rem)] flex-wrap items-center gap-0.5 p-1 bg-graphite-14/90 backdrop-blur-md border border-graphite-2c rounded-lg shadow-xl shadow-black/40">
           <button
             onClick={() => setActiveTool('select')}
             className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
@@ -699,7 +699,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
             </button>
 
             {showRenderMenu && (
-              <div className="absolute top-full left-0 mt-1 w-32 bg-[#181818] border border-[#2f2f2f] rounded-md shadow-xl py-1 z-30 font-tech text-xs">
+              <div className="absolute top-full left-0 mt-1 w-32 bg-graphite-18 border border-graphite-2f rounded-md shadow-xl py-1 z-30 font-tech text-xs">
                 <button
                   onClick={() => {
                     setRenderMode('shaded');
@@ -752,7 +752,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
             </button>
 
             {showViewsMenu && (
-              <div className="absolute top-full right-0 mt-1 w-32 bg-[#181818] border border-[#2f2f2f] rounded-md shadow-xl py-1 z-30 font-tech text-xs">
+              <div className="absolute top-full right-0 mt-1 w-32 bg-graphite-18 border border-graphite-2f rounded-md shadow-xl py-1 z-30 font-tech text-xs">
                 {(['iso', 'front', 'top', 'right', 'back'] as CameraPreset[]).map((p) => (
                   <button
                     key={p}
@@ -774,8 +774,8 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
 
         {/* Floating Compact 3D Orientation Gizmo (Top-Right, Zero Collision) */}
         <div className="absolute top-2.5 right-2.5 z-20 flex flex-col items-end gap-1.5">
-          <div className="relative w-11 h-11 bg-[#141414]/90 backdrop-blur-md border border-[#2c2c2c] rounded-lg shadow-lg flex items-center justify-center p-1">
-            <div className="relative w-9 h-9 border border-steel-500/30 rounded bg-[#222222] flex flex-col items-center justify-center text-[9px] font-tech text-steel-300 font-bold">
+          <div className="relative w-11 h-11 bg-graphite-14/90 backdrop-blur-md border border-graphite-2c rounded-lg shadow-lg flex items-center justify-center p-1">
+            <div className="relative w-9 h-9 border border-steel-500/30 rounded bg-graphite-22 flex flex-col items-center justify-center text-[9px] font-tech text-steel-300 font-bold">
               <span className="text-steel-400 text-[8px]">Z</span>
               <div className="flex items-center justify-between w-full px-0.5">
                 <span className="text-emerald-400 text-[8px]">Y</span>
@@ -786,7 +786,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
           </div>
 
           {/* Quick Camera Presets Strip */}
-          <div className="flex items-center gap-0.5 bg-[#141414]/90 backdrop-blur-md border border-[#2c2c2c] rounded p-0.5 text-[9px] font-tech">
+          <div className="flex items-center gap-0.5 bg-graphite-14/90 backdrop-blur-md border border-graphite-2c rounded p-0.5 text-[9px] font-tech">
             <button
               onClick={() => setCameraPreset('iso')}
               className={`px-1.5 py-0.5 rounded cursor-pointer ${
@@ -827,7 +827,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
           <div className="absolute inset-0 pointer-events-none z-10">
             {/* Length Badge */}
             <div
-              className="absolute left-[45%] bottom-[20%] -translate-x-1/2 px-2 py-0.5 bg-[#121212]/90 backdrop-blur-sm border border-[#353535] rounded text-neutral-200 text-[11px] font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
+              className="absolute left-[45%] bottom-[20%] -translate-x-1/2 px-2 py-0.5 bg-graphite-12/90 backdrop-blur-sm border border-graphite-35 rounded text-neutral-200 text-[11px] font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
               title="Base Length"
             >
               {parameters.length.toFixed(0)} mm
@@ -835,7 +835,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
 
             {/* Width Badge */}
             <div
-              className="absolute right-[22%] bottom-[20%] px-2 py-0.5 bg-[#121212]/90 backdrop-blur-sm border border-[#353535] rounded text-neutral-200 text-[11px] font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
+              className="absolute right-[22%] bottom-[20%] px-2 py-0.5 bg-graphite-12/90 backdrop-blur-sm border border-graphite-35 rounded text-neutral-200 text-[11px] font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
               title="Base Width"
             >
               {parameters.width.toFixed(0)} mm
@@ -843,7 +843,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
 
             {/* Flange Height Badge */}
             <div
-              className="absolute left-[36%] top-[42%] -translate-y-1/2 -rotate-90 px-2 py-0.5 bg-[#121212]/90 backdrop-blur-sm border border-[#353535] rounded text-neutral-200 text-[11px] font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
+              className="absolute left-[36%] top-[42%] -translate-y-1/2 -rotate-90 px-2 py-0.5 bg-graphite-12/90 backdrop-blur-sm border border-graphite-35 rounded text-neutral-200 text-[11px] font-tech font-semibold tracking-wide shadow-md pointer-events-auto"
               title="Flange Height"
             >
               {parameters.flangeHeight.toFixed(0)} mm
@@ -860,7 +860,7 @@ export const ThreeCADViewport: React.FC<ThreeCADViewportProps> = ({
         )}
 
         {/* Clean Bottom Viewport Metadata Bar */}
-        <div className="absolute bottom-2.5 left-2.5 z-20 flex items-center gap-2 text-[10px] font-tech text-neutral-400 bg-[#141414]/85 backdrop-blur-sm px-2 py-0.5 rounded border border-[#2a2a2a]">
+        <div className="absolute bottom-2.5 left-2.5 z-20 flex items-center gap-2 text-[10px] font-tech text-neutral-400 bg-graphite-14/85 backdrop-blur-sm px-2 py-0.5 rounded border border-graphite-2a">
           <span>Scale 1:1</span>
           <span className="text-neutral-600">·</span>
           <span>MMGS</span>

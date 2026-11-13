@@ -38,9 +38,9 @@ export const VerificationCenterView: React.FC<VerificationCenterViewProps> = ({
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-[#0f0f0f] select-none text-neutral-200">
+    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-graphite-0f select-none text-neutral-200">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#232323]">
+      <div className="flex items-center justify-between pb-3 border-b border-graphite-23">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-emerald-400" />
@@ -58,9 +58,9 @@ export const VerificationCenterView: React.FC<VerificationCenterViewProps> = ({
           <button
             onClick={handleRunFreshAudit}
             disabled={isAuditing}
-            className="flex items-center gap-2 px-3.5 py-1.5 bg-[#1d1d1d] hover:bg-[#282828] text-neutral-200 rounded-lg text-xs font-medium border border-[#333333] transition-colors"
+            className="flex items-center gap-2 px-3.5 py-1.5 bg-graphite-1d hover:bg-graphite-28 text-neutral-200 rounded-lg text-xs font-medium border border-graphite-33 transition-colors"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isAuditing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isAuditing ? 'animate-spin motion-reduce:animate-none' : ''}`} />
             <span>Run Fresh Audit</span>
           </button>
           <button
@@ -75,22 +75,22 @@ export const VerificationCenterView: React.FC<VerificationCenterViewProps> = ({
 
       {/* Main Verification Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="p-4 bg-[#181818] border border-[#292929] rounded-xl space-y-1">
+        <div className="p-4 bg-graphite-18 border border-graphite-29 rounded-xl space-y-1">
           <div className="text-xs text-neutral-400">Total Verification Rules</div>
           <div className="text-2xl font-bold font-tech text-white">5 Checks</div>
           <div className="text-[11px] text-neutral-500 font-tech">Geometry, Topology, Tolerance, DFM</div>
         </div>
-        <div className="p-4 bg-[#181818] border border-[#292929] rounded-xl space-y-1">
+        <div className="p-4 bg-graphite-18 border border-graphite-29 rounded-xl space-y-1">
           <div className="text-xs text-neutral-400">Passed Rules</div>
           <div className="text-2xl font-bold font-tech text-emerald-400">5 / 5 (100%)</div>
           <div className="text-[11px] text-emerald-400 font-tech">Zero non-manifold edges</div>
         </div>
-        <div className="p-4 bg-[#181818] border border-[#292929] rounded-xl space-y-1">
+        <div className="p-4 bg-graphite-18 border border-graphite-29 rounded-xl space-y-1">
           <div className="text-xs text-neutral-400">Euler Genus Formula</div>
           <div className="text-2xl font-bold font-tech text-steel-400">V - E + F = 2</div>
           <div className="text-[11px] text-neutral-500 font-tech">Watertight single domain</div>
         </div>
-        <div className="p-4 bg-[#181818] border border-[#292929] rounded-xl space-y-1">
+        <div className="p-4 bg-graphite-18 border border-graphite-29 rounded-xl space-y-1">
           <div className="text-xs text-neutral-400">Audit Engine Kernel</div>
           <div className="text-2xl font-bold font-tech text-white">Parasolid v35</div>
           <div className="text-[11px] text-neutral-500 font-tech">Precision 0.0001 mm</div>
@@ -98,7 +98,7 @@ export const VerificationCenterView: React.FC<VerificationCenterViewProps> = ({
       </div>
 
       {/* Detailed Check Table */}
-      <div className="p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
+      <div className="p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-4">
         <div className="font-semibold text-neutral-100 text-sm">
           Active Geometric & Tolerance Verification Checks
         </div>
@@ -107,7 +107,7 @@ export const VerificationCenterView: React.FC<VerificationCenterViewProps> = ({
           {checks.map((chk) => (
             <div
               key={chk.id}
-              className="p-3.5 bg-[#1c1c1c] border border-[#2c2c2c] rounded-lg text-xs space-y-2"
+              className="p-3.5 bg-graphite-1c border border-graphite-2c rounded-lg text-xs space-y-2"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
@@ -131,7 +131,7 @@ export const VerificationCenterView: React.FC<VerificationCenterViewProps> = ({
                 </div>
               </div>
 
-              <div className="pl-7 pt-1 border-t border-[#232323] flex items-center justify-between text-[11px] font-tech">
+              <div className="pl-7 pt-1 border-t border-graphite-23 flex items-center justify-between text-[11px] font-tech">
                 <span className="text-steel-400">Deterministic Evidence: {chk.evidence}</span>
                 <span className="text-neutral-500">{chk.system}</span>
               </div>

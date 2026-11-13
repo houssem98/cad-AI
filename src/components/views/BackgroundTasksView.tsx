@@ -66,8 +66,8 @@ export const BackgroundTasksView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-[#0f0f0f] text-neutral-200">
-      <div className="pb-3 border-b border-[#232323] space-y-1">
+    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-graphite-0f text-neutral-200">
+      <div className="pb-3 border-b border-graphite-23 space-y-1">
         <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
           <Clock className="w-5 h-5 text-steel-400" />
           <span>Background Tasks</span>
@@ -83,7 +83,7 @@ export const BackgroundTasksView: React.FC = () => {
           onChange={(e) => setRequest(e.target.value)}
           aria-label="Text-to-CAD request"
           placeholder="Describe a part, with units…"
-          className="flex-1 bg-[#1c1c1c] border border-[#323232] rounded-lg text-neutral-100 placeholder-neutral-500 text-xs px-3 py-2 focus:outline-none focus:border-steel-500/80"
+          className="flex-1 bg-graphite-1c border border-graphite-32 rounded-lg text-neutral-100 placeholder-neutral-500 text-xs px-3 py-2 focus:outline-none focus:border-steel-500/80"
         />
         <button
           type="submit"
@@ -111,7 +111,7 @@ export const BackgroundTasksView: React.FC = () => {
             const at = STAGES.indexOf(j.state === 'CREATED' ? 'PENDING' : j.state) + 1;
             const what = j.input?.request ?? j.input?.path ?? '';
             return (
-              <li key={j.id} data-testid="job" data-job-id={j.id} className="p-4 bg-[#181818] border border-[#292929] rounded-xl space-y-3">
+              <li key={j.id} data-testid="job" data-job-id={j.id} className="p-4 bg-graphite-18 border border-graphite-29 rounded-xl space-y-3">
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <div className="text-xs font-semibold text-neutral-100 truncate" title={what}>{what}</div>
@@ -139,12 +139,12 @@ export const BackgroundTasksView: React.FC = () => {
 
                 <div className="flex justify-end gap-2">
                   {LIVE.includes(j.state) && !loadError && (
-                    <button onClick={() => post(`/api/jobs/${j.id}/cancel`)} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs text-neutral-300 hover:text-white bg-[#232323] rounded border border-[#333]">
+                    <button onClick={() => post(`/api/jobs/${j.id}/cancel`)} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs text-neutral-300 hover:text-white bg-graphite-23 rounded border border-graphite-33">
                       <XCircle className="w-3 h-3" />Cancel
                     </button>
                   )}
                   {j.state === 'COMPLETED' && j.result?.step && (
-                    <a href={`/api/jobs/${j.id}/step`} download className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#252525] border border-steel-500/30 rounded text-xs text-steel-300">
+                    <a href={`/api/jobs/${j.id}/step`} download className="inline-flex items-center gap-1 px-2.5 py-1 bg-graphite-25 border border-steel-500/30 rounded text-xs text-steel-300">
                       <Download className="w-3 h-3" />Download STEP
                     </a>
                   )}

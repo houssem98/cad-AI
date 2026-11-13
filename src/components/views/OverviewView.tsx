@@ -32,9 +32,9 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
   onOpenReport,
 }) => {
   return (
-    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-[#0f0f0f] select-none text-neutral-200">
+    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-graphite-0f select-none text-neutral-200">
       {/* 1. Header & Quick Actions */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-[#232323]">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-graphite-23">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             <span>Engineering Operating Environment</span>
@@ -57,7 +57,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           </button>
           <button
             onClick={() => onNavigate('cad-workspace')}
-            className="flex items-center gap-2 px-3.5 py-2 bg-[#1d1d1d] hover:bg-[#282828] text-neutral-200 rounded-lg text-xs font-medium border border-[#333333] transition-colors"
+            className="flex items-center gap-2 px-3.5 py-2 bg-graphite-1d hover:bg-graphite-28 text-neutral-200 rounded-lg text-xs font-medium border border-graphite-33 transition-colors"
           >
             <Box className="w-3.5 h-3.5 text-steel-400" />
             <span>Open CAD Workspace</span>
@@ -68,7 +68,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
       {/* 2. Top Metric Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1 */}
-        <div className="p-4 bg-[#181818] border border-[#292929] rounded-xl space-y-2">
+        <div className="p-4 bg-graphite-18 border border-graphite-29 rounded-xl space-y-2">
           <div className="flex items-center justify-between text-xs text-neutral-400">
             <span>Active CAD Documents</span>
             <Layers className="w-4 h-4 text-steel-400" />
@@ -81,7 +81,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         </div>
 
         {/* Metric 2 */}
-        <div className="p-4 bg-[#181818] border border-[#292929] rounded-xl space-y-2">
+        <div className="p-4 bg-graphite-18 border border-graphite-29 rounded-xl space-y-2">
           <div className="flex items-center justify-between text-xs text-neutral-400">
             <span>Agent Execution Success</span>
             <Cpu className="w-4 h-4 text-steel-400" />
@@ -93,7 +93,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         </div>
 
         {/* Metric 3 */}
-        <div className="p-4 bg-[#181818] border border-[#292929] rounded-xl space-y-2">
+        <div className="p-4 bg-graphite-18 border border-graphite-29 rounded-xl space-y-2">
           <div className="flex items-center justify-between text-xs text-neutral-400">
             <span>Verification Status</span>
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
@@ -105,7 +105,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         </div>
 
         {/* Metric 4 */}
-        <div className="p-4 bg-[#181818] border border-[#292929] rounded-xl space-y-2">
+        <div className="p-4 bg-graphite-18 border border-graphite-29 rounded-xl space-y-2">
           <div className="flex items-center justify-between text-xs text-neutral-400">
             <span>Connected CAD Bridges</span>
             <Activity className="w-4 h-4 text-steel-400" />
@@ -120,7 +120,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
       {/* 3. Middle Section: Recent Models & CAD Bridge Status */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Generated CAD Models (2 cols) */}
-        <div className="lg:col-span-2 p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
+        <div className="lg:col-span-2 p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-4">
           <div className="flex items-center justify-between">
             <div className="font-semibold text-neutral-100 text-sm">
               Active CAD Models & Regeneration Status
@@ -171,7 +171,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             ].map((model, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between p-3 bg-[#1c1c1c] border border-[#2c2c2c] rounded-lg hover:border-steel-500/40 transition-colors"
+                className="flex items-center justify-between p-3 bg-graphite-1c border border-graphite-2c rounded-lg hover:border-steel-500/40 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded bg-steel-500/10 border border-steel-500/20 flex items-center justify-center text-steel-400">
@@ -204,7 +204,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         </div>
 
         {/* CAD Adapter Status (1 col) */}
-        <div className="p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
+        <div className="p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-4">
           <div className="flex items-center justify-between">
             <div className="font-semibold text-neutral-100 text-sm">
               CAD Integration Health
@@ -221,7 +221,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             {CAD_INTEGRATIONS_LIST.slice(0, 4).map((adapter) => (
               <div
                 key={adapter.id}
-                className="p-3 bg-[#1c1c1c] border border-[#2c2c2c] rounded-lg space-y-1.5 text-xs"
+                className="p-3 bg-graphite-1c border border-graphite-2c rounded-lg space-y-1.5 text-xs"
               >
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-neutral-200">{adapter.name}</span>
@@ -250,7 +250,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
       {/* 4. Bottom Row: Background Tasks & Verification Banner */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Background Tasks */}
-        <div className="p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-3">
+        <div className="p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-3">
           <div className="flex items-center justify-between">
             <div className="font-semibold text-neutral-100 text-sm">
               Active Engineering Background Tasks
@@ -267,7 +267,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             {BACKGROUND_TASKS_LIST.map((task) => (
               <div
                 key={task.id}
-                className="p-3 bg-[#1c1c1c] border border-[#2c2c2c] rounded-lg space-y-1.5 text-xs"
+                className="p-3 bg-graphite-1c border border-graphite-2c rounded-lg space-y-1.5 text-xs"
               >
                 <div className="flex items-center justify-between">
                   <span className="font-tech text-steel-400 font-semibold">{task.id}: {task.name}</span>
@@ -288,7 +288,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         </div>
 
         {/* Verification Summary Card */}
-        <div className="p-5 bg-[#1a1a1a] border border-[#343434] rounded-xl flex flex-col justify-between space-y-4">
+        <div className="p-5 bg-graphite-1a border border-graphite-34 rounded-xl flex flex-col justify-between space-y-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-emerald-400">
               <ShieldCheck className="w-5 h-5" />
@@ -299,7 +299,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             </p>
           </div>
 
-          <div className="p-3 bg-[#1d1d1d] rounded-lg border border-[#3a3a3a] space-y-1 font-tech text-xs text-neutral-300">
+          <div className="p-3 bg-graphite-1d rounded-lg border border-graphite-3a space-y-1 font-tech text-xs text-neutral-300">
             <div className="flex justify-between">
               <span>Auditor Version:</span>
               <span className="text-white font-bold">AuditEngine v3.4.1</span>

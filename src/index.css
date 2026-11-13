@@ -13,6 +13,18 @@
   --color-steel-800: oklch(0.424 0.09 245);
   --color-steel-900: oklch(0.379 0.075 245);
   --color-steel-950: oklch(0.282 0.055 245);
+  /* Graphite surfaces, named by their grey level, so a theme can remap them in one place instead of in every class. */
+  --color-graphite-0c: #0c0c0c; --color-graphite-0d: #0d0d0d; --color-graphite-0e: #0e0e0e; --color-graphite-0f: #0f0f0f;
+  --color-graphite-10: #101010; --color-graphite-11: #111111; --color-graphite-12: #121212; --color-graphite-13: #131313;
+  --color-graphite-14: #141414; --color-graphite-16: #161616; --color-graphite-17: #171717; --color-graphite-18: #181818;
+  --color-graphite-19: #191919; --color-graphite-1a: #1a1a1a; --color-graphite-1b: #1b1b1b; --color-graphite-1c: #1c1c1c;
+  --color-graphite-1d: #1d1d1d; --color-graphite-1e: #1e1e1e; --color-graphite-20: #202020; --color-graphite-22: #222222;
+  --color-graphite-23: #232323; --color-graphite-25: #252525; --color-graphite-26: #262626; --color-graphite-28: #282828;
+  --color-graphite-29: #292929; --color-graphite-2a: #2a2a2a; --color-graphite-2b: #2b2b2b; --color-graphite-2c: #2c2c2c;
+  --color-graphite-2e: #2e2e2e; --color-graphite-2f: #2f2f2f; --color-graphite-31: #313131; --color-graphite-32: #323232;
+  --color-graphite-33: #333333; --color-graphite-34: #343434; --color-graphite-35: #353535; --color-graphite-3a: #3a3a3a;
+  --color-graphite-3d: #3d3d3d; --color-graphite-3e: #3e3e3e; --color-graphite-40: #404040; --color-graphite-e5: #e5e5e5;
+  --color-grid-line: rgb(255 255 255 / 0.03);
 }
 
 @layer base {
@@ -24,9 +36,9 @@
 
   body {
     font-family: var(--font-sans);
-    background-color: #0e0e0e;
-    color: #e5e5e5;
-    overflow: hidden;
+    background-color: var(--color-graphite-0e);
+    color: var(--color-graphite-e5);
+    overflow: clip; /* hidden would make body a scroll container and break sticky children */
     user-select: none;
     -webkit-font-smoothing: antialiased;
   }
@@ -38,14 +50,14 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #131313;
+  background: var(--color-graphite-13);
 }
 ::-webkit-scrollbar-thumb {
-  background: #2b2b2b;
+  background: var(--color-graphite-2b);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #404040;
+  background: var(--color-graphite-40);
 }
 
 /* Engineering technical font helper */
@@ -58,6 +70,6 @@
 .cad-grid-bg {
   background-size: 32px 32px;
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, var(--color-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-grid-line) 1px, transparent 1px);
 }

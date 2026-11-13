@@ -30,9 +30,9 @@ export const EngineeringCopilotView: React.FC = () => {
   const bendingStressMPa = Math.round((calcLoad * calcLength * (calcThickness / 2)) / I);
 
   return (
-    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-[#0f0f0f] select-none text-neutral-200">
+    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-graphite-0f select-none text-neutral-200">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#232323]">
+      <div className="flex items-center justify-between pb-3 border-b border-graphite-23">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             <Cpu className="w-5 h-5 text-steel-400" />
@@ -49,7 +49,7 @@ export const EngineeringCopilotView: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Interactive Engineering Calculator */}
-        <div className="p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
+        <div className="p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-4">
           <div className="flex items-center justify-between">
             <div className="font-semibold text-neutral-100 text-sm flex items-center gap-2">
               <Calculator className="w-4 h-4 text-steel-400" />
@@ -67,7 +67,7 @@ export const EngineeringCopilotView: React.FC = () => {
                 type="number"
                 value={calcLoad}
                 onChange={(e) => setCalcLoad(Number(e.target.value))}
-                className="w-full bg-[#1c1c1c] border border-[#2c2c2c] rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
+                className="w-full bg-graphite-1c border border-graphite-2c rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
               />
             </div>
             <div>
@@ -76,7 +76,7 @@ export const EngineeringCopilotView: React.FC = () => {
                 type="number"
                 value={calcLength}
                 onChange={(e) => setCalcLength(Number(e.target.value))}
-                className="w-full bg-[#1c1c1c] border border-[#2c2c2c] rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
+                className="w-full bg-graphite-1c border border-graphite-2c rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
               />
             </div>
             <div>
@@ -85,7 +85,7 @@ export const EngineeringCopilotView: React.FC = () => {
                 type="number"
                 value={calcWidth}
                 onChange={(e) => setCalcWidth(Number(e.target.value))}
-                className="w-full bg-[#1c1c1c] border border-[#2c2c2c] rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
+                className="w-full bg-graphite-1c border border-graphite-2c rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
               />
             </div>
             <div>
@@ -94,12 +94,12 @@ export const EngineeringCopilotView: React.FC = () => {
                 type="number"
                 value={calcThickness}
                 onChange={(e) => setCalcThickness(Number(e.target.value))}
-                className="w-full bg-[#1c1c1c] border border-[#2c2c2c] rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
+                className="w-full bg-graphite-1c border border-graphite-2c rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
               />
             </div>
           </div>
 
-          <div className="p-4 bg-[#1a1a1a] border border-[#2c2c2c] rounded-lg grid grid-cols-2 gap-4 text-xs font-tech">
+          <div className="p-4 bg-graphite-1a border border-graphite-2c rounded-lg grid grid-cols-2 gap-4 text-xs font-tech">
             <div>
               <span className="text-neutral-500 block text-[11px]">Maximum Bending Stress</span>
               <span className="text-lg font-bold text-neutral-100">{bendingStressMPa} MPa</span>
@@ -118,7 +118,7 @@ export const EngineeringCopilotView: React.FC = () => {
         </div>
 
         {/* Right: Technical Document Search & Standards Citation */}
-        <div className="p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
+        <div className="p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-4">
           <div className="font-semibold text-neutral-100 text-sm">
             Corporate Knowledge & Standards Retrieval
           </div>
@@ -141,10 +141,10 @@ export const EngineeringCopilotView: React.FC = () => {
                 citation: 'Ftu = 310 MPa, Fty = 276 MPa, E = 68.9 GPa, Poisson ratio = 0.33.',
               },
             ].map((doc, idx) => (
-              <div key={idx} className="p-3 bg-[#1c1c1c] border border-[#2c2c2c] rounded-lg space-y-1">
+              <div key={idx} className="p-3 bg-graphite-1c border border-graphite-2c rounded-lg space-y-1">
                 <div className="font-semibold text-steel-400">{doc.title}</div>
                 <div className="text-[11px] text-neutral-300 font-tech">{doc.section}</div>
-                <p className="text-[11px] text-neutral-400 pt-1 border-t border-[#232323]">{doc.citation}</p>
+                <p className="text-[11px] text-neutral-400 pt-1 border-t border-graphite-23">{doc.citation}</p>
               </div>
             ))}
           </div>

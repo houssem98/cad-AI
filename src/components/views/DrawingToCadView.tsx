@@ -38,9 +38,9 @@ export const DrawingToCadView: React.FC<DrawingToCadViewProps> = ({
   ];
 
   return (
-    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-[#0f0f0f] select-none text-neutral-200">
+    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-graphite-0f select-none text-neutral-200">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#232323]">
+      <div className="flex items-center justify-between pb-3 border-b border-graphite-23">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             <FileSearch className="w-5 h-5 text-steel-400" />
@@ -65,7 +65,7 @@ export const DrawingToCadView: React.FC<DrawingToCadViewProps> = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: 2D Drawing Blueprint Viewer (2 cols) */}
-        <div className="lg:col-span-2 p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
+        <div className="lg:col-span-2 p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-4">
           <div className="flex items-center justify-between">
             <div className="font-semibold text-neutral-100 text-sm flex items-center gap-2">
               <Eye className="w-4 h-4 text-steel-400" />
@@ -77,9 +77,9 @@ export const DrawingToCadView: React.FC<DrawingToCadViewProps> = ({
           </div>
 
           {/* Blueprint Canvas Graphic */}
-          <div className="relative w-full h-[400px] bg-[#141414] border border-[#313131] rounded-lg p-6 flex flex-col items-center justify-center cad-grid-bg overflow-hidden shadow-inner">
+          <div className="relative w-full h-[400px] bg-graphite-14 border border-graphite-31 rounded-lg p-6 flex flex-col items-center justify-center cad-grid-bg overflow-hidden shadow-inner">
             {/* Title Block Graphic */}
-            <div className="absolute bottom-4 right-4 bg-[#111111]/90 border border-steel-500/40 p-3 rounded font-tech text-[10px] space-y-1 text-neutral-300 w-52 shadow-lg">
+            <div className="absolute bottom-4 right-4 bg-graphite-11/90 border border-steel-500/40 p-3 rounded font-tech text-[10px] space-y-1 text-neutral-300 w-52 shadow-lg">
               <div className="text-steel-400 font-bold border-b border-steel-500/30 pb-0.5">AUTONOVA CORP — DWG 084</div>
               <div>TITLE: MOUNTING BRACKET L-TYPE</div>
               <div>MATERIAL: AL 6061-T6 • SCALE 1:1</div>
@@ -115,7 +115,7 @@ export const DrawingToCadView: React.FC<DrawingToCadViewProps> = ({
 
           <div className="flex items-center justify-between text-xs text-neutral-400 font-tech">
             <span>Raster DPI: 600 • Vector Layers: 14 • Projection: 3rd Angle</span>
-            <label className="flex items-center gap-2 px-3 py-1.5 bg-[#202020] hover:bg-neutral-700 text-neutral-200 rounded cursor-pointer transition-colors">
+            <label className="flex items-center gap-2 px-3 py-1.5 bg-graphite-20 hover:bg-neutral-700 text-neutral-200 rounded cursor-pointer transition-colors">
               <Upload className="w-3.5 h-3.5" />
               <span>Upload New PDF/DWG</span>
               <input type="file" className="hidden" accept=".pdf,.dwg,.dxf,.png" />
@@ -124,7 +124,7 @@ export const DrawingToCadView: React.FC<DrawingToCadViewProps> = ({
         </div>
 
         {/* Right: Extracted Dimensions & NLP Validation (1 col) */}
-        <div className="p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
+        <div className="p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-4">
           <div className="flex items-center justify-between">
             <div className="font-semibold text-neutral-100 text-sm">
               Extracted Engineering Parameters
@@ -136,13 +136,13 @@ export const DrawingToCadView: React.FC<DrawingToCadViewProps> = ({
             {extractedDimensions.map((dim, i) => (
               <div
                 key={i}
-                className="p-3 bg-[#1c1c1c] border border-[#2c2c2c] rounded-lg space-y-1 text-xs"
+                className="p-3 bg-graphite-1c border border-graphite-2c rounded-lg space-y-1 text-xs"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-neutral-400">{dim.label}</span>
                   <span className="font-tech text-steel-300 font-bold">{dim.value}</span>
                 </div>
-                <div className="flex items-center justify-between text-[11px] font-tech text-neutral-500 pt-1 border-t border-[#232323]">
+                <div className="flex items-center justify-between text-[11px] font-tech text-neutral-500 pt-1 border-t border-graphite-23">
                   <span>{dim.view}</span>
                   <span className="text-emerald-400">Confidence {dim.confidence}</span>
                 </div>

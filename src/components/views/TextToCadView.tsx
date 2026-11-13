@@ -61,9 +61,9 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-[#0f0f0f] select-none text-neutral-200">
+    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-graphite-0f select-none text-neutral-200">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#232323]">
+      <div className="flex items-center justify-between pb-3 border-b border-graphite-23">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             <FileCode2 className="w-5 h-5 text-steel-400" />
@@ -79,7 +79,7 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
 
         <button
           onClick={onNavigateToAgent}
-          className="flex items-center gap-2 px-3.5 py-1.5 bg-[#1d1d1d] hover:bg-[#282828] text-neutral-200 rounded-lg text-xs font-medium border border-[#333333] transition-colors"
+          className="flex items-center gap-2 px-3.5 py-1.5 bg-graphite-1d hover:bg-graphite-28 text-neutral-200 rounded-lg text-xs font-medium border border-graphite-33 transition-colors"
         >
           <span>Open AI CAD Agent</span>
           <ArrowRight className="w-3.5 h-3.5" />
@@ -89,7 +89,7 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Input Configuration */}
         <div className="space-y-4">
-          <div className="p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
+          <div className="p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
                 Engineering Design Prompt
@@ -98,7 +98,7 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 rows={4}
-                className="w-full bg-[#1c1c1c] border border-[#2f2f2f] rounded-lg p-3 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-steel-500 leading-relaxed resize-none"
+                className="w-full bg-graphite-1c border border-graphite-2f rounded-lg p-3 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-steel-500 leading-relaxed resize-none"
               />
             </div>
 
@@ -108,7 +108,7 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
                 <select
                   value={targetCad}
                   onChange={(e) => setTargetCad(e.target.value)}
-                  className="w-full bg-[#1c1c1c] border border-[#2f2f2f] rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
+                  className="w-full bg-graphite-1c border border-graphite-2f rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
                 >
                   <option>SOLIDWORKS 2024</option>
                   <option>Autodesk Fusion 360</option>
@@ -123,7 +123,7 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
                 <select
                   value={material}
                   onChange={(e) => setMaterial(e.target.value)}
-                  className="w-full bg-[#1c1c1c] border border-[#2f2f2f] rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
+                  className="w-full bg-graphite-1c border border-graphite-2f rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
                 >
                   {AVAILABLE_MATERIALS.map((m) => (
                     <option key={m.id} value={m.name}>{m.name}</option>
@@ -136,7 +136,7 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
                 <select
                   value={units}
                   onChange={(e) => setUnits(e.target.value)}
-                  className="w-full bg-[#1c1c1c] border border-[#2f2f2f] rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
+                  className="w-full bg-graphite-1c border border-graphite-2f rounded p-2 text-neutral-200 font-tech text-xs focus:outline-none"
                 >
                   <option value="mm">MMGS (mm, g, s)</option>
                   <option value="in">IPS (inch, lb, s)</option>
@@ -162,7 +162,7 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
           </div>
 
           {/* Verification Assurance Card */}
-          <div className="p-4 bg-[#181818] border border-[#292929] rounded-xl flex items-center gap-3 text-xs text-neutral-400">
+          <div className="p-4 bg-graphite-18 border border-graphite-29 rounded-xl flex items-center gap-3 text-xs text-neutral-400">
             <ShieldCheck className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <div>
               <span className="text-neutral-200 font-medium">B-Rep Mathematical Validity Guaranteed:</span>
@@ -174,7 +174,7 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
         </div>
 
         {/* Right: Synthesized Feature Sequence */}
-        <div className="p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-4">
+        <div className="p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-4">
           <div className="flex items-center justify-between">
             <div className="font-semibold text-neutral-100 text-sm">
               Synthesized Parametric Timeline
@@ -188,7 +188,7 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
             {generatedPlan?.map((item) => (
               <div
                 key={item.step}
-                className="p-3 bg-[#1c1c1c] border border-[#2c2c2c] rounded-lg space-y-1 text-xs"
+                className="p-3 bg-graphite-1c border border-graphite-2c rounded-lg space-y-1 text-xs"
               >
                 <div className="flex items-center gap-2">
                   <span className="w-5 h-5 rounded-full bg-steel-500/20 text-steel-400 border border-steel-400/40 text-[10px] font-tech font-bold flex items-center justify-center flex-shrink-0">
@@ -201,7 +201,7 @@ export const TextToCadView: React.FC<TextToCadViewProps> = ({
             ))}
           </div>
 
-          <div className="pt-2 flex items-center justify-between border-t border-[#292929]">
+          <div className="pt-2 flex items-center justify-between border-t border-graphite-29">
             <span className="text-xs text-neutral-400 font-tech">7 Parametric Operations Ready</span>
             <button
               onClick={onNavigateToAgent}

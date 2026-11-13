@@ -18,8 +18,8 @@ export const KnowledgeHubView: React.FC = () => {
   const [search, setSearch] = useState('');
 
   return (
-    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-[#0f0f0f] select-none text-neutral-200">
-      <div className="flex items-center justify-between pb-3 border-b border-[#232323]">
+    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-graphite-0f select-none text-neutral-200">
+      <div className="flex items-center justify-between pb-3 border-b border-graphite-23">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-steel-400" />
@@ -38,14 +38,14 @@ export const KnowledgeHubView: React.FC = () => {
         {AVAILABLE_MATERIALS.map((mat) => (
           <div
             key={mat.id}
-            className="p-5 bg-[#181818] border border-[#292929] rounded-xl space-y-2.5 text-xs"
+            className="p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-2.5 text-xs"
           >
             <div className="flex items-center justify-between">
               <span className="font-bold text-neutral-100">{mat.name}</span>
               <span className="w-3 h-3 rounded-full border border-neutral-600" style={{ backgroundColor: mat.color }} />
             </div>
 
-            <div className="space-y-1 font-tech text-[11px] text-neutral-400 pt-2 border-t border-[#232323]">
+            <div className="space-y-1 font-tech text-[11px] text-neutral-400 pt-2 border-t border-graphite-23">
               <div className="flex justify-between">
                 <span>Density:</span>
                 <span className="text-neutral-200">{mat.density} g/cm³</span>

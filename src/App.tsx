@@ -139,7 +139,7 @@ export default function App() {
   );
 
   return (
-    <div className="flex flex-col w-screen h-screen bg-[#0c0c0c] text-neutral-200 overflow-hidden font-sans">
+    <div className="flex flex-col w-screen h-screen bg-graphite-0c text-neutral-200 overflow-hidden font-sans">
       {/* 1. Global Top Navigation Header */}
       <TopNavigation
         currentProject={currentProject}
@@ -168,7 +168,7 @@ export default function App() {
         />
 
         {/* Dynamic Center Workstation */}
-        <main className="flex-1 min-w-0 flex flex-col h-full bg-[#0c0c0c] overflow-hidden">
+        <main className="flex-1 min-w-0 flex flex-col h-full bg-graphite-0c overflow-hidden">
           {/* PRIMARY WORKSPACE: AI CAD AGENT (Matches exact screenshot reference) */}
           {currentModule === 'ai-cad-agent' && (
             <div className="flex flex-col h-full w-full overflow-hidden">
@@ -176,7 +176,7 @@ export default function App() {
               <div className="flex flex-1 min-h-0 w-full overflow-hidden">
                 {/* AI CAD Agent Conversation Panel */}
                 <PanelFrame panel="chat" label="Chat" view={panels.chat} className="flex h-full flex-shrink-0"
-                  stateClassName="w-[310px] lg:w-[340px] border-r border-[#232323] bg-[#0d0d0d]">
+                  stateClassName="w-[310px] lg:w-[340px] border-r border-graphite-23 bg-graphite-0d">
                   <AICADAgentPanel
                     parameters={parameters}
                     onUpdateParameters={handleUpdateParameters}
@@ -209,7 +209,7 @@ export default function App() {
               {/* Lower split: Operation History & Verification Center Console, with background tasks beside it */}
               <div className="flex w-full flex-shrink-0">
                 <PanelFrame panel="history" label="History" view={panels.history} className="min-w-0 flex-1"
-                  stateClassName="h-[185px] border-t border-[#232323] bg-[#0d0d0d]">
+                  stateClassName="h-[185px] border-t border-graphite-23 bg-graphite-0d">
                   <BottomConsole
                     operations={operationHistory}
                     onOpenReport={() => setIsVerificationReportOpen(true)}
@@ -221,7 +221,7 @@ export default function App() {
                 </PanelFrame>
                 {isConsoleOpen && (
                   <PanelFrame panel="tasks" label="Tasks" view={panels.tasks}
-                    className="h-[185px] w-[300px] flex-shrink-0 border-l border-t border-[#232323] bg-[#0d0d0d]" />
+                    className="h-[185px] w-[300px] flex-shrink-0 border-l border-t border-graphite-23 bg-graphite-0d" />
                 )}
               </div>
             </div>
@@ -370,8 +370,8 @@ export default function App() {
 
       {/* Help Modal */}
       {isHelpOpen && (
-        <Dialog label="Help" onClose={() => setIsHelpOpen(false)} className="w-full max-w-lg bg-[#171717] border border-[#2f2f2f] rounded-xl p-6 space-y-4 text-xs">
-            <div className="flex items-center justify-between border-b border-[#292929] pb-3">
+        <Dialog label="Help" onClose={() => setIsHelpOpen(false)} className="w-full max-w-lg bg-graphite-17 border border-graphite-2f rounded-xl p-6 space-y-4 text-xs">
+            <div className="flex items-center justify-between border-b border-graphite-29 pb-3">
               <span className="font-bold text-neutral-100 text-sm">MechForge AI — Guide</span>
               <button
                 onClick={() => setIsHelpOpen(false)}

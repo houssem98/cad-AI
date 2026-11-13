@@ -113,7 +113,7 @@ export function KernelPreview({ glb, onError, onEmpty }: Props) {
   }, [glb, onError, onEmpty]);
 
   return (
-    <div className="relative h-full w-full bg-[#111111]" data-triangles={triangles} data-size-mm={size}>
+    <div className="relative h-full w-full bg-graphite-11" data-triangles={triangles} data-size-mm={size}>
       <div ref={mount} className="absolute inset-0" />
       <PreviewLabel note="kernel mesh; the execution record is the evidence" />
       {size && (

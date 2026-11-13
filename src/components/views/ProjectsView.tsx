@@ -37,8 +37,8 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
   );
 
   return (
-    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-[#0f0f0f] select-none text-neutral-200">
-      <div className="flex items-center justify-between pb-3 border-b border-[#232323]">
+    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-graphite-0f select-none text-neutral-200">
+      <div className="flex items-center justify-between pb-3 border-b border-graphite-23">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             <Folder className="w-5 h-5 text-steel-400" />
@@ -65,7 +65,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Filter projects by name or code..."
-          className="w-full bg-[#181818] border border-[#292929] rounded-lg p-2.5 text-xs text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-steel-500"
+          className="w-full bg-graphite-18 border border-graphite-29 rounded-lg p-2.5 text-xs text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-steel-500"
         />
       </div>
 
@@ -74,7 +74,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
         {filtered.map((proj) => (
           <div
             key={proj.id}
-            className="p-5 bg-[#181818] border border-[#292929] hover:border-steel-500/50 rounded-xl space-y-3 transition-all"
+            className="p-5 bg-graphite-18 border border-graphite-29 hover:border-steel-500/50 rounded-xl space-y-3 transition-colors"
           >
             <div className="flex items-start justify-between">
               <div>
@@ -104,14 +104,14 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
               {proj.tags.map((t, idx) => (
                 <span
                   key={idx}
-                  className="px-2 py-0.5 rounded bg-[#1c1c1c] text-[10px] font-tech text-neutral-400 border border-[#2c2c2c]"
+                  className="px-2 py-0.5 rounded bg-graphite-1c text-[10px] font-tech text-neutral-400 border border-graphite-2c"
                 >
                   {t}
                 </span>
               ))}
             </div>
 
-            <div className="flex items-center justify-between text-xs pt-3 border-t border-[#232323] text-neutral-400 font-tech">
+            <div className="flex items-center justify-between text-xs pt-3 border-t border-graphite-23 text-neutral-400 font-tech">
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
                   <User className="w-3 h-3 text-neutral-500" />
