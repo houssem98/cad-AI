@@ -26,6 +26,14 @@ export function jobRoutes(engine: JobEngine) {
     res.json({ ...job, events: engine.events(job.id) });
   });
 
+  // Only a COMPLETED job has a STEP, and COMPLETED needs the kernel's re-import check (P9).
+  router.get('/api/jobs/:id/step', (req, res) => {
+    const job = engine.get(req.params.id);
+    if (!job) return fail(res, 404, 'precondition_failed', 'no such job');
+    if (job.state !== 'COMPLETED' || !job.result?.step) return fail(res, 409, 'precondition_failed', `the job is ${job.state} and has no verified STEP`);
+    res.download(job.result.step.path, `${job.id}.step`);
+  });
+
   router.post('/api/jobs/:id/cancel', (req, res) => {
     if (!local(req)) return refuse(res);
     if (!engine.cancel(req.params.id)) return fail(res, 404, 'precondition_failed', 'no such job');

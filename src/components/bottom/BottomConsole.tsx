@@ -161,7 +161,7 @@ export const BottomConsole: React.FC<BottomConsoleProps> = ({
           )}
 
           {activeTab === 'progress' && (
-            <div className="text-xs text-neutral-400">No background jobs. The job engine arrives in a later release.</div>
+            <div className="text-xs text-neutral-400">Background jobs are listed under Background Tasks in the sidebar.</div>
           )}
 
           {activeTab === 'logs' && (

@@ -34,6 +34,8 @@ describe('job routes (API_CONTRACTS §3)', { timeout: 60_000 }, () => {
     const job = await (await fetch(`${base}/api/jobs/${id}`)).json();
     expect(job.state).toBe('CANCELLED');
     expect(job.events.map((e: any) => e.state)).toContain('CANCELLED');
+    expect((await fetch(`${base}/api/jobs/${id}/step`)).status).toBe(409);
+    expect((await fetch(`${base}/api/jobs/nope/step`)).status).toBe(404);
     expect((await fetch(`${base}/api/jobs/nope`)).status).toBe(404);
   });
 });
