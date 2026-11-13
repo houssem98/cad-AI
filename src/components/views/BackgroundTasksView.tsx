@@ -46,10 +46,16 @@ export const BackgroundTasksView: React.FC = () => {
   }, []);
 
   const post = async (path: string, body: object = {}) => {
-    const r = await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-    setActionError(r.ok ? null : await problem(r));
-    await load();
-    return r.ok;
+    try {
+      const r = await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+      setActionError(r.ok ? null : await problem(r));
+      return r.ok;
+    } catch (e) {
+      setActionError(`Could not reach the server: ${(e as Error).message}`); // council C23
+      return false;
+    } finally {
+      await load();
+    }
   };
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +95,10 @@ export const BackgroundTasksView: React.FC = () => {
       </form>
 
       {(loadError || actionError) && (
-        <p role="alert" className="text-xs text-red-400">{actionError ?? `Could not read the jobs: ${loadError}`}</p>
+        <p role="alert" className="text-xs text-red-400">{[actionError, loadError && `Could not read the jobs: ${loadError}`].filter(Boolean).join(' ')}</p>
+      )}
+      {loadError && jobs && (
+        <p data-testid="jobs-stale" className="text-xs text-amber-400">The list below may be out of date, so its jobs cannot be cancelled until it reloads.</p>
       )}
 
       {jobs === null ? (
@@ -129,7 +138,7 @@ export const BackgroundTasksView: React.FC = () => {
                 )}
 
                 <div className="flex justify-end gap-2">
-                  {LIVE.includes(j.state) && (
+                  {LIVE.includes(j.state) && !loadError && (
                     <button onClick={() => post(`/api/jobs/${j.id}/cancel`)} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs text-neutral-300 hover:text-white bg-[#232323] rounded border border-[#333]">
                       <XCircle className="w-3 h-3" />Cancel
                     </button>

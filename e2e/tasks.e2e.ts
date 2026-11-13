@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 // L6 T4: jobs run through the real server, job engine, worker processes and kernel on recorded model responses. No route is stubbed.
 const PLATE = 'Plate 100 mm by 60 mm by 5 mm.';
@@ -41,4 +41,51 @@ test('the tasks dashboard submits jobs, shows their progress, cancels one and do
   const stopped = await (await page.request.get(`/api/jobs/${cancelledId}`)).json();
   expect(stopped.state).toBe('CANCELLED');
   expect(() => process.kill(stopped.pid, 0)).toThrow();
+});
+
+const openTasks = async (page: Page) => {
+  await page.goto('/');
+  await page.locator('aside').getByRole('button', { name: 'Background Tasks' }).click();
+};
+
+// Council C23, C24, C28: states the real server cannot be made to show on demand, so the job list and cancel are stubbed here.
+test('the dashboard shows loading, a cancel that never reached the server, and a stale list after a read error', async ({ page }) => {
+  let release!: () => void;
+  const gate = new Promise<void>((r) => { release = r; });
+  let down = false;
+  const live = [{ id: 'stub-1', type: 'text2cad', input: { request: 'Stub plate' }, state: 'RUNNING', result: null, error: null, createdAt: new Date().toISOString() }];
+  await page.route('**/api/jobs', async (r) => {
+    if (r.request().method() !== 'GET') return r.continue();
+    await gate;
+    await (down ? r.fulfill({ status: 500, json: { error: { code: 'kernel_error', message: 'store unavailable' } } }) : r.fulfill({ json: live }));
+  });
+  await page.route('**/api/jobs/stub-1/cancel', (r) => r.abort('failed'));
+  await openTasks(page);
+  await expect(page.getByTestId('jobs-loading')).toBeVisible();
+  release();
+  const row = page.getByTestId('job').filter({ hasText: 'Stub plate' });
+  await row.getByRole('button', { name: 'Cancel' }).click();
+  await expect(page.getByRole('alert')).toContainText('Could not reach the server');
+  down = true;
+  await expect(page.getByRole('alert')).toContainText('Could not read the jobs: store unavailable');
+  await expect(page.getByTestId('jobs-stale')).toBeVisible();
+  await expect(row.getByRole('button', { name: 'Cancel' })).toHaveCount(0);
+});
+
+test('a double click submits one job, and a failed job shows its error with no cancel or download', async ({ page }) => {
+  test.setTimeout(180_000);
+  await openTasks(page);
+  await expect(page.getByTestId('jobs-empty').or(page.getByTestId('job').first())).toBeVisible();
+  const rows = page.getByTestId('job').filter({ hasText: HOLE });
+  const before = await rows.count();
+  await page.getByRole('textbox', { name: 'Text-to-CAD request' }).fill(HOLE);
+  await page.getByRole('button', { name: 'Run in background' }).dblclick();
+  await expect(rows).toHaveCount(before + 1);
+  await page.waitForTimeout(2_000);
+  await expect(rows).toHaveCount(before + 1);
+  const failed = rows.first();
+  await expect(failed.getByTestId('job-state')).toHaveText('FAILED', { timeout: 150_000 });
+  await expect(failed).toContainText('verification_failed');
+  await expect(failed.getByRole('button', { name: 'Cancel' })).toHaveCount(0);
+  await expect(failed.getByRole('link', { name: 'Download STEP' })).toHaveCount(0);
 });
