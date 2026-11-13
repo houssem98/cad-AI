@@ -45,6 +45,8 @@ def serve(adapter, lines, out):
             reply = {"kind": "tessellated", **answer(adapter.tessellate, msg["document"], "this adapter has no preview mesh")}
         elif kind == "plan":
             reply = {"kind": "planned", **answer(adapter.rebuild_plan, msg["document"], "this adapter cannot rebuild a part as features")}
+        elif kind == "compare":
+            reply = {"kind": "compared", **answer(lambda d: adapter.compare(d, msg["other"]), msg["document"], "this adapter cannot compare solids")}
         elif kind == "save":
             adapter.save_checkpoint(msg["document"], msg["path"])
             reply = {"kind": "saved"}

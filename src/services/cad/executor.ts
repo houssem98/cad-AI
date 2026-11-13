@@ -131,6 +131,20 @@ export class Executor {
     });
   }
 
+  // The volume of the symmetric difference of two documents' solids, measured by the kernel.
+  compare(docId: string, other: string): Promise<{ status: string; difference_mm3?: number; error?: TypedError }> {
+    return this.serial(async () => {
+      try {
+        const r = await this.worker.request({ kind: 'compare', document: docId, other });
+        return r.status === 'succeeded' ? { status: 'succeeded', difference_mm3: r.difference_mm3 } : { status: r.status, error: r.error };
+      } catch (e) {
+        if (!(e instanceof WorkerError)) throw e;
+        await this.reloadAll();
+        return { status: 'failed', error: { code: e.code, message: e.message } };
+      }
+    });
+  }
+
   // The worker answers one request at a time, so every public call waits for the one before it.
   private serial<T>(f: () => Promise<T>): Promise<T> {
     const next = this.tail.then(f);

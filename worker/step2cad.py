@@ -115,7 +115,12 @@ def _slabs(base, name):
         acc = joined
         order.append(r)
         pending.remove(r)
-    return [(name, *r, "extrude") for r in order] + [(name, *r, "cut") for r in _runs(inners, levels)]
+    out = [(name, *r, "extrude") for r in order]
+    for r in _runs(inners, levels):  # a cut goes before any extrude standing wholly inside it (a pin in a pocket), not after
+        hole = _prism(r[0], plane, r[1], r[2])
+        k = next((i for i, f in enumerate(out) if f[4] == "extrude" and (_prism(f[1], plane, f[2], f[3]) - hole).volume < TOL), len(out))
+        out.insert(k, (name, *r, "cut"))
+    return out
 
 
 def _operations(features):

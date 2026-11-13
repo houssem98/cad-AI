@@ -223,6 +223,15 @@ class KernelAdapter(Adapter):
             raise PreconditionFailed("the document has no solid to rebuild")
         return {"operations": plan(part, _holes(part)[0])}
 
+    def compare(self, document, other):
+        """The volume of the two solids' symmetric difference: zero only when they occupy the same space, which a mirrored or
+        moved feature with the same volume and box does not."""
+        a, _ = self._build(self._history({"target": {"document": document}}))
+        b, _ = self._build(self._history({"target": {"document": other}}))
+        if a is None or b is None:
+            raise PreconditionFailed("both documents need a solid to compare")
+        return {"difference_mm3": (a - b).volume + (b - a).volume}
+
     def save_checkpoint(self, document, path):
         Path(path).write_text(json.dumps(self.docs.get(document, [])), encoding="utf-8")
 

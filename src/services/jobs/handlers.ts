@@ -41,9 +41,12 @@ const text2cadJob: Handler = async (input, ctx) => {
   }
 };
 
-// The rebuilt solid stands for the imported one when its volume is within 0.1 % and every bounding-box bound within 0.001 mm.
-export const sameSolid = (a: any, b: any) => Math.abs(a.volume_mm3 - b.volume_mm3) <= 1e-3 * Math.abs(b.volume_mm3)
-  && (['min', 'max'] as const).every((end) => (['x', 'y', 'z'] as const).every((k) => Math.abs(a.bbox_mm[end][k] - b.bbox_mm[end][k]) <= 1e-3));
+// The rebuilt solid stands for the imported one when its volume is within 0.1 %, every bounding-box bound within 0.001 mm, and the
+// kernel's symmetric difference of the two is at most a 1e-6 mm skin over the imported surface: a moved or mirrored feature keeps
+// volume and box but not the space it fills (council C1).
+export const sameSolid = (a: any, b: any, difference: number, area: number) => Math.abs(a.volume_mm3 - b.volume_mm3) <= 1e-3 * Math.abs(b.volume_mm3)
+  && (['min', 'max'] as const).every((end) => (['x', 'y', 'z'] as const).every((k) => Math.abs(a.bbox_mm[end][k] - b.bbox_mm[end][k]) <= 1e-3))
+  && difference <= 1e-6 * area;
 
 // A STEP-to-CAD job imports the file, asks the kernel for a plan of editable features, runs it in a new document through the
 // executor (so every feature has its record), and is done only when the rebuilt solid is the imported one (sameSolid) and its
@@ -65,14 +68,16 @@ const step2cadJob: Handler = async (input, ctx) => {
       if (done.at(-1)!.status !== 'succeeded') break;
     }
     const built = done.every((o) => o.status === 'succeeded');
-    const source = (await executor.inspect('source')).verification, rebuilt = built ? (await executor.inspect('part')).verification : null;
-    const same = Boolean(rebuilt && sameSolid(rebuilt, source));
+    const looked = await executor.inspect('source'), source = looked.verification;
+    const rebuilt = built ? (await executor.inspect('part')).verification : null;
+    const diff = rebuilt ? await executor.compare('part', 'source') : null;
+    const same = Boolean(rebuilt && diff?.status === 'succeeded' && sameSolid(rebuilt, source, diff.difference_mm3!, looked.result.area_mm2));
     const exported = same ? await run('export-step', 'part', 'export', { format: 'step' }) : null;
     const step = stepOf(executor, exported);
     return {
       verified: Boolean(step),
       result: { operations: plan.operations!.map((o) => o.type), records: done.map((o) => o.operationId),
-        volume_mm3: { source: source.volume_mm3, rebuilt: rebuilt?.volume_mm3 ?? null }, step },
+        volume_mm3: { source: source.volume_mm3, rebuilt: rebuilt?.volume_mm3 ?? null }, difference_mm3: diff?.difference_mm3 ?? null, step },
       ...(!built ? { error: done.at(-1)!.error } : !same ? { error: { code: 'verification_failed', message: 'the rebuilt solid differs from the imported one' } } : {}),
     };
   } finally {
