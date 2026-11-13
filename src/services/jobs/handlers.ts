@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Executor, type Outcome } from '../cad/executor';
 import { text2cad, type Text2CadResult } from '../agent/text2cad';
@@ -55,7 +55,9 @@ export const sameSolid = (a: any, b: any, difference: number, area: number) => M
 const step2cadJob: Handler = async (input, ctx) => {
   const executor = await open(ctx);
   try {
-    const path = String(input?.path ?? ''), data = readFileSync(path);
+    const path = String(input?.path ?? '');
+    if (!existsSync(path)) return { verified: false, result: null, error: { code: 'precondition_failed', message: `no STEP file at ${path}` } };
+    const data = readFileSync(path);
     executor.store.addArtifact({ id: 'source', kind: 'step', path, sha256: createHash('sha256').update(data).digest('hex'), bytes: data.length });
     const run = (id: string, document: string, type: string, params: object) => executor.execute(op(id, document, type, params), { requestId: ctx.jobId });
     const imported = await run('import', 'source', 'import', { artifact: 'source' });

@@ -94,6 +94,8 @@ const row = (r: any): Job => ({
   createdAt: r.created_at, startedAt: r.started_at, heartbeatAt: r.heartbeat_at, finishedAt: r.finished_at,
 });
 
+export class JobConflict extends Error {}
+
 export class JobEngine {
   private timer?: ReturnType<typeof setInterval>;
   private ours = new Map<string, boolean>(); // job id → whether its stored pid is its worker; known for workers spawned here
@@ -110,13 +112,16 @@ export class JobEngine {
 
   submit(type: string, input: unknown, key?: string): Job {
     if (!this.o.types.includes(type)) throw new Error(`unknown job type ${type}`);
-    if (key) {
-      const old = this.db.prepare('SELECT id FROM jobs WHERE idem_key = ?').get(key) as { id: string } | undefined;
-      if (old) return this.get(old.id)!; // a duplicate submission returns the job it repeats
+    const id = randomUUID(), json = JSON.stringify(input ?? null);
+    // A key used before returns its job when the request is the same, and is refused for another one (council C14); the insert
+    // itself decides, so two servers on one store cannot both run it.
+    const added = this.db.prepare('INSERT INTO jobs (id, type, input_json, idem_key, state, created_at) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(idem_key) DO NOTHING')
+      .run(id, type, json, key ?? null, 'CREATED', iso());
+    if (!added.changes) {
+      const old = this.db.prepare('SELECT id, type, input_json FROM jobs WHERE idem_key = ?').get(key!) as { id: string; type: string; input_json: string };
+      if (old.type !== type || old.input_json !== json) throw new JobConflict(`the idempotency key was used for another request (job ${old.id})`);
+      return this.get(old.id)!;
     }
-    const id = randomUUID();
-    this.db.prepare('INSERT INTO jobs (id, type, input_json, idem_key, state, created_at) VALUES (?, ?, ?, ?, ?, ?)')
-      .run(id, type, JSON.stringify(input ?? null), key ?? null, 'CREATED', iso());
     this.db.prepare('INSERT INTO job_events (job_id, state, at, data_json) VALUES (?, ?, ?, NULL)').run(id, 'CREATED', iso());
     mkdirSync(this.dir(id), { recursive: true });
     const log = openSync(join(this.dir(id), 'worker.log'), 'a'); // what a crashing worker prints is kept (council C22)

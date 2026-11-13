@@ -2,20 +2,22 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import express from 'express';
 import { local, refuse } from '../agent/routes';
-import type { JobEngine } from './jobEngine';
+import { JobConflict, type JobEngine } from './jobEngine';
 
 // docs/cad-agent/architecture/API_CONTRACTS.md §3 job rows. Status and events come from the store, so a client that
-// reconnects, or a server that restarts, reports the same job the same way.
+// reconnects, or a server that restarts, reports the same job the same way. Every job route answers this machine only: the
+// list holds every request's text and file paths, and the download the user's parts (council C4).
 export function jobRoutes(engine: JobEngine) {
   const router = express.Router();
   const fail = (res: express.Response, status: number, code: string, message: string) => res.status(status).json({ error: { code, message } });
+  router.use('/api/jobs', (req, res, next) => (local(req) ? next() : refuse(res)));
 
   router.post('/api/jobs', (req, res) => {
-    if (!local(req)) return refuse(res);
     const { type, input, idempotencyKey } = req.body ?? {};
     try {
       res.status(201).json(engine.submit(String(type), input ?? null, idempotencyKey ? String(idempotencyKey) : undefined));
     } catch (e) {
+      if (e instanceof JobConflict) return fail(res, 409, 'precondition_failed', e.message);
       fail(res, 400, 'validation_failed', (e as Error).message);
     }
   });
@@ -41,9 +43,11 @@ export function jobRoutes(engine: JobEngine) {
     res.attachment(`${job.id}.step`).send(data);
   });
 
+  // A cancel that finds the job already finished changes nothing, and says so (council C15).
   router.post('/api/jobs/:id/cancel', (req, res) => {
-    if (!local(req)) return refuse(res);
-    if (!engine.cancel(req.params.id)) return fail(res, 404, 'precondition_failed', 'no such job');
+    const job = engine.cancel(req.params.id);
+    if (!job) return fail(res, 404, 'precondition_failed', 'no such job');
+    if (job.state !== 'CANCELLED') return fail(res, 409, 'precondition_failed', `the job is already ${job.state}`);
     res.status(204).end();
   });
 
