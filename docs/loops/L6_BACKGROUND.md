@@ -394,3 +394,15 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
   - Evidence: `npx vitest run src/services/jobs src/services/cad src/services/agent` "Test Files  11 passed (11)", "Tests  95 passed (95)".
   - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  110 passed (110)", pytest "60 passed in 9.88s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 16 of 16 cases pass (13 to rebuild, 3 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "36 passed (2.5m)", exit 0.
   - Direction: still the goal. Every stopped operation's record now names the command that was running. Next: G6 dashboard (D20, D21).
+- 2026-11-13 · L6 · human decision, outside any ledger task: fix the UI findings of the Hallmark design lint (the human installed that skill; its `sloplint.mjs` ran read-only over `cad-AI/src`). passed · gate green · cad-AI 8bf466c:
+  - 451 hard-coded grey classes (39 greys) now use `graphite-XX` tokens in `cad-AI/src/index.css`, with the same values, so nothing looks different and a theme can remap them in one place, as L8 T7 needs. The page background, text, scrollbar and grid-line colours use tokens too.
+  - 21 `transition-all` now name what they animate, or are removed where nothing changes. All 13 animations have a reduced-motion fallback, and the bounce is a pulse.
+  - The body is `overflow: clip`, not `hidden`. The top bar's hotlinked stock photo, whose licence bars AI-picked images, is now initials.
+  - Lint: "364 FAIL, 1 REFLEX, 47 WARN" before, "68 FAIL, 46 WARN" after. Left on purpose:
+    - marketing-page taste rules (uppercase labels, middle dots, dashes, quotes, glass);
+    - the sidebar's width animation, since its collapse animates width;
+    - the stress legend's gradient, a data colour scale;
+    - Hallmark's own stamp comment.
+  - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  110 passed (110)", pytest "60 passed in 7.62s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 16 of 16 cases pass (13 to rebuild, 3 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "36 passed (2.7m)" including the palette and accessibility tests, exit 0.
+  - Not run: Hallmark's browser checks (contrast, focus, phone layout), which need `puppeteer-core`, a package not installed.
+  - Direction: the human's call. No geometry or verification task was waiting on it except G6, which follows.
