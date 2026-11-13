@@ -8,7 +8,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { JobEngine, openJobDb, type JobOptions } from './jobEngine';
 
 const FIXTURES = fileURLToPath(new URL('./jobs.fixtures.ts', import.meta.url));
-const TYPES = ['quick', 'unverified', 'slow', 'hang', 'count', 'crash'];
+const TYPES = ['quick', 'unverified', 'bare', 'tampered', 'slow', 'hang', 'count', 'crash'];
 const engines: JobEngine[] = [];
 afterEach(() => { for (const e of engines.splice(0)) e.close(true); });
 
@@ -39,6 +39,19 @@ describe('job engine (L6 T1)', { timeout: 60_000 }, () => {
     const bad = e.submit('unverified', {});
     const failed = await until(() => e.get(bad.id)!, (j) => j.state === 'FAILED', 20_000);
     expect(failed.error?.code).toBe('verification_failed');
+  });
+
+  it('completes only with an artifact whose file still has its recorded sha256, checked while VERIFYING (council C6, C20)', async () => {
+    const e = open(join(dir(), 'jobs.db'));
+    const quick = e.submit('quick', {});
+    const done = await until(() => e.get(quick.id)!, (j) => j.state === 'COMPLETED', 20_000);
+    expect(readFileSync(done.result.step.path, 'utf8')).toBe('ISO-10303-21;\n');
+    for (const type of ['bare', 'tampered']) {
+      const job = e.submit(type, {});
+      const failed = await until(() => e.get(job.id)!, (j) => j.state === 'FAILED', 20_000);
+      expect(failed.error?.code, type).toBe('verification_failed');
+      expect(e.events(job.id).map((x) => x.state).slice(-2), type).toEqual(['VERIFYING', 'FAILED']);
+    }
   });
 
   it('fails a worker killed mid-job instead of leaving it RUNNING, and a client after a restart sees the same status', async () => {

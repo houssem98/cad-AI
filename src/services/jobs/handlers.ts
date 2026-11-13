@@ -15,7 +15,7 @@ const op = (id: string, document: string, type: string, params: object) =>
   ({ id, target: { document }, type, params, preconditions: [], status: 'pending', result: null, verification: null, error: null });
 const stepOf = (executor: Executor, exported: Outcome | null) => {
   const a = exported?.status === 'succeeded' ? executor.store.artifact(exported.record.artifactReferences[0].id) : null;
-  return a ? { path: a.path, sha256: a.sha256, bytes: a.bytes } : null;
+  return a ? { path: a.path, sha256: a.sha256, bytes: a.bytes, record: exported!.operationId } : null; // the export record that verified it
 };
 
 // A text-to-CAD job is done only when the agent built the whole part (its report is not incomplete) and the kernel's STEP export
@@ -76,7 +76,7 @@ const step2cadJob: Handler = async (input, ctx) => {
     const step = stepOf(executor, exported);
     return {
       verified: Boolean(step),
-      result: { operations: plan.operations!.map((o) => o.type), records: done.map((o) => o.operationId),
+      result: { operations: plan.operations!.map((o) => o.type), records: [imported.operationId, ...done.map((o) => o.operationId)],
         volume_mm3: { source: source.volume_mm3, rebuilt: rebuilt?.volume_mm3 ?? null }, difference_mm3: diff?.difference_mm3 ?? null, step },
       ...(!built ? { error: done.at(-1)!.error } : !same ? { error: { code: 'verification_failed', message: 'the rebuilt solid differs from the imported one' } } : {}),
     };

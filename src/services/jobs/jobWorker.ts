@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { iso, move, openJobDb } from './jobEngine';
@@ -14,9 +16,14 @@ try {
   const { handlers } = await import(pathToFileURL(handlersPath).href);
   const out = await handlers[job.type](JSON.parse(job.input_json), { jobId: id, dir: join(dirname(dbPath), 'jobs', id) });
   move(db, id, 'VERIFYING', ['RUNNING']);
-  if (out?.verified) move(db, id, 'COMPLETED', ['VERIFYING'], { finished_at: iso(), result_json: JSON.stringify(out.result ?? null) });
+  // COMPLETED needs the handler's verdict and its artifact on disk with the sha256 it recorded (P9, council C6 and C20).
+  const step = out?.result?.step;
+  let kept = false;
+  try { kept = Boolean(step?.path) && createHash('sha256').update(readFileSync(step.path)).digest('hex') === step.sha256; } catch { /* no file */ }
+  if (out?.verified && kept) move(db, id, 'COMPLETED', ['VERIFYING'], { finished_at: iso(), result_json: JSON.stringify(out.result) });
   else move(db, id, 'FAILED', ['VERIFYING'], { finished_at: iso(), result_json: JSON.stringify(out?.result ?? null),
-    error_json: JSON.stringify(out?.error ?? { code: 'verification_failed', message: 'the job finished, but its output did not pass verification' }) });
+    error_json: JSON.stringify(out?.verified ? { code: 'verification_failed', message: 'the job has no artifact, or its file does not have the sha256 it recorded' }
+      : out?.error ?? { code: 'verification_failed', message: 'the job finished, but its output did not pass verification' }) });
 } catch (e) {
   move(db, id, 'FAILED', ['RUNNING', 'VERIFYING'], { finished_at: iso(), error_json: JSON.stringify({ code: 'job_error', message: String((e as Error)?.message ?? e) }) });
 }

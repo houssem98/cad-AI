@@ -1,10 +1,12 @@
 import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { CadStore } from '../cad/cadStore';
+import { Executor } from '../cad/executor';
 import { JobEngine } from './jobEngine';
-import { jobVerified } from './handlers';
+import { handlers, jobVerified } from './handlers';
 
 // The worker inherits MODEL_MODE: replay in the gate (recorded responses only), record once with DEEPSEEK_API_KEY set.
 process.env.MODEL_MODE ??= 'replay';
@@ -24,12 +26,42 @@ async function finished(id: string, ms = 120_000) {
 
 describe('text-to-CAD job (L6 T2)', { timeout: 180_000 }, () => {
   it('completes only with a STEP the kernel verified on re-import, and its records', async () => {
-    engine = JobEngine.open({ dbPath: join(mkdtempSync(join(tmpdir(), 'job-t2c-')), 'jobs.db'), handlers: HANDLERS, types: ['text2cad'] });
+    const db = join(mkdtempSync(join(tmpdir(), 'job-t2c-')), 'jobs.db');
+    engine = JobEngine.open({ dbPath: db, handlers: HANDLERS, types: ['text2cad'] });
     const job = await finished(engine.submit('text2cad', { request: 'Plate 100 mm by 60 mm by 5 mm.' }).id);
     expect(job.state, JSON.stringify(job.error)).toBe('COMPLETED');
     expect(job.result.records.length).toBeGreaterThan(0);
     expect(readFileSync(job.result.step.path, 'utf8').startsWith('ISO-10303-21')).toBe(true);
     expect(job.result.report).toContain('30000 mm3');
+    // council C11: the STEP names the export record that verified it, and that record holds the same file
+    const store = new CadStore(join(dirname(db), 'jobs', job.id, 'cad.db'));
+    try {
+      const rec = store.record(job.result.step.record);
+      expect(rec?.requestedOperation.type).toBe('export');
+      expect(rec?.status).toBe('succeeded');
+      expect(rec?.artifactReferences[0].sha256).toBe(job.result.step.sha256);
+    } finally {
+      store.close();
+    }
+  });
+
+  it('fails a job whose STEP export did not pass the kernel re-import, with no STEP (council C10)', async () => {
+    // The real agent and kernel on recorded responses; only the export's outcome is replaced by the one the kernel returns
+    // when its re-import does not match.
+    const real = Executor.prototype.execute;
+    const spy = vi.spyOn(Executor.prototype, 'execute').mockImplementation(function (this: Executor, op: any, c: any) {
+      return op.type === 'export'
+        ? Promise.resolve({ operationId: 'export', status: 'failed', record: null, error: { code: 'verification_failed', message: 'the re-imported STEP did not match the part' } })
+        : real.call(this, op, c);
+    });
+    try {
+      const out = await handlers.text2cad({ request: 'Plate 100 mm by 60 mm by 5 mm.' }, { jobId: 't2c-export', dir: mkdtempSync(join(tmpdir(), 'job-t2c-')) });
+      expect(spy.mock.calls.some(([op]) => (op as any).type === 'export')).toBe(true);
+      expect(out.verified).toBe(false);
+      expect((out.result as any).step).toBeNull();
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('fails a job whose part is incomplete: a requested hole the kernel could not make', async () => {
