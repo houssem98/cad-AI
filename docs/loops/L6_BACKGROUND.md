@@ -183,4 +183,19 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
   - Docs: the AGENT_ORCHESTRATION completion row describes VERIFYING and the step record. The API_CONTRACTS step row gives the hash check and the 404 for an unknown job, which is C25.
   - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  86 passed (86)", pytest "60 passed in 11.52s", text2cad self-check "holdout: 15 of 15 cases build their reference, pass every check, and catch every planted fault", "step2cad: 13 of 13 cases pass (11 to rebuild, 2 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "33 passed (2.0m)", exit 0.
   - Direction: still the goal. The engine itself now refuses COMPLETED without the verified file. Next: F4 cancel records (C5, C7).
+- 2026-11-13 · L6/T5 · started F4 (C5, C7)
+- 2026-11-13 · L6/T5 · F4 passed (C5, C7; T5 stays open) · gate green · commit loop(L6/T5) (this entry's own commit), cad-AI e717e90:
+  - C5: when a job ends CANCELLED, or FAILED by the watchdog, the engine (`cad-AI/src/services/jobs/jobEngine.ts`) stops the worker if it is provably the job's. It then closes every operation still unfinished in the job's own `cad.db` with a record: `cancelled` for a cancel, `failed` with the code for a timeout or crash. The document keeps its stored revision, since the change never committed. A storage error there is logged and does not take down the watchdog.
+  - C7: a new fixture `midop` runs the executor's real Python worker on the test double, hanging inside `new_part`, and writes the kernel's pid.
+  - Failing check first, in `cad-AI/src/services/jobs/jobEngine.test.ts`: cancel mid-operation, then "expected [ { …(4) } ] to deeply equal []". The worker and kernel were already stopped, but the operation row stayed `running`.
+  - Evidence: the test passes, checking that:
+    - the kernel was alive before the cancel;
+    - worker and kernel pids are gone within 10 s;
+    - no unfinished row remains;
+    - the row's record has status "cancelled", error code "cancelled", and the same revision before and after.
+  - `npx vitest run src/services/jobs` "Tests  17 passed (17)".
+  - The e2e cancel stays as it is, because the engine test is the one that pins a running kernel.
+  - Docs: the AGENT_ORCHESTRATION cancel row now says what the record holds.
+  - Gate: "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  87 passed (87)", pytest "60 passed in 10.70s", "improvement: 25 of 25 cases build their reference, pass every check, and catch every planted fault", "holdout: 15 of 15 …", "step2cad: 13 of 13 cases pass (11 to rebuild, 2 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "33 passed (2.2m)", exit 0. graph-lint ran first in the same chain.
+  - Direction: still the goal. A stopped job no longer leaves an operation without its record. Next: F5 routes (C4, C13, C14, C15; C25 was done in F3).
 - 2026-11-13 · L6/T5 · human decision: the tick budget may be raised "if necessary". The loop raises it only when the ticks left cannot cover the planned fixes, council round 2 and its fixes. It adds 5 ticks at most, follows L5's precedent, and edits the L6 line in `docs/LOOP_GRAPH.md` with the date and reason. A raise beyond +5, or any raise of the $25 spend cap, is still escalated.
