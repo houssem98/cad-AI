@@ -254,4 +254,47 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
   - Gate: "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  94 passed (94)", pytest "60 passed in 7.42s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 13 of 13 cases pass (11 to rebuild, 2 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "35 passed (2.0m)", exit 0. graph-lint ran first in the same chain.
   - Direction: still the goal. Every round-1 item has a failing test that now passes or a corrected row, and none was rejected. Next: T5 council round 2, given the round-1 list, the fixes, and the observed "disk I/O error" flake.
 - 2026-11-13 · L6/T5 · started council round 2 (members Opus 5.5 at high effort, A attacker and B auditor; chairman Opus 5.5 at xhigh). Scope: L6 as of cad-AI 4b44791 and root 72bfdbb, the fixes since round 1 (cad-AI 92b8127..4b44791), and whether each of C1 to C28 is closed.
+- 2026-11-13 · L6/T5 · council round 2 failed · gate green (unchanged since F8) · commit loop(L6/T5) (this entry's own commit, Journal and LOOP_GRAPH only) · A reported 17 items, B 20. The chairman merged them into 25, confirmed 24 and refuted 1. He reproduced D1, D2, D3 and D11 himself in scratch directories.
+  - B judged 22 of the 28 round-1 items closed. The open ones are listed below with the C-number they reopen.
+  - **High**
+    - D1 (A): in dev mode, Vite's middleware serves any file under cad-AI to a client on the LAN, including `data/jobs.db`, its `-wal`, worker logs and STEPs (reopens C4). GET /api/artifacts/:id is not local-only either.
+    - D2 (A+B): `ours` is set when the worker is spawned and never cleared. If the worker crashes and its pid is reused, the silent, overdue or cancel path kills the new program. The chairman's probe ended "stranger alive: false" (reopens C3).
+  - **Medium**
+    - D3 (A+B): nothing retries opening SQLite right after a kill. While the dead process still maps `-shm`, the open fails with SQLITE_IOERR_TRUNCATE 1546. This is the F5 flake. It can also stop a restarted server, and it makes `closeOut` fail silently (reopens C5).
+    - D4 (A+B): the spend lock can block forever on a reused or empty holder. The wait ignores `signal` and has no deadline, and two takeovers can both pass the cap (reopens C18).
+    - D5 (A): the 1e-6 mm × area bound grows with the part. A 1000 × 1000 × 200 mm block missing a Ø1 × 3 mm hole passes at 2.356 mm3 against a limit of 2.80 mm3 (reopens C1 and C2 in part).
+    - D6 (A+B): `runs()` has no timeout and reads any error as "not ours". That can leave a cap slot held forever, or close out a worker that is still alive.
+    - D7 (B): a storage error inside the watchdog timer is uncaught and kills the server.
+    - D8 (B): the holdout runs in every gate. Its labels changed after a result, the eval prints each case's name, and a commit called it "blind" (reopens C19).
+    - D9 (B): no test covers the `failed` close-out on a timeout or crash, or a timeout stopping the kernel (reopens C5 and C7).
+    - D10 (B): the process-group kill off Windows is stated as fact in the design doc but has never run (C17).
+  - **Low**
+    - D11: on Windows, workers die when the server exits, so the comment saying they outlive a restart is false.
+    - D12: AGENT_ORCHESTRATION still says "resumed" (C9).
+    - D13: a second cancel of a CANCELLED job answers 204 (C15).
+    - D14: VERIFYING only re-hashes the file (C20, partly closed).
+    - D15: no test checks that step2cad's records start with the import (C11).
+    - D16: `plan` and `compare` leave no stored evidence beyond the difference.
+    - D17: closeOut's records have `command: null`.
+    - D18: submit's job insert and its event are not one transaction, and the doc does not name `jobWorker`.
+    - D19: T3's "a rotated prism is unsupported" contradicts F1.
+    - D20: idempotency edge cases (key order; a lost response followed by edited text).
+    - D21: the dashboard's poll has no in-flight guard.
+    - D22: API_CONTRACTS says $10 cap and "artifacts".
+    - D23: a case expected unsupported that ends FAILED with another code is scored outside the pre-registered rule.
+    - D24: no route-level test for the 409 at the cap.
+  - Refuted:
+    - D25 (B): a crashed worker's kernel does not survive; it dies in the worker's job object.
+    - Sub-claims refuted: the pragma order is neither the flake's cause nor its fix; DNS rebinding is blocked by Vite's host check; `closeOut` never meets an operation that needs approval.
+  - Holdout, chairman's recommendation: call `evals/step2cad/holdout/` a seen regression suite, keep its false-pass hard gate, and correct "blind". A new blind holdout written by a fresh agent and run once by a one-shot runner outside the gate is needed only if T6 asks for a blind result.
+  - Budget: by the human's standing decision, the L6 budget goes from 20 to 25 ticks. This is the 15th tick, and the fixes, round 3 and its fixes need about 8 more.
+  - Round-2 fix groups:
+    - G1 process safety: D1, D2, D6, D11
+    - G2 storage: D3, D7, D18
+    - G3 spend lock: D4
+    - G4 geometry and eval: D5, D8, D15, D16, D19, D23
+    - G5 records, tests and docs: D9, D10, D12, D13, D14, D17, D22, D24
+    - G6 dashboard: D20, D21
+    - Then council round 3, the last the protocol allows.
+  - Direction: still the goal. D1 and D2 matter most, and they come first. Next: the human's decisions on D1, D5, D8 and D23, then G1.
 - 2026-11-13 · L6/T5 · human decision: the tick budget may be raised "if necessary". The loop raises it only when the ticks left cannot cover the planned fixes, council round 2 and its fixes. It adds 5 ticks at most, follows L5's precedent, and edits the L6 line in `docs/LOOP_GRAPH.md` with the date and reason. A raise beyond +5, or any raise of the $25 spend cap, is still escalated.
