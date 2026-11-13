@@ -8,7 +8,8 @@ import { CadStore, openSqlite } from '../cad/cadStore';
 
 // L6 T1, docs/cad-agent/architecture/AGENT_ORCHESTRATION.md "Job engine": durable jobs in SQLite, each run by its own worker
 // process that heartbeats every 2 s. A watchdog, at start and every 5 s, fails a job whose worker is gone, silent for 10 s or
-// past its maximum duration, so no job stays RUNNING. COMPLETED needs a verified result (P9). There is no automatic retry.
+// past its maximum duration. A job whose worker cannot be identified, because the identity check keeps failing, stays as it is
+// until the check answers (council D6, R6). COMPLETED needs a verified result (P9). There is no automatic retry.
 export type JobState = 'CREATED' | 'PENDING' | 'RUNNING' | 'VERIFYING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
 export interface Job {
   id: string; type: string; input: any; key: string | null; state: JobState; pid: number | null;

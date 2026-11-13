@@ -74,7 +74,7 @@ describe('model client', () => {
   // Council D4: the turn must never outlive its holder, and a caller waiting for it can still be cancelled.
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
   for (const [name, content] of [['a pid now used by another program', String(process.pid)], ['nothing', '']] as const) {
-    it(`is not blocked by a lock file left behind that names ${name} (council D4)`, async () => {
+    it(`is not blocked by a leftover pid lock file (the lock before D4) that names ${name} (council D4, R5)`, async () => {
       const s = setup();
       mkdirSync(dirname(s.spendFile), { recursive: true });
       writeFileSync(`${s.spendFile}.lock`, content);
