@@ -154,4 +154,19 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
   - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  81 passed (81)", pytest "60 passed in 7.66s", self-check 25 of 25 and 15 of 15, step2cad 13 of 13 and holdout 12 of 12, Playwright "33 passed (1.9m)", exit 0.
   - Docs: AGENT_ORCHESTRATION gives the step2cad rule and the cut order, and API_CONTRACTS §2 gives `compare`.
   - Direction: still the goal. A STEP-to-CAD job now completes only when the rebuilt part fills the same space as the imported one. Next: F2 watchdog (C3, C8, C17, C22).
+- 2026-11-13 · L6/T5 · F2 passed (C3, C8, C17, C22, and C9's resume line; T5 stays open) · gate green · commit loop(L6/T5) (this entry's own commit), cad-AI 5cc4832 · `cad-AI/src/services/jobs/jobEngine.ts`:
+  - C3: before a stored pid is killed, the engine checks that it is the job's worker: either the engine spawned it, or the process's command line names `jobWorker` and the job id (PowerShell `Get-CimInstance` on Windows, `ps` elsewhere). The check runs once per job, off the watchdog's path. A pid that now runs another program is never killed, and its job is FAILED `worker_crashed`.
+  - C8: a job not started within 60 s (`startMs`) is FAILED.
+  - C22: worker stdout and stderr go to `data/jobs/<id>/worker.log`, and a gone worker's error ends with what it printed.
+  - C17: off Windows a worker leads its own process group, and stop kills the group. Not tested: this machine runs Windows only.
+  - Failing checks first, in `cad-AI/src/services/jobs/jobEngine.test.ts`, with a new `crash` fixture:
+    - RUNNING row with a foreign pid, 1 h old: "expected 'timeout' to be 'worker_crashed'". The engine would have killed the other program.
+    - The same row PENDING: still PENDING after 20 s.
+    - A crashing worker: "expected 'the worker process is gone' to contain 'fixture crash: out of memory'".
+  - My first try matched job id `'j'` inside "nodejs" and killed the other program. The check now also requires `jobWorker` in the command line, and the test ids are UUIDs.
+  - A new failure mode came up under parallel load. The T1 states test read "COMPLETED" before its event existed: `move()` updated, then inserted. The two statements now commit in one transaction.
+  - Evidence: `npx vitest run src/services/jobs` "Tests  14 passed (14)", twice in a row.
+  - Docs: the AGENT_ORCHESTRATION Job engine row now describes the identity check, the 60 s start limit, worker.log and the process group. It also drops the "resumed" claim, which is C9's first item.
+  - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  84 passed (84)", pytest "60 passed in 7.60s", self-check 25 of 25 and 15 of 15, step2cad 13 of 13 and holdout 12 of 12, Playwright "33 passed (1.9m)", exit 0.
+  - Direction: still the goal. The engine no longer kills what it cannot prove is its own. Next: F3 verified artifact (C6, C10, C11, C16, C20).
 - 2026-11-13 · L6/T5 · human decision: the tick budget may be raised "if necessary". The loop raises it only when the ticks left cannot cover the planned fixes, council round 2 and its fixes. It adds 5 ticks at most, follows L5's precedent, and edits the L6 line in `docs/LOOP_GRAPH.md` with the date and reason. A raise beyond +5, or any raise of the $25 spend cap, is still escalated.
