@@ -80,6 +80,10 @@ export function modelClient(o: ClientOptions): Complete {
     return turn(o.spendFile, signal, async () => {
       const before = spent(o.spendFile);
       if (before.usd >= o.capUsd) throw new ModelError(`the $${o.capUsd} eval cap is reached ($${before.usd.toFixed(4)} spent)`);
+      // Counted before it is sent, at an upper bound (a token covers at least one byte), so a call cut off after the provider
+      // billed it is never missed; a usage answer then replaces the bound with the real cost (council R4).
+      const bound = Buffer.byteLength(JSON.stringify(body)) * PRICE.miss + maxTokens * PRICE.out;
+      writeFileSync(o.spendFile, JSON.stringify({ usd: before.usd + bound, calls: before.calls + 1 }) + '\n');
       const res = await call(body, signal);
       if (res?.usage) writeFileSync(o.spendFile, JSON.stringify({ usd: before.usd + cost(res.usage), calls: before.calls + 1 }) + '\n');
       const out = parse(res);

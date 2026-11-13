@@ -118,6 +118,20 @@ describe('model client', () => {
     }
   });
 
+  // Council R4: a call cut off after it was sent may already be billed, so it is counted before it is sent, at an upper bound.
+  it('counts a call that is cancelled after it was sent', async () => {
+    const s = setup();
+    const hang = ((_u: string, init: any) => new Promise((_r, reject) => init.signal.addEventListener('abort', () => reject(new Error('aborted'))))) as typeof globalThis.fetch;
+    const stop = new AbortController();
+    const call = modelClient({ mode: 'live', recordings: join(dirname(s.spendFile), 'rec'), spendFile: s.spendFile, capUsd: 3, key: 'k', fetch: hang })({ ...msg, signal: stop.signal });
+    await sleep(100);
+    stop.abort();
+    await expect(call).rejects.toThrow(/cancelled/);
+    const after = JSON.parse(readFileSync(s.spendFile, 'utf8'));
+    expect(after.calls).toBe(1);
+    expect(after.usd).toBeGreaterThanOrEqual(800 * 1.2e-6);
+  });
+
   it('fails a reply with no text and no tool call instead of returning an empty answer, and still counts its spend', async () => {
     const s = setup([200], { choices: [{ message: { content: null, reasoning_content: 'x'.repeat(900) }, finish_reason: 'length' }], usage });
     await expect(s.client('record')(msg)).rejects.toThrow(/no text and no tool call.*reasoning/);

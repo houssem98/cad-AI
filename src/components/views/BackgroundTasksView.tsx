@@ -29,12 +29,14 @@ export const BackgroundTasksView: React.FC = () => {
   const [request, setRequest] = useState('');
   const [key, setKey] = useState(() => crypto.randomUUID()); // a repeated click on one request submits one job
 
-  const reading = useRef(false); // one read at a time, so a slow server cannot pile up reads or answer them out of order (council D21)
-  const load = async () => {
-    if (reading.current) return;
+  // One read at a time, so a slow server cannot pile up reads (council D21). A refresh asked for after an action while a read is
+  // in flight runs once that read lands, and a read gives up after 10 s, so the list can neither show the pre-action state nor freeze (R3).
+  const reading = useRef(false), again = useRef(false);
+  const load = async (afterAction = false): Promise<void> => {
+    if (reading.current) { again.current ||= afterAction; return; }
     reading.current = true;
     try {
-      const r = await fetch('/api/jobs');
+      const r = await fetch('/api/jobs', { signal: AbortSignal.timeout(10_000) });
       if (!r.ok) throw new Error(await problem(r));
       setJobs(await r.json());
       setLoadError(null);
@@ -42,6 +44,7 @@ export const BackgroundTasksView: React.FC = () => {
       setLoadError((e as Error).message);
     } finally {
       reading.current = false;
+      if (again.current) { again.current = false; await load(); }
     }
   };
   useEffect(() => {
@@ -59,7 +62,7 @@ export const BackgroundTasksView: React.FC = () => {
       setActionError(`Could not reach the server: ${(e as Error).message}`); // council C23
       return false;
     } finally {
-      await load();
+      await load(true);
     }
   };
   const submit = async (e: React.FormEvent) => {

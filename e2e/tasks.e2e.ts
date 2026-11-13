@@ -108,6 +108,44 @@ test('the job list is read one request at a time while the server is slow', asyn
   expect(most).toBe(1);
 });
 
+// Council R3: a cancel answered while a list read is in flight still refreshes the list once that read lands. The page's clock
+// is frozen, so no poll tick can do the refresh instead.
+test('a cancel made during a slow list read is shown once that read lands', async ({ page }) => {
+  await page.clock.install();
+  let state = 'RUNNING', hold: (() => void) | null = null, holdNext = false;
+  const job = () => [{ id: 'stub-r3', type: 'text2cad', input: { request: 'R3 plate' }, state, result: null, error: null, createdAt: new Date().toISOString() }];
+  await page.route('**/api/jobs', async (r) => {
+    if (r.request().method() !== 'GET') return r.continue();
+    const snapshot = job();
+    if (holdNext) { holdNext = false; await new Promise<void>((x) => { hold = x; }); }
+    await r.fulfill({ json: snapshot });
+  });
+  await page.route('**/api/jobs/stub-r3/cancel', async (r) => { state = 'CANCELLED'; await r.fulfill({ status: 204 }); });
+  await openTasks(page);
+  const row = page.getByTestId('job').filter({ hasText: 'R3 plate' });
+  await expect(row.getByRole('button', { name: 'Cancel' })).toBeVisible();
+  holdNext = true;
+  await page.clock.pauseAt(Date.now() + 5_000); // fires one poll tick, whose read is held, then no tick fires again
+  await expect.poll(() => hold !== null).toBe(true);
+  await row.getByRole('button', { name: 'Cancel' }).click();
+  hold!();
+  await expect(row.getByTestId('job-state')).toHaveText('CANCELLED');
+  await expect(row.getByRole('button', { name: 'Cancel' })).toHaveCount(0);
+});
+
+// Council R3: a list read that never answers must not freeze the list.
+test('a list read that never answers is given up, and the list loads on the next read', async ({ page }) => {
+  test.setTimeout(60_000);
+  let reads = 0;
+  await page.route('**/api/jobs', async (r) => {
+    if (r.request().method() !== 'GET') return r.continue();
+    if (++reads === 1) return; // never answered
+    await r.fulfill({ json: [] });
+  });
+  await openTasks(page);
+  await expect(page.getByTestId('jobs-empty')).toBeVisible({ timeout: 20_000 });
+});
+
 test('a double click submits one job, and a failed job shows its error with no cancel or download', async ({ page }) => {
   test.setTimeout(180_000);
   await openTasks(page);
