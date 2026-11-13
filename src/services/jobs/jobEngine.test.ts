@@ -1,9 +1,9 @@
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { CadStore } from '../cad/cadStore';
 import { JobEngine, openJobDb, type JobOptions } from './jobEngine';
@@ -233,5 +233,43 @@ describe('job engine (L6 T1)', { timeout: 60_000 }, () => {
   it('refuses a job type it does not know', () => {
     const e = open(join(dir(), 'jobs.db'));
     expect(() => e.submit('nope', {})).toThrow(/unknown job type/);
+  });
+
+  // Council D3: a killed process can keep a store's -shm mapped for a moment, and the next first open then fails with
+  // SQLITE_IOERR_TRUNCATE (1546). Here another process holds that mapping for 3 s, longer than SQLite's own delete retries on
+  // close (about 1.4 s), so the -shm stays; both stores still open.
+  for (const [name, openStore] of [['jobs.db', openJobDb], ['cad.db', (p: string) => new CadStore(p)]] as const) {
+    it(`opens ${name} while a dead process's -shm mapping is still held (council D3)`, async () => {
+      const db = join(dir(), name);
+      const first = openStore(db);
+      const py = spawn(process.env.CAD_PYTHON ?? 'python', ['-c', 'import mmap,sys,time\nf=open(sys.argv[1],"r+b")\nm=mmap.mmap(f.fileno(),0)\nprint("ready",flush=True)\ntime.sleep(3)', `${db}-shm`], { stdio: ['ignore', 'pipe', 'inherit'] });
+      await new Promise((r) => py.stdout!.once('data', r));
+      first.close();
+      openStore(db).close();
+      await new Promise((r) => py.once('exit', r));
+    });
+  }
+
+  // Council D7: a store error inside the watchdog's timer is logged, and the server process keeps running.
+  it('keeps the process alive when the store fails inside the watchdog (council D7)', () => {
+    const db = join(dir(), 'jobs.db');
+    const engine = JSON.stringify(pathToFileURL(fileURLToPath(new URL('./jobEngine.ts', import.meta.url))).href);
+    const script = `const { JobEngine, openJobDb } = await import(${engine});
+      const e = JobEngine.open({ dbPath: ${JSON.stringify(db)}, handlers: '', types: [], watchdogMs: 100 });
+      const raw = openJobDb(${JSON.stringify(db)}); raw.exec('DROP TABLE jobs'); raw.close();
+      setTimeout(() => { e.close(); process.exit(0); }, 1_000);`;
+    const r = spawnSync(process.execPath, ['--import', 'tsx', '--input-type=module', '-e', script], { cwd: fileURLToPath(new URL('../../../', import.meta.url)), encoding: 'utf8' });
+    expect(r.stderr).toContain('job watchdog');
+    expect(r.status, r.stderr).toBe(0);
+  });
+
+  it('adds a job and its CREATED event together, or neither (council D18)', () => {
+    const db = join(dir(), 'jobs.db');
+    const e = open(db, { watchdogMs: 1e9 });
+    const raw = openJobDb(db);
+    raw.exec("CREATE TRIGGER no_events BEFORE INSERT ON job_events BEGIN SELECT RAISE(ABORT, 'event store down'); END");
+    raw.close();
+    expect(() => e.submit('quick', {})).toThrow(/event store down/);
+    expect(e.list()).toEqual([]);
   });
 });

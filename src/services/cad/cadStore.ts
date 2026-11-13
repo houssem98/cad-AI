@@ -16,6 +16,22 @@ CREATE TABLE IF NOT EXISTS artifacts (
   id TEXT PRIMARY KEY, kind TEXT NOT NULL, path TEXT NOT NULL, sha256 TEXT NOT NULL, bytes INTEGER NOT NULL, created_at TEXT NOT NULL);
 `;
 
+// A process killed with a store open can leave its -shm mapped for a few seconds, and the next first open then fails with an
+// I/O error (SQLITE_IOERR_TRUNCATE, 1546). Such an open is retried for up to 5 s (L6 council D3).
+export function openSqlite(path: string, init: string) {
+  for (const end = Date.now() + 5_000; ;) {
+    const db = new DatabaseSync(path);
+    try {
+      db.exec(init);
+      return db;
+    } catch (e) {
+      db.close();
+      if (((e as { errcode?: number }).errcode! & 0xff) !== 10 || Date.now() > end) throw e;
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100);
+    }
+  }
+}
+
 export interface Artifact { id: string; kind: string; path: string; sha256: string; bytes: number }
 
 export interface OpRow { rowId: string; opId: string; docId: string }
@@ -29,8 +45,7 @@ export class CadStore {
   private db: DatabaseSync;
 
   constructor(path: string) {
-    this.db = new DatabaseSync(path);
-    this.db.exec('PRAGMA journal_mode = WAL;' + SCHEMA);
+    this.db = openSqlite(path, 'PRAGMA journal_mode = WAL;' + SCHEMA);
   }
 
   document(id: string): Doc | undefined {

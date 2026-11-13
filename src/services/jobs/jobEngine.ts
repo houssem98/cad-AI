@@ -4,7 +4,7 @@ import { closeSync, existsSync, mkdirSync, openSync, readFileSync } from 'node:f
 import { dirname, join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
-import { CadStore } from '../cad/cadStore';
+import { CadStore, openSqlite } from '../cad/cadStore';
 
 // L6 T1, docs/cad-agent/architecture/AGENT_ORCHESTRATION.md "Job engine": durable jobs in SQLite, each run by its own worker
 // process that heartbeats every 2 s. A watchdog, at start and every 5 s, fails a job whose worker is gone, silent for 10 s or
@@ -36,9 +36,7 @@ CREATE TABLE IF NOT EXISTS job_events (id INTEGER PRIMARY KEY AUTOINCREMENT, job
 
 export const iso = () => new Date().toISOString();
 export function openJobDb(path: string) {
-  const db = new DatabaseSync(path);
-  db.exec(`PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;${SCHEMA}`);
-  return db;
+  return openSqlite(path, `PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;${SCHEMA}`);
 }
 
 // A state change happens only from the given states and is logged; that guard keeps a cancelled or failed job from being overwritten.
@@ -107,9 +105,14 @@ export class JobEngine {
 
   static open(o: JobOptions) {
     const e = new JobEngine(openJobDb(o.dbPath), o);
-    e.watchdog();
-    e.timer = setInterval(() => e.watchdog(), o.watchdogMs ?? 5_000);
+    e.tick();
+    e.timer = setInterval(() => e.tick(), o.watchdogMs ?? 5_000);
     return e;
+  }
+
+  // A store error in one pass is logged and the next pass tries again; it must not take the server down (council D7).
+  private tick() {
+    try { this.watchdog(); } catch (err) { console.error('job watchdog', err); }
   }
 
   submit(type: string, input: unknown, key?: string): Job {
@@ -126,10 +129,19 @@ export class JobEngine {
     if (old) return old;
     const max = this.o.maxWorkers ?? 2, live = this.list().filter((j) => LIVE.includes(j.state)).length;
     if (live >= max) throw new JobConflict(`${max} job${max === 1 ? ' is' : 's are'} already running; submit again when one finishes`);
-    const added = this.db.prepare('INSERT INTO jobs (id, type, input_json, idem_key, state, created_at) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(idem_key) DO NOTHING')
-      .run(id, type, json, key ?? null, 'CREATED', iso());
+    // The job and its CREATED event commit together, as in move() (council D18).
+    this.db.exec('BEGIN IMMEDIATE');
+    let added;
+    try {
+      added = this.db.prepare('INSERT INTO jobs (id, type, input_json, idem_key, state, created_at) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(idem_key) DO NOTHING')
+        .run(id, type, json, key ?? null, 'CREATED', iso());
+      if (added.changes) this.db.prepare('INSERT INTO job_events (job_id, state, at, data_json) VALUES (?, ?, ?, NULL)').run(id, 'CREATED', iso());
+      this.db.exec('COMMIT');
+    } catch (e) {
+      this.db.exec('ROLLBACK');
+      throw e;
+    }
     if (!added.changes) return repeat()!;
-    this.db.prepare('INSERT INTO job_events (job_id, state, at, data_json) VALUES (?, ?, ?, NULL)').run(id, 'CREATED', iso());
     mkdirSync(this.dir(id), { recursive: true });
     const log = openSync(join(this.dir(id), 'worker.log'), 'a'); // what a crashing worker prints is kept (council C22)
     const child = spawn(process.execPath, ['--import', 'tsx', WORKER, this.o.dbPath, id, this.o.handlers],
@@ -189,7 +201,7 @@ export class JobEngine {
       this.asking.delete(j.id);
       if (mine === undefined) return;
       this.ours.set(j.id, mine);
-      if (this.db.isOpen) this.watchdog();
+      if (this.db.isOpen) this.tick();
     });
   }
 
