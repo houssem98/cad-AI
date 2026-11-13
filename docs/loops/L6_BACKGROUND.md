@@ -332,3 +332,20 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
   - Evidence: `npx vitest run src/services/jobs src/services/cad` "Test Files  7 passed (7)", "Tests  71 passed (71)".
   - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  102 passed (102)", pytest "60 passed in 7.34s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 13 of 13 cases pass (11 to rebuild, 2 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "36 passed (2.0m)", exit 0.
   - Direction: still the goal. The F5 flake now has a cause and a fix, and a storage fault no longer takes the server down. Next: G3 spend lock (D4).
+- 2026-11-13 · L6/T5 · started G3 (D4)
+- 2026-11-13 · L6/T5 · G3 passed (D4; T5 stays open) · gate green · commit loop(L6/T5) (this entry's own commit), cad-AI c24b080 · `cad-AI/src/services/model/modelClient.ts`:
+  - The spend turn is now an exclusive SQLite lock on `spend.json.lock.db` beside the spend file (`cad-AI/src/services/model/modelClient.ts#lock.exec('BEGIN EXCLUSIVE')`), in place of a file holding the holder's pid.
+    - The system releases that lock when its holder exits or is killed. So a reused pid or an empty lock file can no longer block a call, and there is no takeover step for two waiters to race through.
+    - A caller waiting for its turn stops with "cancelled by the user" when its request's `signal` aborts.
+    - No deadline was added. A holder's call is bounded by its own timeouts (60 s per attempt, at most 3 attempts, waits capped at 30 s), and with the lock released on exit a wait can no longer outlast its holder.
+    - `*.lock.db` is in cad-AI's .gitignore, because the lock file stays on disk (0 bytes).
+  - Scratch check before the change: a second connection gets errcode 5 while the first holds `BEGIN EXCLUSIVE`, and the lock was free 1 ms after its holding process was killed.
+  - Failing checks first, in `cad-AI/src/services/model/modelClient.test.ts`, on cad-AI 482d8e0:
+    - A lock file left behind naming a live program that is not a holder (the test runner's own pid), and an empty one: "expected 'still waiting' to be 'called'" for both, after 3 s.
+    - Cancel while waiting behind a holder: "promise resolved "'still waiting'" instead of rejecting".
+    - A fourth test, a holder process killed mid-call frees the turn at once, passed on the old code through its takeover and is kept as the guard for the new lock.
+  - Not reproduced as a failing test: two takeovers both passing the cap. It needs two processes interleaving between the old code's read and remove; the new lock has no takeover step.
+  - Evidence: `npx vitest run src/services/model src/services/agent` "Test Files  5 passed (5)", "Tests  33 passed (33)".
+  - Docs: API_CONTRACTS §4 describes the SQLite lock and the cancel. Its "$10 eval cap" is D22, left for G5.
+  - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  106 passed (106)", pytest "60 passed in 7.39s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 13 of 13 cases pass (11 to rebuild, 2 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "36 passed (2.0m)", exit 0.
+  - Direction: still the goal. Spend is still counted call by call, and a dead caller can no longer stop the next one. Next: G4 geometry and eval (D5, D8, D15, D16, D19, D23).

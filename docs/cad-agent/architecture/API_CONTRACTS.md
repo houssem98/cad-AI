@@ -56,6 +56,6 @@ Every response error body is `{ "error": { "code", "message", "details" } }` wit
 
 ## 4. Model client
 
-One module, one function: `complete({ messages, tools, temperature }) → { text, toolCalls, usage }`. Implementation: DeepSeek's OpenAI-compatible chat completions endpoint over fetch. Usage tokens are summed per loop against the $10 eval cap; the client refuses calls once the cap is reached. Live calls from every process that shares a spend file take turns on a lock file beside it, so parallel job workers cannot all pass the cap check at once (L6 council C18). Tests run on recorded responses, never live, except the L5 holdout run.
+One module, one function: `complete({ messages, tools, temperature }) → { text, toolCalls, usage }`. Implementation: DeepSeek's OpenAI-compatible chat completions endpoint over fetch. Usage tokens are summed per loop against the $10 eval cap; the client refuses calls once the cap is reached. Live calls from every process that shares a spend file take turns on an exclusive SQLite lock beside it (`spend.json.lock.db`), so parallel job workers cannot all pass the cap check at once (L6 council C18). The system releases that lock when its holder exits or is killed, so no turn outlives its holder, and a caller waiting for its turn stops when its request is cancelled (D4). Tests run on recorded responses, never live, except the L5 holdout run.
 
 **Errors.** `model_error` with the HTTP status; a timeout of 60 s; no retry on 4xx, at most two retries on 5xx.
