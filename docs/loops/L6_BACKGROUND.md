@@ -422,3 +422,39 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
   - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  111 passed (111)", pytest "60 passed in 7.37s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 16 of 16 cases pass (13 to rebuild, 3 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "38 passed (2.0m)", exit 0.
   - Direction: still the goal. Every round-2 item has a failing test that now passes, or a corrected row; none was rejected. Next: T5 council round 3, the last the protocol allows.
 - 2026-11-13 · L6/T5 · started council round 3, the last (members Opus 5.5 at high effort, A attacker and B auditor; chairman Opus 5.5 at xhigh). Scope: L6 as of cad-AI a1c1931 and root 97d2920, the fixes since round 2 (cad-AI 4b44791..a1c1931, including the human-directed UI change 8bf466c), and whether each of D1 to D24 is closed.
+- 2026-11-13 · L6/T5 · council round 3 failed · gate green (unchanged since G6) · commit loop(L6/T5) (this entry's own commit, Journal only) · Members were read-only, made no live model calls and had no holdout access. A reported 4 items; B reported 9, with its D1 to D24 verdicts (23 closed, D21 partly open). The chairman merged them into 11 items and confirmed all 11. He reproduced R1 and R2 himself in a scratch folder he then deleted. Severity is the chairman's.
+  - **High**
+    - R1 (A+B): in dev mode, Vite's live-update WebSocket listens on every interface, on port 24678. `cad-AI/server.ts` gives Vite `middlewareMode` and no `ws`, and turning HMR off does not close it.
+      - A raw upgrade with no Origin, to both of this machine's LAN addresses, was answered "101 Switching Protocols … {"type":"connected"}", with HMR on and with `DISABLE_HMR=true`.
+      - A LAN peer receives error broadcasts and, for a `vite:invoke`, a stack trace with the install path. It cannot read files: `fetchModule` answered "disabled in this environment".
+      - This makes false the D1 decision's "No port is exposed to the LAN", G1's "no route and no file Vite serves … is reachable from another machine", and API_CONTRACTS' matching line. Files and routes stay local. `cad-AI/e2e/local-only.e2e.ts` probes only the main port.
+      - Caveat: Windows Firewall may block a real remote peer.
+  - **Medium**
+    - R2 (A): when a job's close-out meets a write lock on its `cad.db`, the error is logged and the close-out is dropped for good. The operation stays `running` with no record ("database is locked … errcode: 5", then "record: none" after the lock is gone).
+      - `CadStore` sets no busy_timeout, and `openSqlite` retries only I/O errors.
+      - The real window is the cancel and timeout path, where `stop()` is followed at once by the close-out.
+      - Reopens C5, and D3's scope.
+  - **Low**
+    - R3 (A+B): the D21 guard skips the refresh after a cancel or submit, so the list can show the job as it was before the action. A list read has no timeout, so one that hangs freezes the list silently. The D21 fix introduced this. Partly reopens D21.
+    - R4 (A): spend is written only after an answer arrives, so a call cut off after the provider billed it is never counted. Each call is small, but nothing stops the drift past the cap. This contradicts the client's own "a billed call must always be counted".
+    - R5 (B): the two stale-lock D4 tests write `spend.json.lock`, which the new lock never opens. They still guard against a return to the old lock file.
+    - R6 (B): `cad-AI/src/services/jobs/jobEngine.ts`'s header says "no job stays RUNNING", but after D6 a job whose identity check keeps failing does.
+    - R7 (B): off Windows, the D2 fix means a crashed worker's kernel is no longer killed through its process group. It exits when its current command ends. Never run here (D10).
+    - R8 (B): G6's closing line overstated things. D9, D15 and D24 passed on their first run (test gaps), and D4's double takeover was never reproduced.
+    - R9 (B): text edited and then restored gets a new idempotency key, so resubmitting it after a lost answer makes a second job.
+    - R10 (B): DATABASE_DESIGN's jobs row names `idempotency_key` and `worker_pid` and omits `job_events`. Its artifacts row lists `expires_at`, which the code does not have.
+    - R11 (B): the new 1e-3 mm3 cap has no fixture with kernel noise near it, because every rebuild measures 0. An observation only.
+  - Refuted sub-claims (chairman):
+    - B's "Host and token checks" protect the socket: a non-browser client passes both, so R1 is High, not Low.
+    - A's "reopens D1/C4" in full: only the open port reopens; files and routes do not.
+    - B's "killing the group would be safe": once the worker and kernel are both gone, the group id can be reused, which is D2's stranger kill.
+    - B's "can no longer fail" for R5: overstated, see above.
+  - Fix groups, one tick each, which fills the 25-tick budget:
+    - H1 process and storage: R1, R2
+    - H2 dashboard and spend: R3, R4
+    - H3 docs and limits: R5, R6, R7, R8, R9 (recorded as a limit, as the chairman advised: the cap of 2 live jobs bounds it), R10, R11
+  - Escalations named by the chairman, for the human:
+    - R1's fix stays inside the D1 decision: the socket shares the main 127.0.0.1 listener. Only if that breaks live reload would closing it (`ws: false`, no HMR in dev) need the human.
+    - There is no round 4. H1 to H3 are checked only by their own tests and the gate, and whether L6 closes on that is the human's call at T6.
+  - The R5 tests stay, renamed. Deleting them would shrink the gate.
+  - Direction: still the goal. R1 and R2 are the two that matter: one open port, and one stopped operation left without its record. Next: H1.
