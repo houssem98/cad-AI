@@ -74,3 +74,52 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
   - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  81 passed (81)", pytest "58 passed in 7.14s", self-check 25 of 25 and 15 of 15, "step2cad: 12 of 12 cases pass (10 to rebuild, 2 unsupported)", Playwright "33 passed (1.9m)", exit 0. The first gate run failed in graph-lint only, because a TECHNICAL_UNKNOWNS citation quoted the removed demo import. The row was rewritten to the current state; no check was changed.
   - Limits: the dashboard submits only `text2cad` (a `step2cad` job needs a path on the server, and there is no upload yet). The workspace's tasks panel still shows its empty state.
   - Direction: still the goal; the dashboard only offers a download that the kernel verified. Next: T5 Independent check (council).
+- 2026-11-13 · L6/T5 · started T5 (council: maker Opus 5.5; members Opus 5.5 at high effort, A attacker and B auditor; chairman Opus 5.5 at xhigh)
+- 2026-11-13 · L6/T5 · failed · gate green (unchanged since T4) · commit loop(L6/T5) (this entry's own commit, Journal only) · Council round 1, per the protocol. Members were read-only, made no live model calls and had no holdout access. A, the attacker, reported 11 numbered items plus 8 noticed; B, the auditor, reported 13 plus 12. The chairman merged them into 28 items and confirmed all 28. He re-ran A's pin-in-pocket plan on the kernel and mirrored `l_bracket` himself. Severity is the chairman's.
+  - **High**
+    - C1 (A+B): a step2cad job can reach COMPLETED and offer the STEP of the wrong part. `sameSolid` compares only volume and bounding box. Cuts run after every extrude, so a 2 × 2 × 5 mm pin in a pocket is erased: source 164020 mm3, rebuilt 164000 mm3, 1.22e-4 apart, same box. The T3 Journal said this case "is rebuilt wrong and ends FAILED"; that is false below 0.1 % of the volume. A `plate_holes` hole moved 5 mm passes too.
+    - C2 (A+B): the eval grader copies the same check. Its planted faults never move or mirror a feature. `l_bracket` mirrored about x = 30 passes at 31961.416 mm3, so "12 of 12" does not show the rebuilds are exact.
+    - C3 (A+B): the watchdog and cancel run `taskkill /T /F` on a stored pid without checking that it is still the job's worker. The timeout branch runs before the liveness check. After a reboot or a long outage, this can kill an unrelated process tree.
+    - C4 (A+B): GET /api/jobs, GET /api/jobs/:id and GET /api/jobs/:id/step are not local-only, and the server listens on 0.0.0.0. Another machine on the LAN, or a page using DNS rebinding, can list prompts and server paths and download STEPs. No test checks that job submit or cancel refuses a remote caller.
+  - **Medium**
+    - C5 (A+B): a cancelled, timed-out or killed job leaves its running operation unfinished in `data/jobs/<id>/cad.db`. That contradicts AGENT_ORCHESTRATION's "the record says cancelled".
+    - C6 (A+B): the engine accepts COMPLETED with no artifact, and its `quick` fixture test requires it.
+    - C7 (A+B): no test shows that cancel or timeout stops a running job's kernel. The e2e cancel passes even when `stop()` does nothing, because a worker that is no longer PENDING exits on its own.
+    - C8 (A+B): a PENDING job whose pid is alive is never failed.
+    - C9 (A+B): AGENT_ORCHESTRATION promises four things the job engine does not have: resume, `approval_denied`, SSE progress and an expiry column.
+    - C10 (B): T2's "artifact fails verification ends FAILED" is tested only on the pure function. The real failing job fails before it exports.
+    - C11 (B): `result.step` does not name the export record that verified it, and step2cad's records leave out the import.
+    - C12 (B): T1 keeps jobs in their own `jobs.db`, not in the L3 store its task line names, and the Journal did not say so.
+    - C13 (B): the roadmap's "Invalid input files" and "Artifact recovery" integration tests are missing, and step2cad has never run through the engine and worker.
+  - **Low**
+    - C14: an idempotency key is not tied to the type or the input.
+    - C15: cancelling a finished job answers 204.
+    - C16: the download does not re-check sha256.
+    - C17: off Windows, `stop()` kills the worker but not its process tree.
+    - C18: parallel live jobs race on `spend.json`.
+    - C19: step2cad has no holdout.
+    - C20: VERIFYING is only a label; the check has already run.
+    - C21: there is no cap on concurrent workers.
+    - C22: worker stderr is discarded.
+    - C23: the dashboard's `post()` does not catch a network rejection.
+    - C24: after a load error, a stale list keeps its Cancel buttons.
+    - C25: the API_CONTRACTS step row says 409 where the code answers 404.
+    - C26: the executor now accepts a sketch `offset` from a model; before T3 it refused it.
+    - C27: `test_step2cad` does not pin "front is -Y".
+    - C28: T4's loading, error and failed states and its double-click claim have no test.
+  - Refuted sub-claims (chairman):
+    - A's mutation, negating the right-plane offset, changes nothing, because no right-plane operation carries an offset. C2 stands on the mirror.
+    - A's 32640 mm3 is the bracket without holes.
+    - A's "a no-op `stop()` passes every job test" is wrong: `jobEngine.test.ts` waits only 5 s for the `slow` and `hang` workers to die. Only the e2e misses it.
+    - B's proposed `hole_list[0].point` check would not pin C27, since it is the axis foot `[0.0, 0.0, 10.0]` whichever side is cut.
+  - The maker reproduces each item before acting, as a failing test or a corrected row, or rejects it with a reason. Grouped fix ticks:
+    - F1 geometry: C1, C2, C27, C19
+    - F2 watchdog: C3, C8, C17, C22
+    - F3 verified artifact: C6, C10, C11, C16, C20
+    - F4 cancel records: C5, C7
+    - F5 routes: C4, C13, C14, C15, C25
+    - F6 docs: C9, C12
+    - F7 dashboard: C23, C24, C28
+    - F8 rest: C18, C21, C26
+    - Then council round 2.
+  - Direction: still the goal. C1 is the one that matters, because a job offered a download that is not the imported part. Next: T5 fix tick F1 (geometry).
