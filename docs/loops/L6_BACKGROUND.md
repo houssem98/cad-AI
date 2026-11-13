@@ -406,3 +406,18 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
   - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  110 passed (110)", pytest "60 passed in 7.62s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 16 of 16 cases pass (13 to rebuild, 3 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "36 passed (2.7m)" including the palette and accessibility tests, exit 0.
   - Not run: Hallmark's browser checks (contrast, focus, phone layout), which need `puppeteer-core`, a package not installed.
   - Direction: the human's call. No geometry or verification task was waiting on it except G6, which follows.
+- 2026-11-13 · L6/T5 · started G6 (D20, D21)
+- 2026-11-13 · L6/T5 · G6 passed (D20, D21; all 24 round-2 items now answered; T5 stays open for council round 3) · gate green · commit loop(L6/T5) (this entry's own commit), cad-AI a1c1931:
+  - D20:
+    - The engine compares a repeated key's input with its keys sorted, at every depth (`cad-AI/src/services/jobs/jobEngine.ts`), so the same input written in another key order is the same request.
+    - The dashboard makes a new idempotency key whenever the request text changes (`cad-AI/src/components/views/BackgroundTasksView.tsx`). After a lost answer, resubmitting the same text cannot make a second job, and an edited text is a new job instead of a 409.
+  - D21: the dashboard keeps at most one read of the job list in flight and skips a tick while one is pending, so a slow server cannot pile up reads or answer them out of order.
+  - Failing checks first, on cad-AI 8bf466c:
+    - D20, engine, in `cad-AI/src/services/jobs/jobEngine.test.ts`: "Error: the idempotency key was used for another request".
+    - D20, dashboard, in `cad-AI/e2e/tasks.e2e.ts`: the first POST reaches the server, and its answer is aborted. Then: "Expected: 1 Received: 0" rows with the edited text.
+    - D21, the same file, with the list read held 2.5 s: "Expected: 1 Received: 3" reads at once.
+  - Evidence: `npx vitest run src/services/jobs` "Tests  35 passed (35)"; `npx playwright test e2e/tasks.e2e.ts` "5 passed (39.3s)".
+  - Docs: AGENT_ORCHESTRATION's idempotency and progress rows give D20 and D21.
+  - Disk: before this gate, C: had 0.28 GB free. The tests' own temporary folders (2773 of them, 158 MB, from earlier gate runs; they are never cleaned up) were deleted, which left 0.76 GB. The rest of the disk is the human's to free.
+  - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  111 passed (111)", pytest "60 passed in 7.37s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 16 of 16 cases pass (13 to rebuild, 3 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "38 passed (2.0m)", exit 0.
+  - Direction: still the goal. Every round-2 item has a failing test that now passes, or a corrected row; none was rejected. Next: T5 council round 3, the last the protocol allows.
