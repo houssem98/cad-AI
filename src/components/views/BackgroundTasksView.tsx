@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Clock, Download, XCircle } from 'lucide-react';
 
 // L6 T4: the job engine's jobs (API_CONTRACTS §3), read from the store every second. Progress is the job's stage, never an estimate.
@@ -29,7 +29,10 @@ export const BackgroundTasksView: React.FC = () => {
   const [request, setRequest] = useState('');
   const [key, setKey] = useState(() => crypto.randomUUID()); // a repeated click on one request submits one job
 
+  const reading = useRef(false); // one read at a time, so a slow server cannot pile up reads or answer them out of order (council D21)
   const load = async () => {
+    if (reading.current) return;
+    reading.current = true;
     try {
       const r = await fetch('/api/jobs');
       if (!r.ok) throw new Error(await problem(r));
@@ -37,6 +40,8 @@ export const BackgroundTasksView: React.FC = () => {
       setLoadError(null);
     } catch (e) {
       setLoadError((e as Error).message);
+    } finally {
+      reading.current = false;
     }
   };
   useEffect(() => {
@@ -80,7 +85,7 @@ export const BackgroundTasksView: React.FC = () => {
       <form onSubmit={submit} className="flex gap-2">
         <input
           value={request}
-          onChange={(e) => setRequest(e.target.value)}
+          onChange={(e) => { setRequest(e.target.value); setKey(crypto.randomUUID()); }} // edited text is a new request (council D20)
           aria-label="Text-to-CAD request"
           placeholder="Describe a part, with units…"
           className="flex-1 bg-graphite-1c border border-graphite-32 rounded-lg text-neutral-100 placeholder-neutral-500 text-xs px-3 py-2 focus:outline-none focus:border-steel-500/80"

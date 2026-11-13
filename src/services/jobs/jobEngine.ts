@@ -117,7 +117,9 @@ export class JobEngine {
 
   submit(type: string, input: unknown, key?: string): Job {
     if (!this.o.types.includes(type)) throw new Error(`unknown job type ${type}`);
-    const id = randomUUID(), json = JSON.stringify(input ?? null);
+    // Keys sorted, so the same input written in another key order is the same request (council D20).
+    const id = randomUUID(), json = JSON.stringify(input ?? null, (_k, v) => (v && typeof v === 'object' && !Array.isArray(v)
+      ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) : v));
     // A key used before returns its job when the request is the same, and is refused for another one (council C14); the insert
     // itself decides, so two servers on one store cannot both run it.
     const repeat = () => {

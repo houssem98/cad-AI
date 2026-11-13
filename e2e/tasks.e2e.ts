@@ -72,6 +72,42 @@ test('the dashboard shows loading, a cancel that never reached the server, and a
   await expect(row.getByRole('button', { name: 'Cancel' })).toHaveCount(0);
 });
 
+// Council D20: the server took the job but its answer was lost; the person then edits the request. That is a new request, so it
+// must become a new job, not a conflict on the old idempotency key.
+test('after a submit whose answer was lost, an edited request becomes its own job', async ({ page }) => {
+  let first = true;
+  await page.route('**/api/jobs', async (r) => {
+    if (r.request().method() !== 'POST' || !first) return r.continue();
+    first = false;
+    await r.fetch();
+    await r.abort('failed');
+  });
+  await openTasks(page);
+  const box = page.getByRole('textbox', { name: 'Text-to-CAD request' });
+  await box.fill('D20 lost answer, first text');
+  await page.getByRole('button', { name: 'Run in background' }).click();
+  await expect(page.getByRole('alert')).toContainText('Could not reach the server');
+  await box.fill('D20 lost answer, edited text');
+  await page.getByRole('button', { name: 'Run in background' }).click();
+  await expect(page.getByTestId('job').filter({ hasText: 'D20 lost answer, edited text' })).toHaveCount(1);
+  await expect(page.getByRole('alert')).toHaveCount(0);
+});
+
+// Council D21: a slow server must not pile up overlapping reads of the job list.
+test('the job list is read one request at a time while the server is slow', async ({ page }) => {
+  let open = 0, most = 0;
+  await page.route('**/api/jobs', async (r) => {
+    if (r.request().method() !== 'GET') return r.continue();
+    most = Math.max(most, ++open);
+    await new Promise((x) => setTimeout(x, 2_500));
+    open--;
+    await r.fulfill({ json: [] });
+  });
+  await openTasks(page);
+  await page.waitForTimeout(6_000);
+  expect(most).toBe(1);
+});
+
 test('a double click submits one job, and a failed job shows its error with no cancel or download', async ({ page }) => {
   test.setTimeout(180_000);
   await openTasks(page);

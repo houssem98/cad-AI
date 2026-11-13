@@ -259,6 +259,13 @@ describe('job engine (L6 T1)', { timeout: 60_000 }, () => {
     expect(e.submit('quick', {}).state).toBe('PENDING');
   });
 
+  it('treats the same input with its keys in another order as the same request (council D20)', () => {
+    const e = open(join(dir(), 'jobs.db'), { watchdogMs: 1e9 });
+    const a = e.submit('quick', { a: 1, b: { c: 2, d: 3 } }, 'k');
+    expect(e.submit('quick', { b: { d: 3, c: 2 }, a: 1 }, 'k').id).toBe(a.id);
+    expect(() => e.submit('quick', { a: 1, b: { c: 2, d: 4 } }, 'k')).toThrow(/another request/);
+  });
+
   it('refuses a job type it does not know', () => {
     const e = open(join(dir(), 'jobs.db'));
     expect(() => e.submit('nope', {})).toThrow(/unknown job type/);
