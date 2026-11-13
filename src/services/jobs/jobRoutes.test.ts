@@ -13,8 +13,8 @@ const FIXTURES = fileURLToPath(new URL('./jobs.fixtures.ts', import.meta.url));
 let engine: JobEngine, server: Server;
 afterEach(() => { server?.close(); engine?.close(true); });
 
-async function serve(db = join(mkdtempSync(join(tmpdir(), 'jobroutes-')), 'jobs.db')) {
-  engine = JobEngine.open({ dbPath: db, types: ['slow', 'quick'], handlers: FIXTURES });
+async function serve(db = join(mkdtempSync(join(tmpdir(), 'jobroutes-')), 'jobs.db'), o: { maxWorkers?: number } = {}) {
+  engine = JobEngine.open({ dbPath: db, types: ['slow', 'quick'], handlers: FIXTURES, ...o });
   const app = express();
   app.use(express.json());
   app.use(jobRoutes(engine));
@@ -52,6 +52,7 @@ describe('job routes (API_CONTRACTS §3)', { timeout: 60_000 }, () => {
     expect((await post('/api/jobs', { type: 'nope', input: {} })).status).toBe(400);
     expect((await (await fetch(`${base}/api/jobs`)).json()).map((j: any) => j.id)).toEqual([id]);
     expect((await post(`/api/jobs/${id}/cancel`, {})).status).toBe(204);
+    expect((await post(`/api/jobs/${id}/cancel`, {})).status).toBe(409); // council D13: the second cancel changes nothing
     const job = await (await fetch(`${base}/api/jobs/${id}`)).json();
     expect(job.state).toBe('CANCELLED');
     expect(job.events.map((e: any) => e.state)).toContain('CANCELLED');
@@ -87,6 +88,14 @@ describe('job routes (API_CONTRACTS §3)', { timeout: 60_000 }, () => {
     expect((await completed(base, id)).state).toBe('COMPLETED');
     expect((await post(`/api/jobs/${id}/cancel`, {})).status).toBe(409);
     expect((await (await fetch(`${base}/api/jobs/${id}`)).json()).state).toBe('COMPLETED');
+  });
+
+  it('answers 409 to a submission past the worker cap (council C21, D24)', async () => {
+    const { post } = await serve(undefined, { maxWorkers: 1 });
+    expect((await post('/api/jobs', { type: 'slow', input: {} })).status).toBe(201);
+    const refused = await post('/api/jobs', { type: 'quick', input: {} });
+    expect(refused.status).toBe(409);
+    expect((await refused.json()).error.message).toContain('1 job is already running');
   });
 
   it('serves a completed job and its STEP again after a restart (roadmap: artifact recovery)', async () => {

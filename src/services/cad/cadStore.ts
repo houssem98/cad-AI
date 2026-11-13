@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS documents (
   checkpoint TEXT, state TEXT NOT NULL DEFAULT 'ok', created_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS operations (
   row_id TEXT PRIMARY KEY, op_id TEXT NOT NULL, request_id TEXT NOT NULL, document_id TEXT NOT NULL,
-  seq INTEGER NOT NULL, envelope_json TEXT NOT NULL, status TEXT NOT NULL);
+  seq INTEGER NOT NULL, envelope_json TEXT NOT NULL, status TEXT NOT NULL, command_json TEXT);
 CREATE TABLE IF NOT EXISTS records (
   id INTEGER PRIMARY KEY AUTOINCREMENT, operation_row_id TEXT NOT NULL REFERENCES operations(row_id),
   document_id TEXT NOT NULL, revision_before INTEGER NOT NULL, revision_after INTEGER NOT NULL,
@@ -46,6 +46,8 @@ export class CadStore {
 
   constructor(path: string) {
     this.db = openSqlite(path, 'PRAGMA journal_mode = WAL;' + SCHEMA);
+    if (!this.db.prepare("SELECT 1 FROM pragma_table_info('operations') WHERE name = 'command_json'").get())
+      this.db.exec('ALTER TABLE operations ADD COLUMN command_json TEXT');
   }
 
   document(id: string): Doc | undefined {
@@ -66,8 +68,10 @@ export class CadStore {
       .run(r.rowId, r.opId, requestId, r.docId, n, JSON.stringify(envelope ?? null), 'pending');
   }
 
-  setStatus(rowId: string, status: string) {
-    this.db.prepare('UPDATE operations SET status = ? WHERE row_id = ?').run(status, rowId);
+  // The CAD command is kept from the moment it is sent, so an operation closed after its worker stopped still records it (L6 council D17).
+  setStatus(rowId: string, status: string, command?: object) {
+    if (command) this.db.prepare('UPDATE operations SET status = ?, command_json = ? WHERE row_id = ?').run(status, JSON.stringify(command), rowId);
+    else this.db.prepare('UPDATE operations SET status = ? WHERE row_id = ?').run(status, rowId);
   }
 
   addArtifact(a: Artifact) {
@@ -100,9 +104,10 @@ export class CadStore {
       AND json_extract(envelope_json, '$.type') IN (${types.map(() => '?').join(', ')})`).get(docId, ...types);
   }
 
-  unfinished(): Array<OpRow & { status: string }> {
-    return this.db.prepare(`SELECT row_id AS rowId, op_id AS opId, document_id AS docId, status FROM operations
-      WHERE status IN ('pending', 'validated', 'awaiting_approval', 'running', 'inspecting')`).all() as unknown as Array<OpRow & { status: string }>;
+  unfinished(): Array<OpRow & { status: string; command: object | null }> {
+    return (this.db.prepare(`SELECT row_id AS rowId, op_id AS opId, document_id AS docId, status, command_json FROM operations
+      WHERE status IN ('pending', 'validated', 'awaiting_approval', 'running', 'inspecting')`).all() as any[])
+      .map(({ command_json, ...r }) => ({ ...r, command: command_json ? JSON.parse(command_json) : null }));
   }
 
   // The document change, the record and the status land together or not at all.

@@ -54,7 +54,7 @@ export class Executor {
       const base = { started: new Date().toISOString(), rev, revAfter: rev };
       if (row.status === 'running' || row.status === 'inspecting') {
         const restore = await ex.look(row.docId).catch(() => null);
-        ex.finish(row, 'failed', { ...base, validation: { restore },
+        ex.finish(row, 'failed', { ...base, command: row.command, validation: { restore },
           error: { code: 'worker_crashed', message: 'the server stopped while this operation ran; the document was restored from its checkpoint' } });
       } else {
         ex.finish(row, 'cancelled', { ...base, validation: {}, error: { code: 'cancelled', message: 'the server stopped before this operation ran' } });
@@ -198,8 +198,8 @@ export class Executor {
 
       const op = { ...proposal, params, status: 'running' };
       const deadline = Date.now() + (this.opts.deadlineMs ?? defaultDeadline)(proposal.type);
-      this.store.setStatus(row.rowId, 'running');
       command = { call: calls[proposal.type], params: op.params };
+      this.store.setStatus(row.rowId, 'running', command);
       const res = await this.worker.request({ kind: 'op', operation: op }, deadline - Date.now(), ctx.signal);
       if (res.status !== 'succeeded') {
         const restore = await this.restore(row.docId);

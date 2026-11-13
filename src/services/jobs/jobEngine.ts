@@ -81,7 +81,7 @@ const closeOut = (dir: string, code: string, message: string) => {
   try {
     for (const op of store.unfinished()) {
       const now = iso(), rev = store.document(op.docId)?.revision ?? 0, status = code === 'cancelled' ? 'cancelled' : 'failed';
-      store.commit(op, status, { revisionBefore: rev, revisionAfter: rev, command: null, result: { status, result: null, started: now, ended: now },
+      store.commit(op, status, { revisionBefore: rev, revisionAfter: rev, command: op.command, result: { status, result: null, started: now, ended: now },
         validation: {}, approval: { required: false, decision: null }, error: { code, message }, artifacts: [], started: now, ended: now });
     }
   } finally {

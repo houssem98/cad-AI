@@ -43,11 +43,12 @@ export function jobRoutes(engine: JobEngine) {
     res.attachment(`${job.id}.step`).send(data);
   });
 
-  // A cancel that finds the job already finished changes nothing, and says so (council C15).
+  // A cancel that finds the job already finished, cancelled included, changes nothing, and says so (council C15, D13).
   router.post('/api/jobs/:id/cancel', (req, res) => {
+    const was = engine.get(req.params.id)?.state;
     const job = engine.cancel(req.params.id);
     if (!job) return fail(res, 404, 'precondition_failed', 'no such job');
-    if (job.state !== 'CANCELLED') return fail(res, 409, 'precondition_failed', `the job is already ${job.state}`);
+    if (was === 'CANCELLED' || job.state !== 'CANCELLED') return fail(res, 409, 'precondition_failed', `the job is already ${job.state}`);
     res.status(204).end();
   });
 

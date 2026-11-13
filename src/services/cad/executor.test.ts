@@ -95,13 +95,14 @@ describe('executor', { timeout: 30000 }, () => {
   it('restores and records an operation left running when the server stopped', async () => {
     const { ex, dir } = await start();
     ex.store.insertOperation({ rowId: 'crash-1', opId: 'e1', docId: 'doc-1' }, 'r1', EXTRUDE);
-    ex.store.setStatus('crash-1', 'running');
+    ex.store.setStatus('crash-1', 'running', { call: 'extrude', params: { depth: 10 } });
     ex.close();
     const again = await Executor.open({ dbPath: join(dir, 'cad.db'), dataDir: dir });
     opened.push(again);
     const rec = again.store.record('crash-1');
     expect(rec.status).toBe('failed');
     expect(rec.errorDetails.code).toBe('worker_crashed');
+    expect(rec.cadCommand).toEqual({ call: 'extrude', params: { depth: 10 } }); // council D17: the command sent is kept
     expect(await features(again)).toEqual(['p1', 's1']);
   });
 

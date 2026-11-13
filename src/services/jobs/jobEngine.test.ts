@@ -207,10 +207,39 @@ describe('job engine (L6 T1)', { timeout: 60_000 }, () => {
       expect(rec.status).toBe('cancelled');
       expect(rec.errorDetails.code).toBe('cancelled');
       expect(rec.targetDocument.revisionAfter).toBe(rec.targetDocument.revisionBefore);
+      expect(rec.cadCommand).toMatchObject({ call: expect.anything(), params: { name: expect.any(String) } }); // council D17
     } finally {
       s.close();
     }
   });
+
+  // Council D9: a timeout and a crash close the running operation too, as `failed` with the job's code, and a timeout stops
+  // the kernel as well as the worker.
+  for (const how of ['timeout', 'worker_crashed'] as const) {
+    it(`closes a running operation as failed with ${how}, and its kernel is gone`, async () => {
+      const d = dir();
+      const e = open(join(d, 'jobs.db'), { watchdogMs: 300, maxMs: { midop: how === 'timeout' ? 12_000 : 600_000 } });
+      const job = e.submit('midop', {});
+      const jobDir = join(d, 'jobs', job.id);
+      const unfinished = () => { const s = new CadStore(join(jobDir, 'cad.db')); try { return s.unfinished(); } finally { s.close(); } };
+      const [row] = await until(() => (existsSync(join(jobDir, 'kernel.pid')) ? unfinished() : []), (rows) => rows.some((r) => r.status === 'running'), 30_000);
+      const worker = e.get(job.id)!.pid!, kernel = Number(readFileSync(join(jobDir, 'kernel.pid'), 'utf8'));
+      if (how === 'worker_crashed') process.kill(worker);
+      const failed = await until(() => e.get(job.id)!, (j) => j.state === 'FAILED', 30_000);
+      expect(failed.error?.code).toBe(how);
+      await until(() => alive(worker) || alive(kernel), (a) => !a, 10_000);
+      await until(unfinished, (rows) => rows.length === 0, 10_000);
+      const s = new CadStore(join(jobDir, 'cad.db'));
+      try {
+        const rec = s.record(row.rowId);
+        expect(rec.status).toBe('failed');
+        expect(rec.errorDetails.code).toBe(how);
+        expect(rec.targetDocument.revisionAfter).toBe(rec.targetDocument.revisionBefore);
+      } finally {
+        s.close();
+      }
+    });
+  }
 
   it('keeps what a crashed worker printed and names it in the job error (council C22)', async () => {
     const d = dir();
