@@ -174,7 +174,8 @@ async function startServer() {
   } else {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      // The live-update socket shares this server's 127.0.0.1 listener; on its own it would open port 24678 on every interface (council R1).
+      server: { middlewareMode: true, ws: { server } },
       appType: 'spa',
     });
     app.use(vite.middlewares);

@@ -1,8 +1,8 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { CadStore } from '../cad/cadStore';
@@ -258,6 +258,42 @@ describe('job engine (L6 T1)', { timeout: 60_000 }, () => {
     e.cancel(first.id);
     expect(e.submit('quick', {}).state).toBe('PENDING');
   });
+
+  // Council R2: the close-out of a stopped job meets a write lock on its cad.db, held here by another process. It waits or
+  // tries again, and the operation still gets its record, whether the lock is brief or outlasts one wait.
+  for (const holdMs of [1_500, 6_500]) {
+    it(`closes a stopped job's operation even when its store is locked for ${holdMs} ms (council R2)`, async () => {
+      const db = join(dir(), 'jobs.db'), id = randomUUID(), jobDir = join(dirname(db), 'jobs', id), cad = join(jobDir, 'cad.db');
+      mkdirSync(jobDir, { recursive: true });
+      const s = new CadStore(cad);
+      s.insertOperation({ rowId: 'r1', opId: 'x', docId: 'part' }, 'req', { type: 'extrude' });
+      s.setStatus('r1', 'running', { call: 'extrude', params: {} });
+      s.close();
+      const raw = openJobDb(db), old = new Date(Date.now() - 60_000).toISOString();
+      raw.prepare("INSERT INTO jobs (id, type, input_json, state, pid, created_at, started_at, heartbeat_at) VALUES (?, 'slow', 'null', 'RUNNING', NULL, ?, ?, ?)").run(id, old, old, old);
+      raw.close();
+      const holder = spawn(process.execPath, ['-e', `const { DatabaseSync } = require('node:sqlite'); const d = new DatabaseSync(${JSON.stringify(cad)});
+        d.exec('BEGIN IMMEDIATE'); console.log('held'); setTimeout(() => { d.exec('ROLLBACK'); d.close(); }, ${holdMs});`], { stdio: ['ignore', 'pipe', 'inherit'] });
+      try {
+        await new Promise((r) => holder.stdout!.once('data', r));
+        const e = open(db, { watchdogMs: 500 });
+        expect(e.get(id)!.state).toBe('FAILED');
+        const unfinished = () => { const c = new CadStore(cad); try { return c.unfinished(); } finally { c.close(); } };
+        await until(unfinished, (rows) => rows.length === 0, 20_000);
+        const c = new CadStore(cad);
+        try {
+          const rec = c.record('r1');
+          expect(rec.status).toBe('failed');
+          expect(rec.errorDetails.code).toBe('worker_crashed');
+          expect(rec.cadCommand).toEqual({ call: 'extrude', params: {} });
+        } finally {
+          c.close();
+        }
+      } finally {
+        holder.kill();
+      }
+    });
+  }
 
   it('treats the same input with its keys in another order as the same request (council D20)', () => {
     const e = open(join(dir(), 'jobs.db'), { watchdogMs: 1e9 });

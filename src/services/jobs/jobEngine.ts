@@ -185,7 +185,13 @@ export class JobEngine {
 
   // Stops the job's worker when it is provably the job's, then closes the records it left open.
   private kill(j: Job, code: string, message: string) {
-    const after = () => { try { closeOut(this.dir(j.id), code, message); } catch (e) { console.error('job close-out', j.id, e); } };
+    // A close-out that fails (its store still locked past the wait) tries again each watchdog period, up to 5 times (council R2).
+    const after = (tries = 0) => {
+      try { closeOut(this.dir(j.id), code, message); } catch (e) {
+        console.error('job close-out', j.id, e);
+        if (tries < 5 && this.db.isOpen) setTimeout(() => after(tries + 1), this.o.watchdogMs ?? 5_000);
+      }
+    };
     if (this.ours.get(j.id)) { stop(j.pid); after(); }
     else if (!this.ours.has(j.id) && alive(j.pid)) runs(j.pid!, j.id).then((mine) => {
       if (mine === undefined) { if (this.db.isOpen) setTimeout(() => this.kill(j, code, message), this.o.watchdogMs ?? 5_000); return; }

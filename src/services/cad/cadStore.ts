@@ -45,7 +45,7 @@ export class CadStore {
   private db: DatabaseSync;
 
   constructor(path: string) {
-    this.db = openSqlite(path, 'PRAGMA journal_mode = WAL;' + SCHEMA);
+    this.db = openSqlite(path, 'PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;' + SCHEMA); // a write waits out another writer (L6 council R2)
     if (!this.db.prepare("SELECT 1 FROM pragma_table_info('operations') WHERE name = 'command_json'").get())
       this.db.exec('ALTER TABLE operations ADD COLUMN command_json TEXT');
   }
