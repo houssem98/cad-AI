@@ -10,6 +10,9 @@
   { "file": "t_slot_block.step", "expect": "rebuilt" },
   { "file": "flange.step", "expect": "rebuilt" },
   { "file": "pin_pocket.step", "expect": "rebuilt" },
+  { "file": "big_block_hole.step", "expect": "rebuilt" },
+  { "file": "rotated_plate.step", "expect": "rebuilt" },
   { "file": "freeform_loft.step", "expect": "unsupported" },
-  { "file": "slot_plate.step", "expect": "unsupported" }
+  { "file": "slot_plate.step", "expect": "unsupported" },
+  { "file": "tilted_block.step", "expect": "unsupported" }
 ]

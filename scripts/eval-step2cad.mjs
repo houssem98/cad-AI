@@ -2,14 +2,18 @@
 // L6 T3, council C1, C2 and C19: the STEP-to-CAD eval. Each fixture in evals/step2cad/ goes through the step2cad job handler. The
 // grader then imports the fixture and the handler's rebuilt STEP on its own kernel and compares the two (I3), never trusting the
 // handler's verdict: volume within 0.1 %, every bounding-box bound within 0.001 mm, and a symmetric difference, measured by the
-// kernel, of at most a 1e-6 mm skin over the fixture's surface; the rebuilt document must hold editable features, no import.
-// A fixture marked unsupported passes only when the handler reports `unsupported` and writes no STEP.
+// kernel, of at most a 1e-6 mm skin over the fixture's surface and never over 1e-3 mm3 (council D5); the rebuilt document must
+// hold editable features, no import. A fixture marked unsupported passes only when the handler reports `unsupported` and writes
+// no STEP.
 // Before the cases, the grader must catch planted faults: another fixture, a volume 0.2 % off, a bound 0.01 mm off, and each part
-// in faults/ (a moved hole, a mirrored bracket, a pocket without its pin), whose volume and box match its fixture's.
+// in faults/ (a moved hole, a mirrored bracket, a pocket without its pin, a large block without its small hole), whose volume and
+// box match its fixture's.
 // Exit 0 only when every case passes, at least 10 are rebuilt and at least one is unsupported.
-// Then the holdout (holdout/, written by a fresh agent and read only by this script) runs once and prints verdicts only. A false
-// pass (the handler verified a part the grader finds different, or verified a case expected unsupported) fails the eval; any
-// other miss is counted and reported, never tuned against.
+// Then holdout/, written by a fresh agent and read only by this script, runs once per gate. It is a seen regression suite, not a
+// blind holdout: its labels were revised once after a result, and each case's name is printed (council D8). A false pass (the
+// handler verified a part the grader finds different, or verified a case expected unsupported) fails the eval. Any other result
+// that is not as expected, including a case expected unsupported that ends FAILED with another code (D23), is an honest miss:
+// counted and reported, never tuned against.
 //
 //   node scripts/eval-step2cad.mjs
 import { createHash } from 'node:crypto';
@@ -25,7 +29,8 @@ await import(new URL('node_modules/tsx/dist/esm/api/index.mjs', CAD)).then((m) =
 const { Executor } = await import(new URL('src/services/cad/executor.ts', CAD));
 const { handlers } = await import(new URL('src/services/jobs/handlers.ts', CAD));
 const cases = JSON.parse(readFileSync(new URL('cases.json', DIR), 'utf8'));
-const FAULTS = [['plate_holes_moved', 'plate_holes'], ['l_bracket_mirrored', 'l_bracket'], ['pin_pocket_bare', 'pin_pocket']];
+const FAULTS = [['plate_holes_moved', 'plate_holes'], ['l_bracket_mirrored', 'l_bracket'], ['pin_pocket_bare', 'pin_pocket'],
+  ['big_block_hole_bare', 'big_block_hole']];
 const fixture = (c, base = DIR) => fileURLToPath(new URL(`fixtures/${c.file}`, base));
 const tmp = mkdtempSync(join(tmpdir(), 'eval-step2cad-'));
 const grader = await Executor.open({ dbPath: join(tmp, 'grader.db'), dataDir: tmp, workerArgs: ['--adapter', 'kernel'] });
@@ -42,7 +47,7 @@ async function measure(path) {
 }
 const close = (a, b) => Math.abs(a.volume_mm3 - b.volume_mm3) <= 1e-3 * Math.abs(b.volume_mm3)
   && ['min', 'max'].every((end) => ['x', 'y', 'z'].every((k) => Math.abs(a.bbox_mm[end][k] - b.bbox_mm[end][k]) <= 1e-3));
-const same = async (a, b) => close(a, b) && (await grader.compare(a.id, b.id)).difference_mm3 <= 1e-6 * b.area_mm2;
+const same = async (a, b) => close(a, b) && (await grader.compare(a.id, b.id)).difference_mm3 <= Math.min(1e-6 * b.area_mm2, 1e-3);
 
 let bad = 0, failed = 0;
 try {

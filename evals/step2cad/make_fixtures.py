@@ -4,7 +4,7 @@ churn. Run: python evals/step2cad/make_fixtures.py"""
 import math
 from pathlib import Path
 
-from build123d import Circle, Ellipse, Plane, Pos, RegularPolygon, Solid, SlotCenterToCenter, Vector, export_step, extrude, loft
+from build123d import Axis, Circle, Ellipse, Plane, Pos, RegularPolygon, Solid, SlotCenterToCenter, Vector, export_step, extrude, loft
 
 OUT = Path(__file__).parent / "fixtures"
 
@@ -37,9 +37,15 @@ FIXTURES = {
     "flange": z_rod(0, 0, 0, 10, 80) + z_rod(0, 0, 10, 25, 40) - z_rod(0, 0, -1, 26, 20)
               - [z_rod(30 * math.cos(a), 30 * math.sin(a), -1, 11, 8) for a in (i * math.pi / 3 for i in range(6))],
     "pin_pocket": box(0, 0, 0, 100, 100, 20) - box(20, 20, 10, 80, 80, 21) + box(49, 49, 10, 51, 51, 15),
-    # Out of scope, so each must come back unsupported: a freeform surface, and a slot whose round ends are part cylinders.
+    # Council D5: a large part with one small feature, whose surface area once made a missing hole fit the limit.
+    "big_block_hole": box(0, 0, 0, 1000, 1000, 200) - z_rod(500, 500, 197, 201, 1),
+    # Council D19: rotated about the axis it is extruded along, a plate is still a prism.
+    "rotated_plate": (box(10, 0, 0, 70, 40, 8) - z_rod(40, 20, -1, 9, 10)).rotate(Axis.Z, 30),
+    # Out of scope, so each must come back unsupported: a freeform surface, a slot whose round ends are part cylinders, and a
+    # block tilted about two axes, so no principal axis runs along its edges.
     "freeform_loft": loft([Circle(20), Plane.XY.offset(30) * Ellipse(25, 10)]),
     "slot_plate": box(0, 0, 0, 80, 40, 6) - extrude(Pos(40, 20) * SlotCenterToCenter(30, 8), 6),
+    "tilted_block": box(0, 0, 0, 40, 30, 20).rotate(Axis.X, 20).rotate(Axis.Y, 15),
 }
 
 # Council C2: parts with their fixture's volume (within 0.1 %) and bounding box that are not the fixture, so only the grader's
@@ -48,6 +54,7 @@ FAULTS = {
     "plate_holes_moved": box(-20, 7, 3, 60, 57, 11) - [z_rod(x, y, 2, 12, 6) for x, y in ((-5, 17), (50, 17), (-10, 47), (50, 47))],
     "l_bracket_mirrored": FIXTURES["l_bracket"].mirror(Plane.YZ.offset(30)),
     "pin_pocket_bare": box(0, 0, 0, 100, 100, 20) - box(20, 20, 10, 80, 80, 21),
+    "big_block_hole_bare": box(0, 0, 0, 1000, 1000, 200),
 }
 
 if __name__ == "__main__":

@@ -349,3 +349,27 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
   - Docs: API_CONTRACTS §4 describes the SQLite lock and the cancel. Its "$10 eval cap" is D22, left for G5.
   - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  106 passed (106)", pytest "60 passed in 7.39s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 13 of 13 cases pass (11 to rebuild, 2 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "36 passed (2.0m)", exit 0.
   - Direction: still the goal. Spend is still counted call by call, and a dead caller can no longer stop the next one. Next: G4 geometry and eval (D5, D8, D15, D16, D19, D23).
+- 2026-11-13 · L6/T5 · started G4 (D5, D8, D15, D16, D19, D23). Deciding rules, amended by the human's decisions of 2026-11-13 and fixed before any measurement:
+  - Same solid (D5): the rebuilt solid stands for the imported one only when its volume is within 0.1 %, every bounding-box bound is within 0.001 mm, and the kernel's symmetric difference is at most min(1e-6 mm × the imported solid's surface area, 1e-3 mm3). The handler and the grader both apply it. This replaces F1's third clause, whose limit grew with the part.
+  - Holdout scoring (D23): a case expected unsupported that ends FAILED with any code other than `unsupported` is an honest miss, counted and reported, like a case expected rebuilt that does not rebuild. A false pass still fails the eval.
+  - Holdout status (D8): `evals/step2cad/holdout/` is a seen regression suite, not a blind holdout. Its labels were revised once after a result, and the eval prints each case's name. Its false-pass hard gate stays.
+- 2026-11-13 · L6/T5 · G4 passed (D5, D8, D15, D16, D19, D23; T5 stays open) · gate green · commit loop(L6/T5) (this entry's own commit), cad-AI dfe21e3:
+  - D5: `sameSolid` caps the difference at `sameLimit`, min(1e-6 mm × area, 1e-3 mm3) (`cad-AI/src/services/jobs/handlers.ts#export const sameLimit = (area: number) => Math.min(1e-6 * area, 1e-3);`), and the grader applies the same bound (`scripts/eval-step2cad.mjs`). New training fixture `big_block_hole` (a 1000 × 1000 × 200 mm block with a Ø1 × 3 mm hole) and its fault `big_block_hole_bare`, written by `evals/step2cad/make_fixtures.py`: volumes 199999997.644 and 200000000.0, 2.356 mm3 apart, as the council measured.
+  - D16: a step2cad job's result now holds `plan`, the kernel's whole plan with parameters (also when the rebuild stops early), and `check`, every input of the verdict: area, limit, difference, and both bounding boxes.
+  - D15: `cad-AI/src/services/jobs/step2cadJob.test.ts` reads the job's own `cad.db`. Its records are import, new_part, then the plan's features, all succeeded. This passed on its first run, so it was a test gap.
+  - D19: T3's "parts must be axis-aligned (a rotated prism is unsupported)" was too broad. Two new training fixtures settle it:
+    - `rotated_plate`, a holed plate rotated 30° about Z, the axis it is extruded along: "PASS rotated_plate: 4 operations (sketch_polyline extrude sketch_circle cut), volume 18571.681 of 18571.681, difference 0.00e+0 mm3".
+    - `tilted_block`, rotated about X and then Y: "PASS tilted_block: unsupported: no principal axis gives a prismatic rebuild (top: a planar face is tilted to the top plane; front: a planar face is tilted to the front plane; right: a planar face is tilted to the right plane)".
+    - AGENT_ORCHESTRATION now states both cases.
+  - D8: the eval's header calls the holdout a seen regression suite. The F1 entry's "the eval prints only verdicts" was wrong: it prints each case's name with its verdict, as D8 found.
+  - D23: the rule above is now in the eval's header. The code already scored such a case as MISS, so nothing in the scoring changed.
+  - Failing checks first, on cad-AI c24b080 and root 92257d6:
+    - D5 in the grader, "self-check big_block_hole_bare: the grader took it for its fixture", and the eval exited 1.
+    - D5 in the handler: "AssertionError: expected true to be false" for the council's numbers (difference 2.356 mm3, area 2.8e6 mm2).
+    - D16: "TypeError: Cannot read properties of undefined (reading 'map')", because there was no `plan` in the result.
+    - My first version of the D16 test expected an area of exactly 2800. The kernel measures 2799.9999999999995, so that new assertion now uses `closeTo(2800, 6)`. No existing assertion changed.
+  - Evidence:
+    - `npx vitest run src/services/jobs/step2cadJob.test.ts` "Tests  2 passed (2)".
+    - `node scripts/eval-step2cad.mjs`, with no self-check line: "step2cad: 16 of 16 cases pass (13 to rebuild, 3 unsupported)", every rebuild at "difference 0.00e+0 mm3", and "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes" under the new bound. The holdout's per-case lines were filtered out of what the maker read.
+  - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  107 passed (107)", pytest "60 passed in 7.24s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 16 of 16 cases pass (13 to rebuild, 3 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "36 passed (2.0m)", exit 0.
+  - Direction: still the goal. On a part of any size, a missing feature now fails the job instead of offering the wrong STEP. Next: G5 records, tests and docs (D9, D10, D12, D13, D14, D17, D22, D24).
