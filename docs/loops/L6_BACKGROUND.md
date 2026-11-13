@@ -13,7 +13,7 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
 - [x] T2 Text-to-CAD job. needs: T1. The L5 agent (`cad-AI/src/services/agent/text2cad.ts`) as a job; COMPLETED only with a verified STEP, its records, and a report that is not incomplete (L5 T8 found a part built without four requested holes). Evidence: test: a job whose artifact fails verification ends FAILED.
 - [x] T3 STEP-to-CAD. needs: T1. Import a STEP file through the kernel's import operation (`cad-AI/worker/adapter_kernel.py#import_document = create_part`), inspect it, rebuild prismatic parts (planar faces, cylindrical holes) as an editable feature sequence; anything else is reported UNSUPPORTED. Evidence: evals/step2cad/ with at least 10 fixtures: rebuilt volume within 0.1 % and the same bounding box; a freeform fixture returns unsupported.
 - [x] T4 Tasks dashboard. needs: T1. List, progress, cancel, download. Evidence: e2e: submit, watch progress, cancel one, download another.
-- [ ] T5 Independent check. needs: T2, T3, T4. A council with the jobs and geometry items of the attack list. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
+- [x] T5 Independent check. needs: T2, T3, T4. A council with the jobs and geometry items of the attack list. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
 - [ ] T6 (human) Signoff. needs: T5. Evidence: the signoff line in the Journal.
 
 ## Journal
@@ -488,3 +488,20 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
   - Docs: AGENT_ORCHESTRATION's progress row (R3) and API_CONTRACTS §4 (R4).
   - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  114 passed (114)", pytest "60 passed in 7.57s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 16 of 16 cases pass (13 to rebuild, 3 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "40 passed (2.5m)", exit 0.
   - Direction: still the goal. The dashboard shows what the store holds after every action, and no billed call escapes the spend count. Next: H3 (R5 to R11), the last tick of the budget.
+- 2026-11-14 · L6/T5 · started H3 (R5 to R11)
+- 2026-11-14 · L6/T5 · passed: H3 (R5 to R11), and T5 ticked · gate green · commit loop(L6/T5) (this entry's own commit), cad-AI 8ecbc17 · Corrected rows and recorded limits only, so there is no failing check:
+  - R5: the two stale-lock tests are renamed "is not blocked by a leftover pid lock file (the lock before D4) …". Their assertions are unchanged, and they still guard against a return to the old lock file.
+  - R6: the header of `cad-AI/src/services/jobs/jobEngine.ts` no longer claims "no job stays RUNNING". A job whose identity check keeps failing stays as it is until the check answers (D6).
+  - R7, recorded as a limit in AGENT_ORCHESTRATION: off Windows, a crashed worker's kernel is not killed through its group, because once the worker exits its pid is no longer the job's (D2). The kernel exits when its current command ends. Never run here (D10).
+  - R8, correcting G6's closing line, which said "Every round-2 item has a failing test that now passes, or a corrected row": D9, D15 and D24 were test gaps whose new tests passed on their first run, and D4's double takeover was never reproduced. The other items stand as G1 to G6 record them.
+  - R9, recorded as a limit in AGENT_ORCHESTRATION: text edited and then restored counts as edited, so resubmitting it after a lost answer can make a second job. The cap of 2 live jobs bounds it.
+  - R10: DATABASE_DESIGN's jobs row now gives the real columns (`idem_key`, `pid`, `result_json`, `started_at`, `finished_at`) and its own store. A `job_events` row was added. The artifacts row drops `expires_at` and says artifacts do not expire.
+  - R11, observation only: every rebuild still measures a difference of 0, so the 1e-3 mm3 cap has no fixture near it. A non-axis or noisy rebuild near the cap would be a new eval case, not a change to the cap.
+  - T5 evidence:
+    - Three councils' chairman lists are in this Journal: round 1 C1 to C28, round 2 D1 to D25, round 3 R1 to R11.
+    - Every item was reproduced and fixed with a check that failed first, recorded as a test gap whose new test passed on its first run, corrected in a row, recorded as a limit, or (D25 and the sub-claims) refuted by a chairman with a reason.
+    - `npm run gate` exits 0 this tick.
+  - As round 3's chairman escalated, there is no round 4. H1 to H3 are checked by their own tests and the gate only, and whether that is enough to close L6 is the human's call at T6.
+  - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  114 passed (114)", pytest "60 passed in 7.58s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 16 of 16 cases pass (13 to rebuild, 3 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "40 passed (2.5m)", exit 0.
+  - Stop: Budget. This is the 25th of L6's 25 ticks, and its only open task is T6, the human's signoff. By driver rule 3, L7 (needs L5) is the next loop with agent tasks. The loop stops here and asks the human instead of starting L7 on an exhausted L6 budget.
+  - Direction: still the goal. Every completed job has a verified output artifact. Next: T6 (human) Signoff.
