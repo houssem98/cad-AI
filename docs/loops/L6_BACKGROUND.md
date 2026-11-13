@@ -458,3 +458,18 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
     - There is no round 4. H1 to H3 are checked only by their own tests and the gate, and whether L6 closes on that is the human's call at T6.
   - The R5 tests stay, renamed. Deleting them would shrink the gate.
   - Direction: still the goal. R1 and R2 are the two that matter: one open port, and one stopped operation left without its record. Next: H1.
+- 2026-11-13 · L6/T5 · started H1 (R1, R2)
+- 2026-11-13 · L6/T5 · H1 passed (R1, R2; T5 stays open) · gate green · commit loop(L6/T5) (this entry's own commit), cad-AI 38c7eaf:
+  - R1: Vite's live-update socket now shares the server's own 127.0.0.1 listener (`cad-AI/server.ts#server: { middlewareMode: true, ws: { server } }`), so it never opens port 24678.
+    - A scratch run of the fixed server on port 5199 listened only on "127.0.0.1:5199". A live-update upgrade on that port answered "HTTP/1.1 101 Switching Protocols", so live reload still works, and the human's fallback (`ws: false`) was not needed.
+    - The human's own dev server, started earlier from the desktop launcher, still ran the old code and held `:::24678`. At the human's choice it was stopped (pid 23860) and is restarted on the new code.
+    - API_CONTRACTS now names the shared socket.
+  - R2: `CadStore` opens with `PRAGMA busy_timeout = 5000`, so a close-out waits out another writer. A close-out that still fails tries again each watchdog period, up to 5 times (`cad-AI/src/services/jobs/jobEngine.ts`). AGENT_ORCHESTRATION's cancel row says so.
+  - Failing checks first, on cad-AI a1c1931:
+    - R2, in `cad-AI/src/services/jobs/jobEngine.test.ts`: a stopped job's operation is `running`, and another process holds `BEGIN IMMEDIATE` on its `cad.db`, for 1.5 s and for 6.5 s, past one wait. Both failed: "job close-out … Error: database is locked", then "Error: timed out; last: [{"rowId":"r1",…,"status":"running",…}]".
+    - R1, in `cad-AI/e2e/local-only.e2e.ts`: a TCP connection to this machine's LAN address on 24678 must be refused. It got "Expected: false Received: true".
+  - Evidence:
+    - `npx vitest run src/services/jobs src/services/cad` "Test Files  7 passed (7)", "Tests  78 passed (78)": both R2 cases end with a `failed` `worker_crashed` record that keeps the command.
+    - `npx playwright test e2e/local-only.e2e.ts` "1 passed (23.1s)", once the old server was stopped.
+  - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  113 passed (113)", pytest "60 passed in 8.68s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 16 of 16 cases pass (13 to rebuild, 3 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "38 passed (2.3m)", exit 0.
+  - Direction: still the goal. No port of the server reaches another machine, and a stopped operation always gets its record. Next: H2 (R3, R4).
