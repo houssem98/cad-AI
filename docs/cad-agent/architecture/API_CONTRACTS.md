@@ -44,7 +44,7 @@ stdin and stdout, one JSON object per line, UTF-8. Request: `{ "kind": "op", "op
 | POST /api/jobs | type, input, idempotency key | job id (same key returns the same id) |
 | GET /api/jobs, GET /api/jobs/:id | none | job list or job with status and artifacts |
 | POST /api/jobs/:id/cancel | none | 204 |
-| GET /api/jobs/:id/step | none | the job's STEP as a file download, only once the job is COMPLETED (its export passed the kernel's re-import); otherwise 409 `precondition_failed`. Added in L6 T4 for the tasks dashboard, which polls GET /api/jobs every second because jobs live in the store |
+| GET /api/jobs/:id/step | none | the job's STEP as a file download. It is served only once the job is COMPLETED (its export passed the kernel's re-import) and only while the file still has the sha256 the job recorded. Otherwise the answer is 409 `precondition_failed`, or 404 for an unknown job (L6 council C16, C25). Added in L6 T4 for the tasks dashboard, which polls GET /api/jobs every second because jobs live in the store |
 | GET /api/artifacts/:id | none | file download |
 | POST /api/documents/:id/export | none | the kernel's STEP export as an `export` operation with its record: artifact id and record id. Added in L5 T5, when the human replaced the chat's template deliverables with it |
 | GET /api/documents/:id/inspect | none | `Executor.view`: id, revision, material, features (id and type, in build order, from the adapter's inspect), and inspection (valid, volume_mm3, bbox_mm, counts) with recordOperation, both from the document's last succeeded record. The inspector's properties and tree read it for `?part=<id>`; served once the server owns the executor (L5) |

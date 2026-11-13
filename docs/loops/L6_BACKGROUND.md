@@ -169,4 +169,18 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
   - Docs: the AGENT_ORCHESTRATION Job engine row now describes the identity check, the 60 s start limit, worker.log and the process group. It also drops the "resumed" claim, which is C9's first item.
   - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  84 passed (84)", pytest "60 passed in 7.60s", self-check 25 of 25 and 15 of 15, step2cad 13 of 13 and holdout 12 of 12, Playwright "33 passed (1.9m)", exit 0.
   - Direction: still the goal. The engine no longer kills what it cannot prove is its own. Next: F3 verified artifact (C6, C10, C11, C16, C20).
+- 2026-11-13 · L6/T5 · started F3 (C6, C10, C11, C16, C20)
+- 2026-11-13 · L6/T5 · F3 passed (C6, C10, C11, C16, C20, and C25's row; T5 stays open) · gate green · commit loop(L6/T5) (this entry's own commit), cad-AI 20259cc:
+  - C6 and C20: the worker (`cad-AI/src/services/jobs/jobWorker.ts`) moves to VERIFYING and reads the artifact back. A job is COMPLETED only when its handler says verified and `result.step` names a file whose sha256 matches the recorded one; otherwise it is FAILED `verification_failed`. The test fixtures now write a real artifact, and new fixtures `bare` (verified, no artifact) and `tampered` (file changed after its hash was recorded) both end FAILED with events "VERIFYING", "FAILED".
+  - C11: `result.step.record` names the export record (`cad-AI/src/services/jobs/handlers.ts`), and step2cad's records now start with its import.
+  - C16: GET /api/jobs/:id/step re-hashes the file and answers 409 when it differs (`cad-AI/src/services/jobs/jobRoutes.ts`).
+  - Failing checks first:
+    - C16: "AssertionError: expected 200 to be 409".
+    - C11: "TypeError: Provided value cannot be bound to SQLite parameter 1", because there was no record id.
+    - C6: my first version of the test submitted a new job on every poll. It was fixed before any code change.
+  - C10 passed on its first run, so the gap was in the tests, not the code. In `cad-AI/src/services/jobs/text2cadJob.test.ts` the real handler runs the real agent and kernel on recorded responses, and only the export's outcome is replaced by the one the kernel gives when its re-import does not match: `verified` false and `step` null.
+  - Evidence: `npx vitest run src/services/jobs` "Tests  16 passed (16)"; the T2 job's export record has status "succeeded", type "export" and the STEP's sha256.
+  - Docs: the AGENT_ORCHESTRATION completion row describes VERIFYING and the step record. The API_CONTRACTS step row gives the hash check and the 404 for an unknown job, which is C25.
+  - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  86 passed (86)", pytest "60 passed in 11.52s", text2cad self-check "holdout: 15 of 15 cases build their reference, pass every check, and catch every planted fault", "step2cad: 13 of 13 cases pass (11 to rebuild, 2 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "33 passed (2.0m)", exit 0.
+  - Direction: still the goal. The engine itself now refuses COMPLETED without the verified file. Next: F4 cancel records (C5, C7).
 - 2026-11-13 · L6/T5 · human decision: the tick budget may be raised "if necessary". The loop raises it only when the ticks left cannot cover the planned fixes, council round 2 and its fixes. It adds 5 ticks at most, follows L5's precedent, and edits the L6 line in `docs/LOOP_GRAPH.md` with the date and reason. A raise beyond +5, or any raise of the $25 spend cap, is still escalated.
