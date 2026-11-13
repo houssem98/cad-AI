@@ -1,0 +1,14 @@
+[
+  { "file": "h01.step", "expect": "rebuilt" },
+  { "file": "h02.step", "expect": "rebuilt" },
+  { "file": "h03.step", "expect": "rebuilt" },
+  { "file": "h04.step", "expect": "rebuilt" },
+  { "file": "h05.step", "expect": "rebuilt" },
+  { "file": "h06.step", "expect": "unsupported" },
+  { "file": "h07.step", "expect": "rebuilt" },
+  { "file": "h08.step", "expect": "rebuilt" },
+  { "file": "h09.step", "expect": "rebuilt" },
+  { "file": "h10.step", "expect": "rebuilt" },
+  { "file": "h11.step", "expect": "unsupported" },
+  { "file": "h12.step", "expect": "unsupported" }
+]

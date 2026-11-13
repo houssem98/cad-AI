@@ -1,5 +1,6 @@
 """Writes the STEP-to-CAD eval fixtures (L6 T3) with build123d solids, never with the operation vocabulary the rebuild
-uses, and placed off the origin. Run: python evals/step2cad/make_fixtures.py"""
+uses, and placed off the origin, plus the grader's planted faults; only files not on disk yet, so a STEP's timestamp does not
+churn. Run: python evals/step2cad/make_fixtures.py"""
 import math
 from pathlib import Path
 
@@ -35,14 +36,25 @@ FIXTURES = {
     "t_slot_block": box(0, 0, 0, 80, 60, 40) - box(30, -1, 25, 50, 61, 41) - box(20, -1, 12, 60, 61, 25),
     "flange": z_rod(0, 0, 0, 10, 80) + z_rod(0, 0, 10, 25, 40) - z_rod(0, 0, -1, 26, 20)
               - [z_rod(30 * math.cos(a), 30 * math.sin(a), -1, 11, 8) for a in (i * math.pi / 3 for i in range(6))],
+    "pin_pocket": box(0, 0, 0, 100, 100, 20) - box(20, 20, 10, 80, 80, 21) + box(49, 49, 10, 51, 51, 15),
     # Out of scope, so each must come back unsupported: a freeform surface, and a slot whose round ends are part cylinders.
     "freeform_loft": loft([Circle(20), Plane.XY.offset(30) * Ellipse(25, 10)]),
     "slot_plate": box(0, 0, 0, 80, 40, 6) - extrude(Pos(40, 20) * SlotCenterToCenter(30, 8), 6),
 }
 
+# Council C2: parts with their fixture's volume (within 0.1 %) and bounding box that are not the fixture, so only the grader's
+# symmetric difference can tell them apart.
+FAULTS = {
+    "plate_holes_moved": box(-20, 7, 3, 60, 57, 11) - [z_rod(x, y, 2, 12, 6) for x, y in ((-5, 17), (50, 17), (-10, 47), (50, 47))],
+    "l_bracket_mirrored": FIXTURES["l_bracket"].mirror(Plane.YZ.offset(30)),
+    "pin_pocket_bare": box(0, 0, 0, 100, 100, 20) - box(20, 20, 10, 80, 80, 21),
+}
+
 if __name__ == "__main__":
-    OUT.mkdir(exist_ok=True)
-    for name, shape in FIXTURES.items():
-        assert len(shape.solids()) == 1 and shape.is_valid, name
-        export_step(shape, str(OUT / ("%s.step" % name)))
-        print(name, round(shape.volume, 3))
+    for folder, shapes in ((OUT, FIXTURES), (OUT.parent / "faults", FAULTS)):
+        folder.mkdir(exist_ok=True)
+        for name, shape in shapes.items():
+            assert len(shape.solids()) == 1 and shape.is_valid, name
+            if not (folder / ("%s.step" % name)).exists():
+                export_step(shape, str(folder / ("%s.step" % name)))
+            print(name, round(shape.volume, 3))

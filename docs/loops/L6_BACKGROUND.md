@@ -127,3 +127,30 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
   - C12: reword the T1 task line to the separate `jobs.db`, with no code change (done in F6).
   - C19: a fresh agent writes the step2cad holdout fixtures, which include a pin in a pocket, a moved hole and a mirrored part. Only the eval runner reads them; the maker never opens them (done in F1).
   - Budget: stays at 20 ticks, and all 28 items are fixed in the grouped ticks. If the budget runs out, the loop stops and escalates.
+- 2026-11-13 · L6/T5 · started F1 (C1, C2, C19, C27). Deciding rules, fixed before any measurement:
+  - Same solid: the rebuilt solid stands for the imported one only when three things hold. Its volume is within 0.1 %, every bounding-box bound is within 0.001 mm (both as in T3), and the symmetric difference of the two solids, measured by the kernel, is at most 1e-6 mm times the imported solid's surface area. That last bound is a skin twice the planner's coordinate rounding: 6 decimals, so at most 5e-7 mm. The job handler and the eval grader both apply it.
+  - Holdout: a fresh agent writes `evals/step2cad/holdout/`, and the maker never opens it. Each holdout case runs once through the handler and the grader.
+    - A false pass fails the eval: the handler reports verified, but the grader finds the rebuilt part different.
+    - A holdout case expected unsupported that the handler verifies also fails the eval.
+    - A case expected rebuilt that ends unsupported or FAILED is an honest miss. It is counted and reported, and it does not fail the eval, so the maker has no reason to tune against the holdout.
+- 2026-11-13 · L6/T5 · F1 passed (C1, C2, C19, C27; T5 stays open until council round 2) · gate green · commit loop(L6/T5) (this entry's own commit), cad-AI 6b641e0:
+  - C1:
+    - The kernel gains `compare`, the volume of two documents' symmetric difference: new worker request `compare` (`cad-AI/worker/adapter_kernel.py`, `cad-AI/worker/main.py`, `cad-AI/src/services/cad/executor.ts`).
+    - `sameSolid` in `cad-AI/src/services/jobs/handlers.ts` applies the rule above, and the job's result now carries `difference_mm3`.
+    - The planner (`cad-AI/worker/step2cad.py`) now puts a cut before any extrude standing wholly inside it.
+    - Failing check first: `cad-AI/worker/test_step2cad.py` failed with "assert (19.999999999999996 + 0) < (1e-06 * 30440.0)" (the pin was erased) and with `compare` missing.
+    - The new training fixture `pin_pocket` now rebuilds in 6 operations ("sketch_rectangle extrude sketch_rectangle cut sketch_rectangle extrude"), difference 0.
+  - C2:
+    - The grader (`scripts/eval-step2cad.mjs`) compares through the kernel's `compare` on its own executor.
+    - Its self-check gains `evals/step2cad/faults/`, written by `evals/step2cad/make_fixtures.py`: a hole moved 5 mm, the mirrored L-bracket, and the pocket without its pin. The self-check first requires each fault to keep its fixture's volume and box, and then requires the grader to refuse it. All 3 were refused, and no self-check line printed.
+  - C27: `cad-AI/worker/test_step2cad.py` now probes material at (0, 4.5, 10) and (0, -4.5, 10). It passed on its first run: the sign was right, and the test now pins it.
+  - C19, the holdout:
+    - A fresh agent wrote `evals/step2cad/holdout/`. The maker has not opened it, and the eval prints only verdicts. The human chose this design, so these are files the loop did not write and did not read, entering the repo by that decision.
+    - First run: "holdout: 8 of 10 as expected, 0 honest misses, 2 false passes". Both were cases labelled unsupported whose rebuild the grader found identical, which came out once the eval was made to print the expected label and the grader's verdict for a false pass; the rule was not changed.
+    - The mislabels trace to the maker's prompt to the author. Its out-of-scope examples, "a part rotated about an axis, a chamfer", contradicted its own criterion, since a part rotated about Z is still a straight extrusion along Z.
+    - Human decision: a fresh agent relabels the set without seeing any results. It changed 2 labels and added 2 cases, giving 12: 9 to rebuild and 3 unsupported.
+    - Rerun once, with the rule unchanged: "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes".
+  - Evidence: "step2cad: 13 of 13 cases pass (11 to rebuild, 2 unsupported)", every rebuild at "difference 0.00e+0 mm3"; pytest "60 passed".
+  - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  81 passed (81)", pytest "60 passed in 7.66s", self-check 25 of 25 and 15 of 15, step2cad 13 of 13 and holdout 12 of 12, Playwright "33 passed (1.9m)", exit 0.
+  - Docs: AGENT_ORCHESTRATION gives the step2cad rule and the cut order, and API_CONTRACTS §2 gives `compare`.
+  - Direction: still the goal. A STEP-to-CAD job now completes only when the rebuilt part fills the same space as the imported one. Next: F2 watchdog (C3, C8, C17, C22).
