@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 // docs/cad-agent/architecture/API_CONTRACTS.md §4: DeepSeek's OpenAI-compatible chat completions over fetch, spend summed against a cap.
@@ -75,18 +75,33 @@ export function modelClient(o: ClientOptions): Complete {
     const file = join(o.recordings, `${createHash('sha256').update(JSON.stringify(body)).digest('hex').slice(0, 16)}.json`);
     if (o.mode !== 'live' && existsSync(file)) return parse(JSON.parse(readFileSync(file, 'utf8')).response);
     if (o.mode === 'replay') throw new ModelError(`no recorded response ${file}`);
-    const before = spent(o.spendFile);
-    if (before.usd >= o.capUsd) throw new ModelError(`the $${o.capUsd} eval cap is reached ($${before.usd.toFixed(4)} spent)`);
     mkdirSync(dirname(o.spendFile), { recursive: true }); // before the call: a billed call must always be counted
-    const res = await call(body, signal);
-    // Read again after the call, with no await before the write, so a call that ran alongside is not overwritten.
-    const now = spent(o.spendFile);
-    if (res?.usage) writeFileSync(o.spendFile, JSON.stringify({ usd: now.usd + cost(res.usage), calls: now.calls + 1 }) + '\n');
-    const out = parse(res);
-    if (o.mode === 'record') {
-      mkdirSync(o.recordings, { recursive: true });
-      writeFileSync(file, JSON.stringify({ request: body, response: res }, null, 1) + '\n');
-    }
-    return out;
+    return turn(o.spendFile, async () => {
+      const before = spent(o.spendFile);
+      if (before.usd >= o.capUsd) throw new ModelError(`the $${o.capUsd} eval cap is reached ($${before.usd.toFixed(4)} spent)`);
+      const res = await call(body, signal);
+      if (res?.usage) writeFileSync(o.spendFile, JSON.stringify({ usd: before.usd + cost(res.usage), calls: before.calls + 1 }) + '\n');
+      const out = parse(res);
+      if (o.mode === 'record') {
+        mkdirSync(o.recordings, { recursive: true });
+        writeFileSync(file, JSON.stringify({ request: body, response: res }, null, 1) + '\n');
+      }
+      return out;
+    });
   };
+}
+
+const alive = (pid: number) => { try { process.kill(pid, 0); return true; } catch { return false; } };
+// Live calls from every process sharing a spend file take turns, so each cap check sees every call before it: parallel job
+// workers cannot all pass the check at once (council C18). A lock left by a process that died is taken over.
+async function turn<T>(spendFile: string, f: () => Promise<T>): Promise<T> {
+  const lock = `${spendFile}.lock`;
+  for (;;) {
+    try { writeFileSync(lock, String(process.pid), { flag: 'wx' }); break; } catch { /* held */ }
+    let holder = 0;
+    try { holder = Number(readFileSync(lock, 'utf8')); } catch { continue; }
+    if (holder && !alive(holder)) rmSync(lock, { force: true });
+    else await new Promise((r) => setTimeout(r, 50));
+  }
+  try { return await f(); } finally { rmSync(lock, { force: true }); }
 }

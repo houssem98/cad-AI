@@ -52,7 +52,7 @@ async function run(call: ToolCall, ctx: LoopContext): Promise<Step> {
   try { args = JSON.parse(call.arguments || '{}'); } catch { /* refused below as params null */ }
   const proposal = { id: args?.id ?? '', target: { document: ctx.document }, type: call.name, params: args?.params ?? null,
     preconditions: [], status: 'pending', result: null, verification: null, error: null };
-  const out = await ctx.executor.execute(proposal, { requestId: ctx.requestId, signal: ctx.signal });
+  const out = await ctx.executor.execute(proposal, { requestId: ctx.requestId, signal: ctx.signal, agent: true });
   return { call, operationId: out.operationId,
     outcome: { status: out.status, error: out.record?.errorDetails ?? out.error ?? null, inspection: out.record?.validationResult?.inspection ?? null,
       ...(call.name === 'inspect' && { edges: out.record?.executionResult?.result?.edges }) } }; // the record keeps the adapter's answer under result

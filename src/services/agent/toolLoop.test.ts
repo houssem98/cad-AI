@@ -34,6 +34,20 @@ describe('tool loop on recorded responses', { timeout: 120000 }, () => {
     expect(after?.find((x) => x.tool_call_id === refused!.call.id).content).toContain('validation_failed');
   });
 
+  it('refuses a sketch offset the model sends although no tool offers it, and records the refusal (council C26)', async () => {
+    ex = await open();
+    expect((await ex.execute(op('p', 'new_part', { name: 'plate' }), { requestId: 'setup' })).status).toBe('succeeded');
+    const args = { id: 's1', params: { plane: 'top', width: mm(10), height: mm(10), offset: mm(5) } };
+    const turns = [{ text: '', toolCalls: [{ id: 't1', name: 'sketch_rectangle', arguments: JSON.stringify(args) }] }, { text: 'done', toolCalls: [] }];
+    let n = 0;
+    const scripted: Complete = async () => ({ ...turns[n++], usage: { prompt_tokens: 0, completion_tokens: 0 } });
+    const res = await runToolLoop('Sketch.', { complete: scripted, executor: ex, document: 'plate', requestId: 'r-offset' });
+    expect(res.steps[0].outcome.status).toBe('failed');
+    expect(res.steps[0].outcome.error.code).toBe('validation_failed');
+    expect(res.steps[0].outcome.error.details.errors).toContainEqual({ path: '/params/offset', message: 'not offered to the agent' });
+    expect(ex.store.record(res.steps[0].operationId).status).toBe('failed');
+  });
+
   it('gives the model the edge list an inspect call returns, under the names fillet takes', async () => {
     ex = await open();
     for (const o of [op('p', 'new_part', { name: 'plate' }), op('s', 'sketch_rectangle', { plane: 'top', width: mm(90), height: mm(90) }), op('x', 'extrude', { sketch: 's', depth: mm(15) })])

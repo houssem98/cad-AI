@@ -50,6 +50,25 @@ describe('model client', () => {
     expect(s.calls).toHaveLength(0);
   });
 
+  it('lets clients sharing one spend file call in turn, so two at the cap edge make one billed call (council C18)', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'model-'));
+    const spendFile = join(dir, 'spend.json');
+    writeFileSync(spendFile, JSON.stringify({ usd: 2.85, calls: 9 }));
+    const billed = { prompt_tokens: 1_000_000, completion_tokens: 0 }; // $0.30 a call
+    let calls = 0;
+    const fetch = (async () => {
+      calls++;
+      await new Promise((r) => setTimeout(r, 200));
+      return { ok: true, status: 200, headers: new Headers(), json: async () => ({ ...answer, usage: billed }) } as Response;
+    }) as typeof globalThis.fetch;
+    // Two clients share nothing but the file, as two job workers do.
+    const client = () => modelClient({ mode: 'live', recordings: join(dir, 'rec'), spendFile, capUsd: 3, key: 'k', fetch, retryDelayMs: 0 });
+    const out = await Promise.allSettled([client()(msg), client()(msg)]);
+    expect(out.map((o) => o.status).sort()).toEqual(['fulfilled', 'rejected']);
+    expect(calls).toBe(1);
+    expect(JSON.parse(readFileSync(spendFile, 'utf8')).usd).toBeCloseTo(3.15, 6);
+  });
+
   it('fails a reply with no text and no tool call instead of returning an empty answer, and still counts its spend', async () => {
     const s = setup([200], { choices: [{ message: { content: null, reasoning_content: 'x'.repeat(900) }, finish_reason: 'length' }], usage });
     await expect(s.client('record')(msg)).rejects.toThrow(/no text and no tool call.*reasoning/);

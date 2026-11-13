@@ -22,6 +22,7 @@ export interface JobOptions {
   watchdogMs?: number;
   staleMs?: number;
   startMs?: number; // a worker that has not started its job after this long is hung; 60 s by default
+  maxWorkers?: number; // live jobs at once, each a worker and a kernel; 2 by default (council C21)
   maxMs?: Record<string, number>; // maximum duration per job type; 10 minutes by default
 }
 
@@ -115,13 +116,18 @@ export class JobEngine {
     const id = randomUUID(), json = JSON.stringify(input ?? null);
     // A key used before returns its job when the request is the same, and is refused for another one (council C14); the insert
     // itself decides, so two servers on one store cannot both run it.
+    const repeat = () => {
+      const old = this.db.prepare('SELECT id, type, input_json FROM jobs WHERE idem_key = ?').get(key ?? null) as { id: string; type: string; input_json: string } | undefined;
+      if (old && (old.type !== type || old.input_json !== json)) throw new JobConflict(`the idempotency key was used for another request (job ${old.id})`);
+      return old && this.get(old.id)!;
+    };
+    const old = key ? repeat() : undefined;
+    if (old) return old;
+    const max = this.o.maxWorkers ?? 2, live = this.list().filter((j) => LIVE.includes(j.state)).length;
+    if (live >= max) throw new JobConflict(`${max} job${max === 1 ? ' is' : 's are'} already running; submit again when one finishes`);
     const added = this.db.prepare('INSERT INTO jobs (id, type, input_json, idem_key, state, created_at) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(idem_key) DO NOTHING')
       .run(id, type, json, key ?? null, 'CREATED', iso());
-    if (!added.changes) {
-      const old = this.db.prepare('SELECT id, type, input_json FROM jobs WHERE idem_key = ?').get(key!) as { id: string; type: string; input_json: string };
-      if (old.type !== type || old.input_json !== json) throw new JobConflict(`the idempotency key was used for another request (job ${old.id})`);
-      return this.get(old.id)!;
-    }
+    if (!added.changes) return repeat()!;
     this.db.prepare('INSERT INTO job_events (job_id, state, at, data_json) VALUES (?, ?, ?, NULL)').run(id, 'CREATED', iso());
     mkdirSync(this.dir(id), { recursive: true });
     const log = openSync(join(this.dir(id), 'worker.log'), 'a'); // what a crashing worker prints is kept (council C22)

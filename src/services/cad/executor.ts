@@ -78,7 +78,7 @@ export class Executor {
     return this.serial(() => this.look(docId));
   }
 
-  execute(proposal: any, ctx: { requestId: string; signal?: AbortSignal }): Promise<Outcome> {
+  execute(proposal: any, ctx: { requestId: string; signal?: AbortSignal; agent?: boolean }): Promise<Outcome> {
     return this.serial(() => this.run(proposal, ctx));
   }
 
@@ -156,7 +156,7 @@ export class Executor {
     return this.worker.request({ kind: 'inspect', document: docId });
   }
 
-  private async run(proposal: any, ctx: { requestId: string; signal?: AbortSignal }): Promise<Outcome> {
+  private async run(proposal: any, ctx: { requestId: string; signal?: AbortSignal; agent?: boolean }): Promise<Outcome> {
     const started = new Date().toISOString();
     const row: OpRow = { rowId: randomUUID(), opId: String(proposal?.id ?? ''), docId: String(proposal?.target?.document ?? '') };
     if (this.halted) return { operationId: row.rowId, status: 'failed', record: null, error: this.halted };
@@ -167,7 +167,7 @@ export class Executor {
     let schema: object[] = [];
     try {
       this.store.insertOperation(row, ctx.requestId, proposal);
-      schema = validateProposal(proposal);
+      schema = validateProposal(proposal, ctx.agent);
       if (schema.length) return this.finish(row, 'failed', { ...base, validation: { schema }, error: { code: 'validation_failed', message: 'refused by the operation schema', details: { errors: schema } } });
       const pre = this.preconditions(proposal, row, rev);
       if (pre) return this.finish(row, 'failed', { ...base, validation: { schema, preconditions: pre }, error: { code: 'precondition_failed', message: pre } });

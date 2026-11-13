@@ -46,9 +46,12 @@ export function validateOperation(op: unknown): SchemaError[] {
   return errs;
 }
 
-export function validateProposal(op: unknown): SchemaError[] {
+// agent: the operation came from the model, whose tools are the schema as L5 signed it off, without the sketch offset that
+// L6 T3 added for STEP-to-CAD; an offset it sends anyway is refused (council C26).
+export function validateProposal(op: unknown, agent = false): SchemaError[] {
   const errs = validateOperation(op);
   const o = op as Node;
+  if (agent && typeOf(o?.params) === 'object' && Object.hasOwn(o.params, 'offset')) errs.push({ path: '/params/offset', message: 'not offered to the agent' });
   if (o?.status !== 'pending') errs.push({ path: '/status', message: 'must be pending in a proposal' });
   for (const k of ['result', 'verification', 'error']) if (o?.[k] != null) errs.push({ path: `/${k}`, message: 'set by the executor only' });
   return errs;

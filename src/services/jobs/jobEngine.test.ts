@@ -166,6 +166,14 @@ describe('job engine (L6 T1)', { timeout: 60_000 }, () => {
     expect(readFileSync(join(d, 'jobs', job.id, 'worker.log'), 'utf8')).toContain('fixture crash: out of memory');
   });
 
+  it('refuses a submission past the worker cap, so jobs cannot exhaust memory, and takes it once a slot frees (council C21)', async () => {
+    const e = open(join(dir(), 'jobs.db'), { maxWorkers: 1 });
+    const first = e.submit('slow', {});
+    expect(() => e.submit('slow', {})).toThrow(/1 job is already running/);
+    e.cancel(first.id);
+    expect(e.submit('quick', {}).state).toBe('PENDING');
+  });
+
   it('refuses a job type it does not know', () => {
     const e = open(join(dir(), 'jobs.db'));
     expect(() => e.submit('nope', {})).toThrow(/unknown job type/);
