@@ -298,3 +298,24 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
     - Then council round 3, the last the protocol allows.
   - Direction: still the goal. D1 and D2 matter most, and they come first. Next: the human's decisions on D1, D5, D8 and D23, then G1.
 - 2026-11-13 · L6/T5 · human decision: the tick budget may be raised "if necessary". The loop raises it only when the ticks left cannot cover the planned fixes, council round 2 and its fixes. It adds 5 ticks at most, follows L5's precedent, and edits the L6 line in `docs/LOOP_GRAPH.md` with the date and reason. A raise beyond +5, or any raise of the $25 spend cap, is still escalated.
+- 2026-11-13 · L6/T5 · human decisions recorded (D1, D5, D8, D23):
+  - D1: bind the dev server to 127.0.0.1 (local-only). No port is exposed to the LAN.
+  - D5: pre-register a new same-solid bound. Also add an absolute cap: min(1e-6 mm × area, 1e-3 mm³). Current rebuilds measure 0.
+  - D8: call the holdout a seen regression suite and correct "blind" in the docs. A fresh blind holdout outside the gate is deferred.
+  - D23: a case expected unsupported that ends FAILED with another code counts as an honest MISS (pre-registered rule, not tuning). Amends the eval rule text.
+- 2026-11-13 · L6/T5 · started G1 (D1, D2, D6, D11)
+- 2026-11-13 · L6/T5 · G1 passed (D1, D2, D6, D11; T5 stays open) · gate green · commit loop(L6/T5) (this entry's own commit), cad-AI e939d32:
+  - D1: the server listens on 127.0.0.1 only (`cad-AI/server.ts#server.listen(Number(PORT), '127.0.0.1'`), so no route and no file Vite serves, data folder included, is reachable from another machine. That covers GET /api/artifacts/:id too.
+  - D2: when a worker the engine spawned exits, the engine marks its pid as no longer the job's (`cad-AI/src/services/jobs/jobEngine.ts#child.on('exit', () => this.ours.set(id, false))`). The watchdog then fails the job `worker_crashed` without killing whatever has the pid now, and a cancel kills nothing.
+  - D6: `runs()` uses execFile's 5 s timeout, and a check that fails or times out answers undefined instead of "not ours". The watchdog then decides nothing and asks again on its next pass. A cancel that cannot identify the worker retries after one watchdog period, and stops the worker once the check says it is the job's.
+  - D11: the spawn comment now says a Windows worker dies with the server.
+  - Failing checks first, all on the code at cad-AI 4b44791:
+    - D2, in `cad-AI/src/services/jobs/jobEngine.test.ts`: a `slow` job's stored pid is swapped for a stranger's, then its real worker is killed. On both the watchdog and the cancel path: "AssertionError: expected false to be true" (the stranger was killed).
+    - D6, the same file: after a restart, with PATH empty so PowerShell cannot start, a `hang` job. On the watchdog path: "expected 'FAILED' to be 'RUNNING'", because the failed check was read as "another program". On the cancel path: "Error: timed out; last: true", because the worker was never stopped.
+    - D1, in the new `cad-AI/e2e/local-only.e2e.ts`: fetching the server's data folder through this machine's LAN IPv4 address. "Error: expect(received).rejects.toThrow()": the request was answered.
+  - Evidence: `npx vitest run src/services/jobs/jobEngine.test.ts` "Tests  17 passed (17)". The D6 tests also check that the worker is still alive while the check cannot run, and that it is gone once the check works again. `npx playwright test e2e/local-only.e2e.ts e2e/tasks.e2e.ts` "4 passed (35.1s)".
+  - Not tested: the 5 s timeout itself. No check was made to hang; the timeout is execFile's own option.
+  - Docs: AGENT_ORCHESTRATION's Job engine row now gives D2 and D6. API_CONTRACTS no longer says the server listens on every interface; it gives the 127.0.0.1 bind.
+  - My first attempt, before any test, cleared `ours` only after the kill, which still killed the stranger, and read a timeout as "not ours". I stopped its gate and reverted it, wrote the tests above, and saw them fail on the original code first.
+  - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  98 passed (98)", pytest "60 passed in 7.63s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 13 of 13 cases pass (11 to rebuild, 2 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "36 passed (1.9m)", exit 0.
+  - Direction: still the goal. The engine now kills only what it can prove is the job's worker, and no other machine can reach the server. Next: G2 storage (D3, D7, D18).
