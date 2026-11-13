@@ -180,7 +180,8 @@ async function startServer() {
     app.use(vite.middlewares);
   }
 
-  server.listen(Number(PORT), '0.0.0.0', () => {
+  // This machine only: in dev mode Vite serves files under cad-AI, data/ included (council D1).
+  server.listen(Number(PORT), '127.0.0.1', () => {
     console.log(`MechForge AI Enterprise server running on port ${PORT}`);
   });
 }

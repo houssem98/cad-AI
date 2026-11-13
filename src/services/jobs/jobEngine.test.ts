@@ -133,6 +133,62 @@ describe('job engine (L6 T1)', { timeout: 60_000 }, () => {
     });
   }
 
+  // Council D2: a worker this engine spawned dies and the system gives its pid to another program. The job still fails or
+  // cancels, and that program lives, whether the watchdog or a cancel reaches it.
+  for (const how of ['watchdog', 'cancel'] as const) {
+    it(`leaves alive a program that took a dead worker's pid, on ${how}`, async () => {
+      const other = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1e9)'], { stdio: 'ignore' });
+      try {
+        const db = join(dir(), 'jobs.db');
+        const e = open(db, how === 'watchdog' ? { watchdogMs: 300, staleMs: 1_000 } : { watchdogMs: 1e9 });
+        const job = e.submit('slow', {});
+        const running = await until(() => e.get(job.id)!, (j) => j.state === 'RUNNING', 20_000);
+        const raw = openJobDb(db);
+        raw.prepare('UPDATE jobs SET pid = ? WHERE id = ?').run(other.pid!, job.id);
+        raw.close();
+        process.kill(running.pid!);
+        await until(() => alive(running.pid!), (a) => !a, 5_000);
+        await new Promise((r) => setTimeout(r, 300));
+        if (how === 'cancel') expect(e.cancel(job.id)!.state).toBe('CANCELLED');
+        else expect((await until(() => e.get(job.id)!, (j) => j.state === 'FAILED', 10_000)).error?.code).toBe('worker_crashed');
+        await new Promise((r) => setTimeout(r, 1_000));
+        expect(alive(other.pid!)).toBe(true);
+      } finally {
+        other.kill();
+      }
+    });
+  }
+
+  // Council D6: when the identity check cannot run, the engine decides nothing about the worker: it neither fails the job as
+  // "another program" nor leaves a cancelled job's worker running. It asks again, and acts once the check answers.
+  for (const how of ['watchdog', 'cancel'] as const) {
+    it(`waits while the worker identity check cannot run, then stops the worker, on ${how}`, async () => {
+      const db = join(dir(), 'jobs.db');
+      const first = open(db);
+      const job = first.submit('hang', {});
+      const running = await until(() => first.get(job.id)!, (j) => j.state === 'RUNNING', 20_000);
+      first.close(false); // a restart: the new engine has not spawned this worker, so it must ask
+      const path = process.env.PATH;
+      try {
+        process.env.PATH = '';
+        const e = open(db, { watchdogMs: 300, staleMs: 1_000 });
+        if (how === 'cancel') expect(e.cancel(job.id)!.state).toBe('CANCELLED');
+        await new Promise((r) => setTimeout(r, 3_000));
+        expect(e.get(job.id)!.state).toBe(how === 'cancel' ? 'CANCELLED' : 'RUNNING');
+        expect(alive(running.pid!)).toBe(true);
+        process.env.PATH = path;
+        if (how === 'watchdog') {
+          const failed = await until(() => e.get(job.id)!, (j) => j.state === 'FAILED', 15_000);
+          expect(failed.error?.message).toContain('no heartbeat');
+        }
+        await until(() => alive(running.pid!), (a) => !a, 15_000);
+      } finally {
+        process.env.PATH = path;
+        if (alive(running.pid!)) process.kill(running.pid!);
+      }
+    });
+  }
+
   it('cancels a job mid-operation: its worker and kernel stop, and the operation record says cancelled (council C5, C7)', async () => {
     const d = dir();
     const e = open(join(d, 'jobs.db'));

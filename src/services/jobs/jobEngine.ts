@@ -67,12 +67,13 @@ const stop = (pid: number | null) => {
   else try { process.kill(-pid, 'SIGKILL'); } catch { /* already gone */ }
 };
 // Whether a stored pid still runs this job's worker: its command line names the job. After a reboot or a long outage the system
-// may have given the pid to another program, which must never be killed (council C3). Any doubt answers no.
-const runs = (pid: number, id: string) => new Promise<boolean>((resolve) => {
+// may have given the pid to another program, which must never be killed (council C3). A check that fails or takes over 5 s
+// answers undefined: nothing is decided, and the caller asks again (council D6).
+const runs = (pid: number, id: string) => new Promise<boolean | undefined>((resolve) => {
   const [cmd, args] = process.platform === 'win32'
     ? ['powershell', ['-NoProfile', '-Command', `(Get-CimInstance Win32_Process -Filter "ProcessId=${pid}").CommandLine`]]
     : ['ps', ['-o', 'args=', '-p', String(pid)]];
-  execFile(cmd, args, { windowsHide: true }, (_e, out) => resolve(String(out ?? '').includes('jobWorker') && String(out).includes(id)));
+  execFile(cmd, args, { windowsHide: true, timeout: 5_000 }, (e, out) => resolve(e ? undefined : out.includes('jobWorker') && out.includes(id)));
 });
 // A stopped worker leaves the operation it was running unfinished in the job's own store. Its record is closed with the job's
 // ending; the document keeps its stored revision, since the change never committed (council C5).
@@ -134,8 +135,9 @@ export class JobEngine {
     const child = spawn(process.execPath, ['--import', 'tsx', WORKER, this.o.dbPath, id, this.o.handlers],
       { cwd: CAD_ROOT, stdio: ['ignore', log, log], windowsHide: true, detached: process.platform !== 'win32' });
     closeSync(log);
-    child.unref(); // a worker outlives a server restart; the watchdog decides what happens to its job
+    child.unref(); // the server does not wait for it; on Windows it still dies with the server (council D11)
     this.ours.set(id, true);
+    child.on('exit', () => this.ours.set(id, false)); // its pid may now be given to another program (council D2)
     move(this.db, id, 'PENDING', ['CREATED'], { pid: child.pid ?? null });
     return this.get(id)!;
   }
@@ -171,7 +173,11 @@ export class JobEngine {
   private kill(j: Job, code: string, message: string) {
     const after = () => { try { closeOut(this.dir(j.id), code, message); } catch (e) { console.error('job close-out', j.id, e); } };
     if (this.ours.get(j.id)) { stop(j.pid); after(); }
-    else if (!this.ours.has(j.id) && alive(j.pid)) runs(j.pid!, j.id).then((mine) => { if (mine) stop(j.pid); after(); });
+    else if (!this.ours.has(j.id) && alive(j.pid)) runs(j.pid!, j.id).then((mine) => {
+      if (mine === undefined) { if (this.db.isOpen) setTimeout(() => this.kill(j, code, message), this.o.watchdogMs ?? 5_000); return; }
+      if (mine) stop(j.pid);
+      after();
+    });
     else after();
   }
 
@@ -180,8 +186,9 @@ export class JobEngine {
     if (this.asking.has(j.id)) return;
     this.asking.add(j.id);
     runs(j.pid!, j.id).then((mine) => {
-      this.ours.set(j.id, mine);
       this.asking.delete(j.id);
+      if (mine === undefined) return;
+      this.ours.set(j.id, mine);
       if (this.db.isOpen) this.watchdog();
     });
   }
