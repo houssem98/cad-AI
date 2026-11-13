@@ -236,4 +236,21 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
   - Evidence: `npx playwright test e2e/tasks.e2e.ts` "3 passed (50.6s)".
   - Gate: "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  91 passed (91)", pytest "60 passed in 9.51s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 13 of 13 cases pass (11 to rebuild, 2 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "35 passed (2.0m)", exit 0. graph-lint ran first in the same chain.
   - Direction: still the goal. The dashboard shows what failed, and never offers an action on a list it could not read. Next: F8 (C18, C21, C26).
+- 2026-11-13 · L6/T5 · started F8 (C18, C21, C26)
+- 2026-11-13 · L6/T5 · F8 passed (C18, C21, C26; all 28 round-1 items now answered; T5 stays open for council round 2) · gate green · commit loop(L6/T5) (this entry's own commit), cad-AI 4b44791:
+  - C18:
+    - Live model calls from every process sharing a spend file take turns on a lock file beside it (`cad-AI/src/services/model/modelClient.ts`). Each cap check therefore sees every earlier call. A lock left by a dead process is taken over.
+    - Failing check first: two clients sharing nothing but the file, at $2.85 of $3 with a $0.30 call, gave "expected [ 'fulfilled', 'fulfilled' ] to deeply equal [ 'fulfilled', 'rejected' ]".
+    - After the fix: one billed call, and spend 3.15. As before, the cap still allows the one call in flight to overshoot.
+  - C21:
+    - At most 2 jobs are live at once (`maxWorkers` in `cad-AI/src/services/jobs/jobEngine.ts`). A new submission past the cap is a `JobConflict`, which the route answers with 409. A repeated submission with the same key returns its job before the cap is checked.
+    - Refusing instead of queueing keeps F2's start limit honest.
+    - Failing check first: "expected [Function] to throw an error".
+  - C26:
+    - `validateProposal(op, agent)` refuses `params.offset` with "not offered to the agent" when the tool loop proposes (`cad-AI/src/services/cad/operationSchema.ts`, `cad-AI/src/services/agent/toolLoop.ts`). The executor records it as a `validation_failed` like any schema refusal. STEP-to-CAD's own operations still carry offsets.
+    - Failing check first: "expected 'succeeded' to be 'failed'".
+  - Evidence: `npx vitest run src/services/model src/services/jobs src/services/agent/toolLoop.test.ts` "Tests  37 passed (37)".
+  - Docs: API_CONTRACTS §1 (agent offset), §3 (409 at the cap) and §4 (spend lock); AGENT_ORCHESTRATION (the cap).
+  - Gate: "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  94 passed (94)", pytest "60 passed in 7.42s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 13 of 13 cases pass (11 to rebuild, 2 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "35 passed (2.0m)", exit 0. graph-lint ran first in the same chain.
+  - Direction: still the goal. Every round-1 item has a failing test that now passes or a corrected row, and none was rejected. Next: T5 council round 2, given the round-1 list, the fixes, and the observed "disk I/O error" flake.
 - 2026-11-13 · L6/T5 · human decision: the tick budget may be raised "if necessary". The loop raises it only when the ticks left cannot cover the planned fixes, council round 2 and its fixes. It adds 5 ticks at most, follows L5's precedent, and edits the L6 line in `docs/LOOP_GRAPH.md` with the date and reason. A raise beyond +5, or any raise of the $25 spend cap, is still escalated.

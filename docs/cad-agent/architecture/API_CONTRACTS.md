@@ -26,7 +26,7 @@ The schema forbids extra fields (`additionalProperties: false`). Lengths are `{ 
 
 **String parameters.** sketch, edges, parameter, material, target feature and entity, and artifact are identifiers or names. Adapters resolve them by lookup in the document or the artifact store and never parse or evaluate them; an unknown identifier is `precondition_failed`. An import names an artifact id; the executor replaces it with the stored file's path before the worker sees the operation, so no model-written path reaches an adapter.
 
-**Errors.** `validation_failed` names the JSON pointer of each bad field. Tests (L2 T3): a valid operation passes; a missing target, an unknown type, a missing unit and an extra field are each refused. L2 T4 added the council's cases to the shared file `cad-AI/schema/operation-cases.json`, which both suites run: key names inherited by every JavaScript object refused; a type that is not a string refused without an exception; zero, negative and infinite lengths refused; a precondition without a value, an unknown error code and an incomplete verification refused; a proposal that is not pending refused.
+**Errors.** `validation_failed` names the JSON pointer of each bad field. An operation the agent proposes may not carry a sketch `offset`: its tools never offer one, and the executor refuses it at `/params/offset` with "not offered to the agent". STEP-to-CAD's own operations may use it (L6 council C26). Tests (L2 T3): a valid operation passes; a missing target, an unknown type, a missing unit and an extra field are each refused. L2 T4 added the council's cases to the shared file `cad-AI/schema/operation-cases.json`, which both suites run: key names inherited by every JavaScript object refused; a type that is not a string refused without an exception; zero, negative and infinite lengths refused; a precondition without a value, an unknown error code and an incomplete verification refused; a proposal that is not pending refused.
 
 ## 2. Worker wire protocol
 
@@ -41,7 +41,7 @@ stdin and stdout, one JSON object per line, UTF-8. Request: `{ "kind": "op", "op
 | POST /api/requests/:id/answer | answer to a question | 204 |
 | POST /api/requests/:id/approve | operation id, approved true or false | 204 |
 | POST /api/requests/:id/cancel | none | 204 |
-| POST /api/jobs | type, input, idempotency key | job id. The same key with the same type and input returns the same id; the same key with another request is 409 `precondition_failed` (L6 council C14) |
+| POST /api/jobs | type, input, idempotency key | job id. The same key with the same type and input returns the same id; the same key with another request is 409 `precondition_failed` (L6 council C14), and so is a new job while 2 are already live (C21) |
 | GET /api/jobs, GET /api/jobs/:id | none | job list or job with status and artifacts |
 | POST /api/jobs/:id/cancel | none | 204 when the job is now CANCELLED; 409 `precondition_failed` when it had already finished (L6 council C15) |
 | GET /api/jobs/:id/step | none | the job's STEP as a file download. It is served only once the job is COMPLETED (its export passed the kernel's re-import) and only while the file still has the sha256 the job recorded. Otherwise the answer is 409 `precondition_failed`, or 404 for an unknown job (L6 council C16, C25). Added in L6 T4 for the tasks dashboard, which polls GET /api/jobs every second because jobs live in the store |
@@ -56,6 +56,6 @@ Every response error body is `{ "error": { "code", "message", "details" } }` wit
 
 ## 4. Model client
 
-One module, one function: `complete({ messages, tools, temperature }) → { text, toolCalls, usage }`. Implementation: DeepSeek's OpenAI-compatible chat completions endpoint over fetch. Usage tokens are summed per loop against the $10 eval cap; the client refuses calls once the cap is reached. Tests run on recorded responses, never live, except the L5 holdout run.
+One module, one function: `complete({ messages, tools, temperature }) → { text, toolCalls, usage }`. Implementation: DeepSeek's OpenAI-compatible chat completions endpoint over fetch. Usage tokens are summed per loop against the $10 eval cap; the client refuses calls once the cap is reached. Live calls from every process that shares a spend file take turns on a lock file beside it, so parallel job workers cannot all pass the cap check at once (L6 council C18). Tests run on recorded responses, never live, except the L5 holdout run.
 
 **Errors.** `model_error` with the HTTP status; a timeout of 60 s; no retry on 4xx, at most two retries on 5xx.
