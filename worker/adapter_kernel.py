@@ -215,6 +215,15 @@ class KernelAdapter(Adapter):
             data = path.read_bytes()
         return {"glb": base64.b64encode(data).decode("ascii"), "bytes": len(data)}
 
+    def draw_document(self, document, folder):
+        """Three orthographic views and an isometric of the document's solid, dimensioned from its inspection (drawing.py)."""
+        from drawing import draw
+        part, _ = self._build(self._history({"target": {"document": document}}))
+        if part is None:
+            raise PreconditionFailed("the document has no solid to draw")
+        Path(folder).mkdir(parents=True, exist_ok=True)
+        return draw(part, folder)
+
     def rebuild_plan(self, document):
         """The operations that rebuild the document's solid as editable features (STEP-to-CAD, step2cad.py)."""
         from step2cad import plan

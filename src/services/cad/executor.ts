@@ -145,6 +145,34 @@ export class Executor {
     });
   }
 
+  // Drawings of a document's solid (L7 T1) in a new folder of the data directory: SVG, DXF and PDF, dimensioned from the kernel.
+  drawing(docId: string): Promise<{ status: string; files?: Record<string, string>; dimensions?: any[]; error?: TypedError }> {
+    return this.serial(async () => {
+      try {
+        const r = await this.worker.request({ kind: 'draw', document: docId, folder: join(this.opts.dataDir, 'drawings', randomUUID()) });
+        return r.status === 'succeeded' ? { status: 'succeeded', files: r.files, dimensions: r.dimensions } : { status: r.status, error: r.error };
+      } catch (e) {
+        if (!(e instanceof WorkerError)) throw e;
+        await this.reloadAll();
+        return { status: 'failed', error: { code: e.code, message: e.message } };
+      }
+    });
+  }
+
+  // A vector drawing read back into a spec and a request for the agent, or a question (L7 T2); a raster image is unsupported.
+  readDrawing(path: string): Promise<{ status: string; drawing?: any; error?: TypedError }> {
+    return this.serial(async () => {
+      try {
+        const r = await this.worker.request({ kind: 'read_drawing', path });
+        return r.status === 'succeeded' ? { status: 'succeeded', drawing: r.drawing } : { status: r.status, error: r.error };
+      } catch (e) {
+        if (!(e instanceof WorkerError)) throw e;
+        await this.reloadAll();
+        return { status: 'failed', error: { code: e.code, message: e.message } };
+      }
+    });
+  }
+
   // The worker answers one request at a time, so every public call waits for the one before it.
   private serial<T>(f: () => Promise<T>): Promise<T> {
     const next = this.tail.then(f);

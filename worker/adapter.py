@@ -77,6 +77,7 @@ class Adapter:
     def validate_geometry(self, op): raise NotImplementedError
     def tessellate(self, document): raise NotImplementedError
     def rebuild_plan(self, document): raise NotImplementedError
+    def draw_document(self, document, folder): raise NotImplementedError
     def compare(self, document, other): raise NotImplementedError
     def save_checkpoint(self, document, path): raise NotImplementedError
     def load_checkpoint(self, document, path): raise NotImplementedError

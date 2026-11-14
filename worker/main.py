@@ -47,6 +47,11 @@ def serve(adapter, lines, out):
             reply = {"kind": "planned", **answer(adapter.rebuild_plan, msg["document"], "this adapter cannot rebuild a part as features")}
         elif kind == "compare":
             reply = {"kind": "compared", **answer(lambda d: adapter.compare(d, msg["other"]), msg["document"], "this adapter cannot compare solids")}
+        elif kind == "draw":
+            reply = {"kind": "drawn", **answer(lambda d: adapter.draw_document(d, msg["folder"]), msg["document"], "this adapter cannot draw a part")}
+        elif kind == "read_drawing":
+            from drawing_read import read_drawing  # ezdxf loads only when a drawing is read
+            reply = {"kind": "drawing_read", **answer(lambda p: {"drawing": read_drawing(p)}, msg["path"], "")}
         elif kind == "save":
             adapter.save_checkpoint(msg["document"], msg["path"])
             reply = {"kind": "saved"}

@@ -65,9 +65,9 @@ def read_drawing(path):
             return {"kind": "asks", "question": "The drawing says %s where its geometry measures %s mm. Which is right?" % (_n(said), _n(m))}
 
     request = "Rectangular plate %s mm long along X, %s mm wide along Y and %s mm thick along Z" % (_n(length), _n(width), _n(height))
-    if holes:
-        request += ", with %d through hole%s, centre%s measured from the centre of the plate's top face: %s" % (
-            len(holes), "s" if len(holes) > 1 else "", "s" if len(holes) > 1 else "",
+    if holes:  # no bare count: the agent's unit guard reads "2 through" as a number without a unit
+        request += ", with %s measured from the centre of the plate's top face: %s" % (
+            "through holes whose centres are" if len(holes) > 1 else "a through hole whose centre is",
             "; ".join("diameter %s mm at x %s mm, y %s mm" % (_n(h["diameter"]), _n(h["x"]), _n(h["y"])) for h in holes))
     return {"kind": "spec", "length": length, "width": width, "height": height, "holes": holes, "request": request + "."}
 

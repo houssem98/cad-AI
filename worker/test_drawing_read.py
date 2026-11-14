@@ -17,8 +17,8 @@ def test_reads_a_dxf_drawing_back_into_the_part_it_shows(tmp_path):
     assert spec["kind"] == "spec"
     assert [spec[k] for k in ("length", "width", "height")] == pytest.approx([100, 60, 8], abs=1e-6)
     assert [(h["diameter"], h["x"], h["y"]) for h in spec["holes"]] == [pytest.approx((6, -30, -20)), pytest.approx((10, 30, 15))]
-    assert spec["request"] == ("Rectangular plate 100 mm long along X, 60 mm wide along Y and 8 mm thick along Z, with 2 through holes, "
-                               "centres measured from the centre of the plate's top face: diameter 6 mm at x -30 mm, y -20 mm; "
+    assert spec["request"] == ("Rectangular plate 100 mm long along X, 60 mm wide along Y and 8 mm thick along Z, with through holes whose "
+                               "centres are measured from the centre of the plate's top face: diameter 6 mm at x -30 mm, y -20 mm; "
                                "diameter 10 mm at x 30 mm, y 15 mm.")
 
 
