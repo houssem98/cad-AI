@@ -16,6 +16,8 @@ import { modelClient } from './src/services/model/modelClient';
 import { agentRoutes } from './src/services/agent/routes';
 import { JobEngine } from './src/services/jobs/jobEngine';
 import { jobRoutes } from './src/services/jobs/jobRoutes';
+import { workflowRoutes } from './src/services/automation/routes';
+import { WorkflowStore } from './src/services/automation/workflows';
 import { handlers as jobHandlers } from './src/services/jobs/handlers';
 
 dotenv.config();
@@ -162,6 +164,7 @@ async function startServer() {
   const agent = agentRoutes(executor, modelClient({ mode, recordings, spendFile: `${recordings}spend.json`, capUsd: 3, key: process.env.DEEPSEEK_API_KEY }));
   approve = agent.approve;
   app.use(agent.router);
+  app.use(workflowRoutes(executor, new WorkflowStore(path.join(dataDir, 'workflows'))));
   // Background jobs (L6 T1): durable in their own store, each run by a worker process the watchdog keeps honest.
   const jobs = JobEngine.open({ dbPath: path.join(dataDir, 'jobs.db'), handlers: path.resolve(__dirname, 'src/services/jobs/handlers.ts'), types: Object.keys(jobHandlers) });
   app.use(jobRoutes(jobs));

@@ -54,6 +54,10 @@ export class WorkflowStore {
     mkdirSync(dir, { recursive: true });
   }
 
+  ids(): string[] {
+    return [...new Set(readdirSync(this.dir).flatMap((f) => /^(.+)@\d+\.json$/.exec(f)?.[1] ?? []))].sort();
+  }
+
   versions(id: string): number[] {
     return readdirSync(this.dir).flatMap((f) => {
       const m = /^(.+)@(\d+)\.json$/.exec(f);
