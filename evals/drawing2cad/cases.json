@@ -8,5 +8,17 @@
   { "file": "blind_hole.dxf", "expect": "unsupported" },
   { "file": "counterbore.dxf", "expect": "unsupported" },
   { "file": "scan.png", "expect": "unsupported" },
-  { "file": "contradiction.dxf", "expect": "asks" }
+  { "file": "contradiction.dxf", "expect": "asks" },
+  { "file": "many_holes_mixed.dxf", "reference": "many_holes_mixed.step", "expect": "part" },
+  { "file": "thin_near_edges.dxf", "reference": "thin_near_edges.step", "expect": "part" },
+  { "file": "thick_block.dxf", "reference": "thick_block.step", "expect": "part" },
+  { "file": "long_bar.dxf", "reference": "long_bar.step", "expect": "part" },
+  { "file": "tiny_plate.dxf", "reference": "tiny_plate.step", "expect": "part" },
+  { "file": "side_hole.dxf", "expect": "unsupported" },
+  { "file": "filleted_corners.dxf", "expect": "unsupported" },
+  { "file": "chamfered_top.dxf", "expect": "unsupported" },
+  { "file": "pocket.dxf", "expect": "unsupported" },
+  { "file": "blind_from_below.dxf", "expect": "unsupported" },
+  { "file": "slot.dxf", "expect": "unsupported" },
+  { "file": "contradiction_hole.dxf", "expect": "asks" }
 ]

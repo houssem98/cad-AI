@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 
 import ezdxf
-from build123d import Box, Cylinder, Pos, export_step
+from build123d import Axis, Box, Cylinder, Pos, SlotCenterToCenter, chamfer, export_step, extrude, fillet
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "cad-AI" / "worker"))
 from drawing import draw  # noqa: E402
@@ -26,7 +26,20 @@ PARTS = {
     "plate_four_holes": plate(5, -7, 120, 80, 10, [(x, y, 6) for x in (-50, 50) for y in (-30, 30)]),
     "sheet_three_holes": plate(0, 0, 200, 150, 2, [(0, 0, 12), (-80, 55, 4), (80, -55, 4)]),
     "square_offset_hole": plate(-40, -40, 50, 50, 12, [(10, -12, 8)]),
+    # L7 T2 step 5: the kinds of variety the holdout's brief named, so a miss shows here first.
+    "many_holes_mixed": plate(12.5, -30, 160.5, 90, 6.5, [(-70, -35, 3), (-70, 35, 3), (70, -35, 4.5), (70, 35, 4.5), (-30, 0, 8.5),
+                                                            (30, 0, 8.5), (0, -30, 6), (0, 30, 6)]),
+    "thin_near_edges": plate(-60, 25, 75.5, 40, 0.8, [(-35.25, -17.5, 3), (35.25, 17.5, 3), (0, 0, 10)]),
+    "thick_block": plate(20, 20, 45, 30.5, 60, [(-12.5, 0, 5.5), (12.5, 0, 5.5)]),
+    "long_bar": plate(100, 0, 250, 20, 12, [(x, 0, 6.6) for x in (-100, -50, 0, 50, 100)]),
+    "tiny_plate": plate(3, 3, 12, 8.5, 1.5, [(0, 0, 2)]),
     # Out of the reader's scope, so each must come back unsupported.
+    "side_hole": plate(0, 0, 60, 40, 20) - Pos(0, 0, 10) * Cylinder(4, 80, rotation=(0, 90, 0)),
+    "filleted_corners": fillet(plate(0, 0, 60, 40, 10).edges().filter_by(Axis.Z), 5),
+    "chamfered_top": chamfer(plate(0, 0, 60, 40, 10).edges().group_by(Axis.Z)[-1], 1.5),
+    "pocket": plate(0, 0, 80, 50, 12) - Pos(0, 0, 9) * Box(30, 20, 6),
+    "blind_from_below": plate(0, 0, 60, 40, 10) - Pos(0, 0, 2) * Cylinder(4, 4),
+    "slot": plate(0, 0, 80, 50, 8) - extrude(Pos(0, 0) * SlotCenterToCenter(30, 8), 8),
     "l_outline": plate(0, 0, 60, 40, 10) + Pos(20, 30, 5) * Box(20, 20, 10),
     "blind_hole": plate(0, 0, 60, 40, 10) - Pos(0, 0, 8) * Cylinder(4, 4),
     "counterbore": plate(0, 0, 60, 40, 12, [(0, 0, 6)]) - Pos(0, 0, 10) * Cylinder(6, 4),
@@ -46,5 +59,9 @@ if __name__ == "__main__":
         doc = ezdxf.readfile(OUT / "plate_two_holes.dxf")
         next(d for d in doc.modelspace().query("DIMENSION") if d.dxf.text == "100").dxf.text = "110"
         doc.saveas(OUT / "contradiction.dxf")
+    if not (OUT / "contradiction_hole.dxf").exists():  # a hole drawn 4.5 mm and labelled 5
+        doc = ezdxf.readfile(OUT / "many_holes_mixed.dxf")
+        next(d for d in doc.modelspace().query("DIMENSION") if d.dxf.text == "%%c4.5").dxf.text = "%%c5"
+        doc.saveas(OUT / "contradiction_hole.dxf")
     if not (OUT / "scan.png").exists():
         (OUT / "scan.png").write_bytes(b"\x89PNG\r\n\x1a\n" + bytes(32))
