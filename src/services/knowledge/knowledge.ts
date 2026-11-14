@@ -45,6 +45,11 @@ export class KnowledgeBase {
     return chunks;
   }
 
+  sources(): { source: string; chunks: number }[] {
+    return readdirSync(this.dir).filter((f) => f.endsWith('.json')).sort()
+      .map((f) => JSON.parse(readFileSync(join(this.dir, f), 'utf8'))).map((d) => ({ source: d.source, chunks: d.chunks.length }));
+  }
+
   search(query: string, k = 3): Hit[] {
     const chunks: Chunk[] = readdirSync(this.dir).filter((f) => f.endsWith('.json'))
       .flatMap((f) => JSON.parse(readFileSync(join(this.dir, f), 'utf8')).chunks);
