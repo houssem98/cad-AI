@@ -61,7 +61,7 @@ async function reference(file, base = DIR) {
 }
 
 // The spec, built by a fixed operation sequence: the plate's minimum corner on the origin, holes at the spec's corner-relative positions.
-async function build(s, { dx = 0, dt = 0, dd = 0, drop = false, blind = false } = {}) {
+async function build(s, { dx = 0, dt = 0, dd = 0, drop = false, blind = false, pocket = false } = {}) {
   const doc = `built${++n}`;
   for (const o of [op(doc, 'p', 'new_part', { name: doc }),
     op(doc, 's', 'sketch_rectangle', { plane: 'top', width: mm(s.length), height: mm(s.width), center: { x: mm(s.length / 2), y: mm(s.width / 2) } }),
@@ -69,6 +69,11 @@ async function build(s, { dx = 0, dt = 0, dd = 0, drop = false, blind = false } 
   for (const [i, h] of s.holes.slice(drop ? 1 : 0).entries())
     await run(op(doc, `h${i}`, 'hole', { diameter: mm(h.diameter + (i ? 0 : dd)), ...(blind && !i ? { depth: mm(s.height * 0.7) } : { through_all: true }),
       positions: [{ x: mm(h.x + (i ? 0 : dx)), y: mm(h.y) }] }));
+  if (pocket) { // a small pocket from below, near a corner: inside the volume tolerance on a large plate (council round 3, W1)
+    const q = Math.min(3, s.length / 4, s.width / 4);
+    await run(op(doc, 'k', 'sketch_rectangle', { plane: 'top', width: mm(q), height: mm(q), center: { x: mm(q), y: mm(q) } }));
+    await run(op(doc, 'c', 'cut', { sketch: 'k', depth: mm(s.height / 2) }));
+  }
   return doc;
 }
 
@@ -82,6 +87,7 @@ async function grade(doc, ref) {
   if (Math.abs(va.volume_mm3 - vb.volume_mm3) > 1e-4 * vb.volume_mm3) return `volume ${va.volume_mm3.toFixed(3)} of ${vb.volume_mm3.toFixed(3)} mm3`;
   if (extents(va).some((e, i) => Math.abs(e - extents(vb)[i]) > 1e-3)) return `extents ${extents(va).map((e) => +e.toFixed(3))} of ${extents(vb).map((e) => +e.toFixed(3))} mm`;
   if (a.result.holes !== b.result.holes) return `${a.result.holes} holes of ${b.result.holes}`;
+  if (va.counts.faces !== vb.counts.faces) return `${va.counts.faces} faces of ${vb.counts.faces}`; // a feature the drawing does not show (W1)
   const [ha, hb] = [holesAt(a.result, va), holesAt(b.result, vb)];
   if (ha.some((h, i) => h.some((x, k) => Math.abs(x - hb[i][k]) > 1e-3))) return `holes ${JSON.stringify(ha)} of ${JSON.stringify(hb)}`;
   return null;
@@ -104,7 +110,7 @@ try {
           const miss = await grade(await build(s), ref);
           ok = !miss;
           line += miss ? `, but its spec built by fixed operations differs: ${miss}` : `, and its spec built by fixed operations matches ${c.reference}`;
-          const planted = [{ dt: 0.01 }, ...(s.holes.length ? [{ dx: 0.5 }, { dd: 0.1 }, { drop: true }, { blind: true }] : [])];
+          const planted = [{ dt: 0.01 }, { pocket: true }, ...(s.holes.length ? [{ dx: 0.5 }, { dd: 0.1 }, { drop: true }, { blind: true }] : [])];
           for (const f of planted) {
             faults++;
             if (await grade(await build(s, f), ref)) caught++;
