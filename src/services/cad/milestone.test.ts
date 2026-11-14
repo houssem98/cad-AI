@@ -58,7 +58,9 @@ describe('headless milestone', { timeout: 180000 }, () => {
     mkdirSync(OUT, { recursive: true });
     for (const [name, seq, expected, height] of [['enclosure', ENCLOSURE, ENCLOSURE_MM3, 40], ['lid', LID, LID_MM3, 2]] as const) {
       for (const o of seq) await run(o);
-      const inspected = (await run(op(name, `${name}-inspect`, 'inspect', {}))).record.validationResult.inspection;
+      const { record } = await run(op(name, `${name}-inspect`, 'inspect', {}));
+      const inspected = record.validationResult.inspection;
+      expect(record.executionResult.result.material).toBe('abs');
       expect(inspected.valid).toBe(true);
       expect(inspected.counts.solids).toBe(1);
       expect(Math.abs(inspected.volume_mm3 - expected) / expected).toBeLessThan(5e-4);
