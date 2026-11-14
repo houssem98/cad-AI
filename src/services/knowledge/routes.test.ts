@@ -51,6 +51,8 @@ describe('knowledge routes', () => {
   it('refuses an unsafe source name, a missing text or question, and another host', async () => {
     expect((await call('POST', '/api/knowledge', { source: '../x.md', text: 'x' })).status).toBe(400);
     expect((await call('POST', '/api/knowledge', { source: 'a.md' })).status).toBe(400);
+    expect((await call('POST', '/api/knowledge', { text: 'Bolts. Use M3 screws.' })).status).toBe(400); // council S11: no name, never 'undefined'
+    expect((await call('GET', '/api/knowledge')).json.map((s: any) => s.source)).not.toContain('undefined');
     expect((await call('POST', '/api/knowledge/ask', {})).status).toBe(400);
     expect((await call('GET', '/api/knowledge', undefined, 'evil.example')).status).toBe(403);
     expect((await call('POST', '/api/knowledge/ask', { question: 'fillet' }, 'evil.example')).status).toBe(403);

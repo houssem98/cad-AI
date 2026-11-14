@@ -17,10 +17,11 @@ export function knowledgeRoutes(kb: KnowledgeBase) {
   router.post('/api/knowledge', (req, res) => {
     if (!local(req)) return refuse(res);
     const { source, text } = req.body ?? {};
+    if (typeof source !== 'string') return fail(res, 400, 'validation_failed', 'source: the document\'s file name is required'); // never "undefined" (council S11)
     if (typeof text !== 'string' || !text.trim()) return fail(res, 400, 'validation_failed', 'text: the document\'s text is required');
     if (text.length > MAX_CHARS) return fail(res, 400, 'validation_failed', `text: at most ${MAX_CHARS} characters`);
     try {
-      res.status(201).json({ source, chunks: kb.ingest(String(source), text).length });
+      res.status(201).json({ source, chunks: kb.ingest(source, text).length });
     } catch (e) {
       fail(res, 400, 'validation_failed', (e as Error).message);
     }

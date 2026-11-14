@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { Play, Workflow } from 'lucide-react';
 
 interface Param { name: string; unit: string; default?: number }
-interface SavedWorkflow { id: string; name: string; version: number; params: Param[]; steps: { id: string; type: string }[] }
+interface SavedWorkflow { id: string; name: string; version: number; params: Param[]; steps: { id: string; type: string }[]; error?: string }
 interface StepResult { id: string; type: string; status: string; error: string | null }
 interface Run { status: string; error: string | null; document: string; steps: StepResult[] }
 
@@ -45,7 +45,7 @@ export const AutomationStudioView: React.FC = () => {
 
   useEffect(() => {
     fetch('/api/workflows').then(json)
-      .then((ws: SavedWorkflow[]) => { setList(ws); if (ws[0]) choose(ws[0]); })
+      .then((ws: SavedWorkflow[]) => { setList(ws); const first = ws.find((w) => !w.error); if (first) choose(first); })
       .catch((e: Error) => setLoadError(e.message));
   }, []);
 
@@ -93,11 +93,18 @@ export const AutomationStudioView: React.FC = () => {
           <ul className="space-y-2">
             {list.map((w) => (
               <li key={w.id}>
+                {w.error ? (
+                  <p data-testid="workflow-unreadable" className="p-3 rounded-lg border border-red-500/40 bg-graphite-18 text-xs text-red-300">
+                    <span className="block font-tech">{w.id}</span>
+                    <span className="block">Unreadable: {w.error}</span>
+                  </p>
+                ) : (
                 <button data-testid="workflow" onClick={() => choose(w)} aria-pressed={w.id === selected}
                   className={`w-full text-left p-3 rounded-lg border text-xs ${w.id === selected ? 'border-steel-400 bg-graphite-1d' : 'border-graphite-29 bg-graphite-18'}`}>
                   <span className="block font-semibold text-neutral-100">{w.name}</span>
                   <span className="block font-tech text-neutral-400">{w.id} · version {w.version} · {w.steps.length} steps</span>
                 </button>
+                )}
               </li>
             ))}
           </ul>

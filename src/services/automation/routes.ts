@@ -12,7 +12,8 @@ export function workflowRoutes(executor: Executor, store: WorkflowStore) {
 
   router.get('/api/workflows', (req, res) => {
     if (!local(req)) return refuse(res);
-    res.json(store.ids().map((id) => store.load(id)));
+    // An unreadable or edited file is listed with its error, so one bad file never hides the rest (council S8).
+    res.json(store.ids().map((id) => { try { return store.load(id); } catch (e) { return { id, error: (e as Error).message }; } }));
   });
 
   router.post('/api/workflows', (req, res) => {

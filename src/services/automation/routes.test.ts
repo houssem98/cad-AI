@@ -1,5 +1,5 @@
 import express from 'express';
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { request as httpRequest, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -9,13 +9,14 @@ import { Executor } from '../cad/executor';
 import { workflowRoutes } from './routes';
 import { WorkflowStore } from './workflows';
 
-let ex: Executor, server: Server, port: number;
+let ex: Executor, server: Server, port: number, wfDir: string;
 beforeAll(async () => {
   const dir = mkdtempSync(join(tmpdir(), 'workflow-routes-'));
   ex = await Executor.open({ dbPath: join(dir, 'cad.db'), dataDir: dir, workerArgs: ['--adapter', 'kernel'] });
   const app = express();
   app.use(express.json());
-  app.use(workflowRoutes(ex, new WorkflowStore(join(dir, 'workflows'))));
+  wfDir = join(dir, 'workflows');
+  app.use(workflowRoutes(ex, new WorkflowStore(wfDir)));
   server = app.listen(0, '127.0.0.1');
   await new Promise((r) => server.once('listening', r));
   port = (server.address() as AddressInfo).port;
@@ -73,5 +74,18 @@ describe('workflow routes', { timeout: 180000 }, () => {
     expect((await call('POST', '/api/workflows/plate/replay', { args: { length: 'ten' }, document: 'p2' })).status).toBe(400);
     expect((await call('GET', '/api/workflows', undefined, 'evil.example')).status).toBe(403);
     expect((await call('POST', '/api/workflows/ghost/replay', { args: {}, document: 'g' })).status).toBe(404);
+  });
+
+  // Council S8: one unreadable file once turned the whole list into a 500.
+  it('flags an unreadable workflow file and still lists the readable ones', async () => {
+    writeFileSync(join(wfDir, 'a b@1.json'), '{}');
+    writeFileSync(join(wfDir, 'broken@1.json'), JSON.stringify({ ...PLATE, id: 'broken', steps: [] }));
+    const list = await call('GET', '/api/workflows');
+    expect(list.status).toBe(200);
+    expect(list.json.filter((w: any) => !w.error).map((w: any) => w.id)).toEqual(['plate']);
+    expect(list.json.filter((w: any) => w.error).map((w: any) => w.id).sort()).toEqual(['a b', 'broken']);
+    expect(list.json.find((w: any) => w.id === 'broken').error).toMatch(/steps: needs at least one operation/);
+    rmSync(join(wfDir, 'a b@1.json'));
+    rmSync(join(wfDir, 'broken@1.json'));
   });
 });
