@@ -82,3 +82,12 @@ def test_a_hole_label_that_matches_no_drawn_circle_is_asked_about(tmp_path):
     doc.saveas(path)
     out = read_drawing(path)
     assert out["kind"] == "asks" and "7" in out["question"]
+
+
+def test_a_diameter_in_eighth_millimetre_steps_reads_back_exactly(tmp_path):
+    """Found after the fresh holdout's first look: radii were rounded to 3 decimals, so Ø18.375 (r 9.1875) read as 18.376 and then
+    contradicted its own label."""
+    spec = read_drawing(draw(Pos(0, 0, 4) * Box(100.75, 60.125, 8) - Pos(10.0625, 5, 4) * Cylinder(18.375 / 2, 10), tmp_path)["files"]["dxf"])
+    assert spec["kind"] == "spec", spec
+    assert spec["holes"][0]["diameter"] == pytest.approx(18.375, abs=1e-9)
+    assert spec["holes"][0]["x"] == pytest.approx(100.75 / 2 + 10.0625, abs=1e-9)

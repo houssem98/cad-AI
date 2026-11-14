@@ -45,7 +45,9 @@ def read_drawing(path):
         raise Unsupported("concentric circles in the top view (a counterbore or a boss)")
     hidden = [e for e in view("front_hidden") if e.dxftype() == "LINE"]
     holes = []
-    for (cx, cy, r) in sorted(circles):
+    for key in sorted(circles):  # the key is rounded only to merge duplicates; a 0.125 mm step diameter has a 4-decimal radius
+        c = circles[key]
+        cx, cy, r = c.dxf.center.x, c.dxf.center.y, c.dxf.radius
         x = cx - tx0
         for side in (x - r, x + r):
             if not any(_vertical(e, fx0 + side, fy0, fy1) for e in hidden):
@@ -84,7 +86,7 @@ def read_drawing(path):
             return {"kind": "asks", "question": "The drawing has a dimension '%s' that is not a number. What does it measure?" % d.dxf.text}
         if abs(said - m) > TOL:
             return {"kind": "asks", "question": "The drawing says %s where its geometry measures %s mm. Which is right?" % (_n(said), _n(m))}
-        if diameter and not any(abs(2 * r - said) <= TOL for (_, _, r) in circles):
+        if diameter and not any(abs(2 * c.dxf.radius - said) <= TOL for c in circles.values()):
             return {"kind": "asks", "question": "The drawing labels a hole Ø%s mm, but no hole drawn in its top view has that diameter. Which is right?" % _n(said)}
 
     request = "Rectangular plate %s mm long along X, %s mm wide along Y and %s mm thick along Z" % (_n(length), _n(width), _n(height))
