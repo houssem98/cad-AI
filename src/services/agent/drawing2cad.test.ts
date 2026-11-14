@@ -74,6 +74,46 @@ describe('drawing to CAD through the agent', { timeout: 180000 }, () => {
     if (out.kind === 'failed') expect(out.message).toMatch(/kernel's last objection: the part measures 50 × 90 × 6.04 mm along X, Y and Z, but the drawing shows 90 × 50 × 6 mm/);
   });
 
+  // Council V1: the volume and hole branches had no test, and depth was never compared, so a blind hole passed on a large plate.
+  const drawPlate = async (doc: string, l: number, w: number, t: number, hole: object) => {
+    for (const o of [op(doc, 'p', 'new_part', { name: 'plate' }), op(doc, 's', 'sketch_rectangle', { plane: 'top', width: mm(l), height: mm(w) }),
+      op(doc, 'x', 'extrude', { sketch: 's', depth: mm(t) }), op(doc, 'h', 'hole', hole)]) expect((await ex.execute(o, { requestId: `d2c-${doc}` })).status).toBe('succeeded');
+    return (await ex.drawing(doc)).files!.dxf;
+  };
+  const builds = (turns: [string, object][]): Complete => {
+    let n = 0;
+    const usage = { prompt_tokens: 0, completion_tokens: 0 };
+    return async () => {
+      const t = turns[n];
+      return t ? { text: '', toolCalls: [{ id: `v${n}`, name: t[0], arguments: JSON.stringify({ id: ['p', 's', 'x', 'h'][n++], params: t[1] }) }], usage }
+        : { text: 'Done.', toolCalls: [], usage };
+    };
+  };
+  const plateTurns = (l: number, w: number, t: number, hole?: object): [string, object][] => [['new_part', { name: 'plate' }],
+    ['sketch_rectangle', { plane: 'top', width: mm(l), height: mm(w) }], ['extrude', { sketch: 's', depth: mm(t) }], ...(hole ? [['hole', hole] as [string, object]] : [])];
+  const objection = async (dxf: string, doc: string, model: Complete) => {
+    const out = await drawing2cad(dxf, { executor: ex, document: doc, requestId: `d2c-${doc}`, complete: model });
+    expect(out.kind, JSON.stringify(out)).toBe('failed');
+    return out.kind === 'failed' ? out.message : '';
+  };
+
+  it('objects to a right-size part whose hole is missing, by its volume', async () => {
+    const dxf = await drawPlate('v1a', 90, 50, 6, { diameter: mm(20), through_all: true, positions: [at(0, 0)] });
+    expect(await objection(dxf, 'v1a-rebuilt', builds(plateTurns(90, 50, 6)))).toMatch(/the part's volume is 27000 mm3, but the drawn plate with its holes is 25115\.044 mm3/);
+  });
+
+  it('objects to a hole in the wrong place', async () => {
+    const dxf = await drawPlate('v1b', 90, 50, 6, { diameter: mm(8), through_all: true, positions: [at(-25, 10)] });
+    const moved = { diameter: mm(8), through_all: true, positions: [at(-24, 10)] };
+    expect(await objection(dxf, 'v1b-rebuilt', builds(plateTurns(90, 50, 6, moved)))).toMatch(/has no through hole of diameter 8 mm along Z at x 20 mm, y 35 mm/);
+  });
+
+  it('objects to a hole that stops short, though its volume is inside the tolerance', async () => {
+    const dxf = await drawPlate('v1c', 300, 200, 10, { diameter: mm(5), through_all: true, positions: [at(0, 0)] });
+    const blind = { diameter: mm(5), depth: mm(7.1), positions: [at(0, 0)] };
+    expect(await objection(dxf, 'v1c-rebuilt', builds(plateTurns(300, 200, 10, blind)))).toMatch(/has no through hole of diameter 5 mm along Z at x 150 mm, y 100 mm/);
+  });
+
   it('refuses a raster image as unsupported before any model call or document', async () => {
     const scan = join(dir, 'scan.png');
     writeFileSync(scan, Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));

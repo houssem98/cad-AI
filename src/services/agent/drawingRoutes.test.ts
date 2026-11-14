@@ -16,9 +16,10 @@ const PLATE = (doc: string) => [op(doc, 'p', 'new_part', { name: 'plate' }), op(
   op(doc, 'x', 'extrude', { sketch: 's', depth: mm(6) }), op(doc, 'h', 'hole', { diameter: mm(8), through_all: true, positions: [{ x: mm(-25), y: mm(10) }] })];
 
 // A scripted model that builds the drawn plate, so the test grades the route, not a model.
-let calls = 0;
+let calls = 0, throwing = false;
 const usage = { prompt_tokens: 0, completion_tokens: 0 };
 const complete: Complete = async () => {
+  if (throwing) throw new Error('DEEPSEEK_API_KEY is not set');
   const t = PLATE('x')[calls];
   calls++;
   return t ? { text: '', toolCalls: [{ id: `t${calls}`, name: t.type, arguments: JSON.stringify({ id: t.id, params: t.params }) }], usage } : { text: 'Done.', toolCalls: [], usage };
@@ -79,5 +80,27 @@ describe('drawing routes', { timeout: 180000 }, () => {
     expect((await call('POST', '/api/drawings/read', { name: 'a.dxf', base64: 'AA==', document: '../x' })).status).toBe(400);
     expect((await call('POST', '/api/drawings/read', { name: 'a.dxf', base64: 'AA==', document: 'src' })).status).toBe(409);
     expect((await call('GET', '/api/documents/src/drawing.dxf', undefined, 'evil.example')).status).toBe(403);
+  });
+
+  // Council V2: a model error escaped the async handler and ended the server process; a prototype key passed the format check.
+  it('turns a model error into a failed result and keeps answering, and refuses prototype keys as formats', async () => {
+    const dxf = await call('GET', '/api/documents/src/drawing.dxf');
+    throwing = true;
+    const out = await call('POST', '/api/drawings/read', { name: 'plate.dxf', base64: Buffer.from(dxf.text, 'latin1').toString('base64'), document: 'thrower' });
+    throwing = false;
+    expect(out.status).toBe(200);
+    expect(JSON.parse(out.text)).toMatchObject({ kind: 'failed', message: expect.stringContaining('DEEPSEEK_API_KEY is not set') });
+    expect((await call('GET', '/api/documents/src/drawing.dxf')).status).toBe(200);
+    for (const fmt of ['__proto__', 'toString', 'constructor']) expect((await call('GET', `/api/documents/src/drawing.${fmt}`)).status, fmt).toBe(400);
+  });
+
+  // Council V8 and V12: two uploads to one name both passed the name check; another host was refused only on the export.
+  it('lets one of two uploads to the same name through, and refuses an upload from another host', async () => {
+    const dxf = await call('GET', '/api/documents/src/drawing.dxf');
+    const body = { name: 'plate.dxf', base64: Buffer.from(dxf.text, 'latin1').toString('base64'), document: 'twin' };
+    calls = 0;
+    const statuses = (await Promise.all([call('POST', '/api/drawings/read', body), call('POST', '/api/drawings/read', body)])).map((r) => r.status).sort();
+    expect(statuses).toEqual([200, 409]);
+    expect((await call('POST', '/api/drawings/read', { ...body, document: 'elsewhere' }, 'evil.example')).status).toBe(403);
   });
 });
