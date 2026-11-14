@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import type { Executor } from '../cad/executor';
 import { modelClient, type Complete } from '../model/modelClient';
-import { extractSpec } from './spec';
+import { extractSpec, type Spec } from './spec';
 import { runToolLoop } from './toolLoop';
 
 // L5 T4: request → spec or question → tool loop → the kernel's verdict. The report is built from execution records only,
@@ -22,6 +22,7 @@ export type Text2CadResult =
   | { kind: 'failed' | 'cancelled'; message: string; report: Report };
 export interface Text2CadContext {
   executor: Executor; document: string; requestId: string; signal?: AbortSignal; complete?: Complete;
+  spec?: Spec; // a spec read deterministically (a drawing's), so the model is not asked to transcribe it
   onEvent?: (type: 'plan' | 'operation' | 'record', data: object) => void;
 }
 
@@ -31,7 +32,7 @@ const sorted = (xs: number[]) => [...xs].sort((a, b) => a - b);
 
 export async function text2cad(request: string, ctx: Text2CadContext): Promise<Text2CadResult> {
   const complete = ctx.complete ?? live();
-  const spec = await extractSpec(request, complete);
+  const spec = ctx.spec ? { kind: 'spec' as const, spec: ctx.spec } : await extractSpec(request, complete);
   if (spec.kind === 'asks') return spec;
   const { executor, document } = ctx;
   const envelope = spec.spec.envelope_mm;

@@ -52,6 +52,20 @@ def read_drawing(path):
                 raise Unsupported("a hole that is not through (centre x %s mm from the left edge)" % _n(x))
         holes.append({"diameter": 2 * r, "x": x, "y": cy - ty0})
 
+    # A hole along X or Y, a blind hole from below or an inner void shows only in the right view or in hidden lines.
+    right = view("right")
+    if not right:
+        raise Unsupported("a drawing without a right view")
+    rx0, ry0, rx1, ry1 = _rectangle(right, "right")
+    if abs((rx1 - rx0) - width) > TOL or abs((ry1 - ry0) - height) > TOL:
+        raise Unsupported("views that disagree on the part's size")
+    _hidden(view("front_hidden"), "front", (fx0, fy0, fx1, fy1), [(h["x"], h["diameter"] / 2) for h in holes])
+    _hidden(view("right_hidden"), "right", (rx0, ry0, rx1, ry1), [(h["y"], h["diameter"] / 2) for h in holes])
+    for e in view("top_hidden"):
+        if not ((e.dxftype() == "LINE" and _on_boundary(e, tx0, ty0, tx1, ty1)) or (e.dxftype() == "CIRCLE"
+                and (round(e.dxf.center.x, 3), round(e.dxf.center.y, 3), round(e.dxf.radius, 3)) in circles)):
+            raise Unsupported("hidden geometry in the top view that no through hole explains")
+
     for d in msp.query("DIMENSION"):
         text = d.dxf.text.replace("%%c", "").replace("%%C", "").replace("Ø", "").strip()
         if text in ("", "<>"):
@@ -83,13 +97,31 @@ def _rectangle(entities, view, circles=False):
     xs = [p.x for e in lines for p in (e.dxf.start, e.dxf.end)]
     ys = [p.y for e in lines for p in (e.dxf.start, e.dxf.end)]
     x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
-    for e in lines:
-        s, t = e.dxf.start, e.dxf.end
-        on_side = abs(s.x - t.x) <= TOL and min(abs(s.x - x0), abs(s.x - x1)) <= TOL
-        on_end = abs(s.y - t.y) <= TOL and min(abs(s.y - y0), abs(s.y - y1)) <= TOL
-        if not (on_side or on_end):
-            raise Unsupported("a %s view that is not a plain rectangle" % view)
+    if not all(_on_boundary(e, x0, y0, x1, y1) for e in lines):
+        raise Unsupported("a %s view that is not a plain rectangle" % view)
     return x0, y0, x1, y1
+
+
+def _on_boundary(e, x0, y0, x1, y1):
+    s, t = e.dxf.start, e.dxf.end
+    return ((abs(s.x - t.x) <= TOL and min(abs(s.x - x0), abs(s.x - x1)) <= TOL)
+            or (abs(s.y - t.y) <= TOL and min(abs(s.y - y0), abs(s.y - y1)) <= TOL))
+
+
+def _hidden(entities, view, box, spans):
+    """Hidden lines must be the outline's far side, or the silhouettes and rims of the through holes, each hole given as its
+    centre along the view's horizontal axis from the outline's left edge and its radius."""
+    x0, y0, x1, y1 = box
+    for e in entities:
+        kind = e.dxftype()
+        if kind == "LINE" and (_on_boundary(e, *box) or any(_vertical(e, x0 + c + s * r, y0, y1) for c, r in spans for s in (-1, 1))):
+            continue
+        if kind == "SPLINE":
+            pts = e.control_points
+            if all(min(abs(p[1] - y0), abs(p[1] - y1)) <= TOL for p in pts) and any(
+                    all(x0 + c - r - TOL <= p[0] <= x0 + c + r + TOL for p in pts) for c, r in spans):
+                continue
+        raise Unsupported("hidden geometry in the %s view that no through hole explains" % view)
 
 
 def _vertical(e, x, y0, y1):

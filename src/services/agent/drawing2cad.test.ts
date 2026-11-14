@@ -47,6 +47,9 @@ describe('drawing to CAD through the agent', { timeout: 180000 }, () => {
     const out = await drawing2cad(drawn.files!.dxf, { executor: ex, document: 'rebuilt', requestId: 'd2c-1', complete: scripted(seen) });
     expect(out.kind, JSON.stringify(out)).toBe('part');
     expect(seen[0]).toContain('Rectangular plate 90 mm long along X, 50 mm wide along Y and 6 mm thick along Z, with a through hole whose centre is measured from the plate\'s corner at minimum X and minimum Y: diameter 8 mm at x 20 mm, y 35 mm.');
+    // The reader's spec is exact, so the model is never asked to transcribe it again (8 holes once overran its reply).
+    expect(seen.some((m) => m.includes('into a JSON spec'))).toBe(false);
+    expect(JSON.parse(seen[0]).map((m: { content: string }) => m.content).join('\n')).toContain('"envelope_mm":[90,50,6]');
     const [a, b] = [(await ex.inspect('rebuilt')).verification, (await ex.inspect('src')).verification];
     expect(a.valid).toBe(true);
     expect(a.volume_mm3).toBeCloseTo(b.volume_mm3, 6);

@@ -49,6 +49,8 @@ def test_raster_images_and_unreadable_drawings_are_unsupported(tmp_path):
     (Box(60, 40, 10) + Pos(20, 30, 0) * Box(20, 40, 10), "rectangle"),  # an L in the top view
     (Pos(0, 0, 5) * Box(60, 40, 10) + Pos(0, 0, 15) * Cylinder(5, 10), "rectangle"),  # a boss rises above the front view's outline
     (Pos(0, 0, 5) * Box(60, 40, 10) - Pos(0, 0, 8) * Cylinder(4, 4), "through"),  # a blind hole
+    (Pos(0, 0, 10) * Box(60, 40, 20) - Pos(0, 0, 10) * Cylinder(4, 80, rotation=(0, 90, 0)), "rectangle"),  # a hole along X: only the right view shows it
+    (Pos(0, 0, 5) * Box(60, 40, 10) - Pos(0, 0, 2) * Cylinder(4, 4), "hidden"),  # a blind hole from below: only hidden lines show it
 ])
 def test_parts_beyond_a_plate_with_through_holes_are_unsupported(tmp_path, part, why):
     with pytest.raises(Unsupported, match=why):
