@@ -14,6 +14,7 @@ import { mkdirSync, rmSync } from 'node:fs';
 import { Executor, type Decision } from './src/services/cad/executor';
 import { modelClient } from './src/services/model/modelClient';
 import { agentRoutes } from './src/services/agent/routes';
+import { drawingRoutes } from './src/services/agent/drawingRoutes';
 import { JobEngine } from './src/services/jobs/jobEngine';
 import { jobRoutes } from './src/services/jobs/jobRoutes';
 import { workflowRoutes } from './src/services/automation/routes';
@@ -163,11 +164,13 @@ async function startServer() {
   const executor = await Executor.open({ dbPath: path.join(dataDir, 'cad.db'), dataDir, workerArgs: ['--adapter', 'kernel'], approve: (op) => approve(op) });
   const recordings = path.resolve(__dirname, 'src/services/agent/recordings') + path.sep;
   const mode = (process.env.MODEL_MODE ?? 'live') as 'live' | 'replay' | 'record';
-  const agent = agentRoutes(executor, modelClient({ mode, recordings, spendFile: `${recordings}spend.json`, capUsd: 3, key: process.env.DEEPSEEK_API_KEY }));
+  const complete = modelClient({ mode, recordings, spendFile: `${recordings}spend.json`, capUsd: 3, key: process.env.DEEPSEEK_API_KEY });
+  const agent = agentRoutes(executor, complete);
   approve = agent.approve;
   app.use(agent.router);
   app.use(workflowRoutes(executor, new WorkflowStore(path.join(dataDir, 'workflows'))));
   app.use(knowledgeRoutes(new KnowledgeBase(path.join(dataDir, 'knowledge'))));
+  app.use(drawingRoutes(executor, complete, dataDir));
   // Background jobs (L6 T1): durable in their own store, each run by a worker process the watchdog keeps honest.
   const jobs = JobEngine.open({ dbPath: path.join(dataDir, 'jobs.db'), handlers: path.resolve(__dirname, 'src/services/jobs/handlers.ts'), types: Object.keys(jobHandlers) });
   app.use(jobRoutes(jobs));

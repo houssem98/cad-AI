@@ -272,9 +272,7 @@ export default function App() {
 
           {/* DRAWING TO CAD */}
           {currentModule === 'drawing-to-cad' && (
-            <DrawingToCadView
-              onNavigateToAgent={() => setCurrentModule('ai-cad-agent')}
-            />
+            <DrawingToCadView />
           )}
 
           {/* REVERSE ENGINEERING */}
@@ -285,7 +283,7 @@ export default function App() {
 
           {/* DRAWING AUTOMATION */}
           {currentModule === 'drawing-automation' && (
-            <DrawingAutomationView parameters={parameters} />
+            <DrawingAutomationView />
           )}
 
           {/* ENGINEERING COPILOT */}

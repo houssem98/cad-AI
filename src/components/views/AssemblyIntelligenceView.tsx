@@ -37,10 +37,16 @@ export const AssemblyIntelligenceView: React.FC = () => {
           </p>
         </div>
 
-        <span className="px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-tech font-bold">
-          0 Interferences Detected
+        <span className="px-2.5 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-tech font-bold">
+          Demo data
         </span>
       </div>
+
+      {/* L7 T10 (council S2): this view is not connected to the kernel, so it says so instead of reporting a check it never ran. */}
+      <p data-testid="demo-label" role="note" className="p-3 rounded-lg border border-amber-500/30 bg-amber-500/5 text-xs text-amber-200">
+        Demo data: the parts, mates, bill of materials and interference results below are fixed samples, not your assembly. The
+        kernel can place parts by face mates and measure interference, but that is not yet connected to this view.
+      </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: 3D Assembly Interactive Canvas with Exploded View Slider (2 cols) */}

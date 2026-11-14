@@ -4,162 +4,91 @@
  */
 
 import React, { useState } from 'react';
-import {
-  FileSearch,
-  Upload,
-  Eye,
-  CheckCircle2,
-  AlertCircle,
-  Layers,
-  ArrowRight,
-  ShieldCheck,
-  FileCheck,
-  Scan,
-} from 'lucide-react';
+import { FileInput, Play } from 'lucide-react';
 
-interface DrawingToCadViewProps {
-  onNavigateToAgent: () => void;
-}
+type Result =
+  | { kind: 'part'; report: { text: string } }
+  | { kind: 'asks'; question: string }
+  | { kind: 'unsupported'; message: string }
+  | { kind: 'failed' | 'cancelled'; message: string };
 
-export const DrawingToCadView: React.FC<DrawingToCadViewProps> = ({
-  onNavigateToAgent,
-}) => {
-  const [selectedDrawing, setSelectedDrawing] = useState('Mounting_Bracket_Draft_RevA.PDF');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+const LINE: Record<Result['kind'], string> = { part: 'text-emerald-300', asks: 'text-amber-300', unsupported: 'text-neutral-300', failed: 'text-red-300', cancelled: 'text-neutral-300' };
 
-  const extractedDimensions = [
-    { label: 'Length Base Plate', value: '80.00 mm', confidence: '99.8%', view: 'Front View', status: 'verified' },
-    { label: 'Width Base Plate', value: '50.00 mm', confidence: '99.4%', view: 'Top View', status: 'verified' },
-    { label: 'Base Thickness', value: '10.00 mm', confidence: '98.9%', view: 'Section A-A', status: 'verified' },
-    { label: 'Flange Height', value: '50.00 mm', confidence: '99.2%', view: 'Side View', status: 'verified' },
-    { label: '4x Hole Pattern', value: '4x Ø8.00 mm Thru', confidence: '99.5%', view: 'Top View', status: 'verified' },
-    { label: 'Center Bore', value: 'Ø24.00 mm', confidence: '99.1%', view: 'Front View', status: 'verified' },
-    { label: 'Fillet Radii', value: 'R2.00 mm (12x)', confidence: '97.2%', view: 'Isometric View', status: 'verified' },
-  ];
+// L7 T10: a drawing goes to the server's drawing2cad; the part stands only when the kernel measures the drawing's own numbers.
+export const DrawingToCadView: React.FC = () => {
+  const [file, setFile] = useState<File | null>(null);
+  const [document, setDocument] = useState('');
+  const [running, setRunning] = useState(false);
+  const [result, setResult] = useState<Result | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const pick = (f: File | undefined) => {
+    setFile(f ?? null);
+    setResult(null);
+    setError(null);
+    if (f) setDocument(`${f.name.replace(/\.[^.]*$/, '').replace(/[^A-Za-z0-9_-]/g, '-')}-${Date.now().toString(36)}`);
+  };
+
+  const build = async () => {
+    if (!file) return;
+    setRunning(true);
+    setResult(null);
+    setError(null);
+    try {
+      let bin = '';
+      for (const b of new Uint8Array(await file.arrayBuffer())) bin += String.fromCharCode(b);
+      const r = await fetch('/api/drawings/read', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: file.name, base64: btoa(bin), document }) });
+      const body = await r.json().catch(() => null);
+      if (!r.ok) throw new Error(body?.error?.message ?? `HTTP ${r.status}`);
+      setResult(body);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const text = (r: Result) => (r.kind === 'part' ? `Built and verified: ${r.report.text}` : r.kind === 'asks' ? `Question: ${r.question}`
+    : r.kind === 'unsupported' ? `Unsupported: ${r.message}` : `Failed: ${r.message}`);
 
   return (
-    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-graphite-0f select-none text-neutral-200">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-graphite-23">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            <FileSearch className="w-5 h-5 text-steel-400" />
-            <span>Drawing-to-CAD Vector Extraction</span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-tech uppercase bg-steel-500/20 text-steel-400 border border-steel-500/30">
-              OCR & Geometric NLP
-            </span>
-          </h1>
-          <p className="text-xs text-neutral-400 mt-1">
-            Analyze 2D PDF engineering drawings, extract GD&T annotations and tolerances, and reconstruct native 3D parametric solids.
-          </p>
-        </div>
+    <div className="flex-1 h-full overflow-y-auto p-6 space-y-6 bg-graphite-0f text-neutral-200">
+      <div className="pb-3 border-b border-graphite-23">
+        <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+          <FileInput className="w-5 h-5 text-steel-400" />
+          <span>Drawing to CAD</span>
+        </h1>
+        <p className="text-xs text-neutral-400 mt-1">
+          Upload a DXF drawing of a rectangular plate with through holes, in this app's drawing format. The agent builds it, and the
+          part stands only when the kernel measures the drawing's own numbers. Other drawings, PDFs and images are refused as unsupported.
+        </p>
+      </div>
 
-        <button
-          onClick={onNavigateToAgent}
-          className="flex items-center gap-2 px-3.5 py-1.5 bg-steel-600 hover:bg-steel-500 text-white rounded-lg text-xs font-semibold shadow-md transition-colors"
-        >
-          <span>Open in 3D Viewport</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="text-xs text-neutral-400 flex flex-col gap-1">
+          Drawing file
+          <input type="file" accept=".dxf,.svg,.pdf,.png,.jpg,.jpeg" onChange={(e) => pick(e.target.files?.[0])}
+            className="text-xs text-neutral-300 file:mr-2 file:px-2 file:py-1 file:rounded file:border-0 file:bg-steel-600 file:text-white" />
+        </label>
+        <label className="text-xs text-neutral-400 flex flex-col gap-1">
+          Document
+          <input type="text" value={document} onChange={(e) => setDocument(e.target.value)}
+            className="w-52 px-2 py-1 rounded bg-graphite-13 border border-graphite-31 text-neutral-100 font-tech" />
+        </label>
+        <button onClick={build} disabled={!file || running} aria-label="Build from drawing"
+          className="flex items-center gap-2 px-4 py-2 bg-steel-600 hover:bg-steel-500 disabled:opacity-60 text-white rounded-lg text-xs font-semibold">
+          <Play className="w-3.5 h-3.5" />
+          <span>{running ? 'Building…' : 'Build from drawing'}</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: 2D Drawing Blueprint Viewer (2 cols) */}
-        <div className="lg:col-span-2 p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="font-semibold text-neutral-100 text-sm flex items-center gap-2">
-              <Eye className="w-4 h-4 text-steel-400" />
-              <span>{selectedDrawing}</span>
-            </div>
-            <span className="px-2 py-0.5 rounded text-[10px] font-tech font-bold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              7 Views Classified
-            </span>
-          </div>
-
-          {/* Blueprint Canvas Graphic */}
-          <div className="relative w-full h-[400px] bg-graphite-14 border border-graphite-31 rounded-lg p-6 flex flex-col items-center justify-center cad-grid-bg overflow-hidden shadow-inner">
-            {/* Title Block Graphic */}
-            <div className="absolute bottom-4 right-4 bg-graphite-11/90 border border-steel-500/40 p-3 rounded font-tech text-[10px] space-y-1 text-neutral-300 w-52 shadow-lg">
-              <div className="text-steel-400 font-bold border-b border-steel-500/30 pb-0.5">AUTONOVA CORP — DWG 084</div>
-              <div>TITLE: MOUNTING BRACKET L-TYPE</div>
-              <div>MATERIAL: AL 6061-T6 • SCALE 1:1</div>
-              <div>TOL: ISO 2768-m • SHEET 1 OF 1</div>
-            </div>
-
-            {/* Simulated Orthographic Blueprint Drafting Projection Lines */}
-            <div className="relative w-72 h-56 border-2 border-steel-500/50 rounded flex flex-col items-center justify-center p-4 bg-steel-950/20 shadow-2xl">
-              {/* L-bracket outline */}
-              <div className="relative w-48 h-36 border-2 border-steel-400">
-                {/* Vertical flange bore */}
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full border-2 border-dashed border-steel-300" />
-                {/* Base plate horizontal cut */}
-                <div className="absolute bottom-6 left-0 right-0 border-b-2 border-steel-400" />
-                {/* 4 mounting holes indicators */}
-                <div className="absolute bottom-2 left-3 w-3 h-3 rounded-full border border-steel-300" />
-                <div className="absolute bottom-2 right-3 w-3 h-3 rounded-full border border-steel-300" />
-              </div>
-
-              {/* Dimension markers */}
-              <div className="absolute -bottom-6 text-steel-300 font-tech text-xs font-bold">
-                ◄── 80.00 mm ──►
-              </div>
-              <div className="absolute -left-8 top-1/2 -translate-y-1/2 -rotate-90 text-steel-300 font-tech text-xs font-bold">
-                ◄── 50.00 mm ──►
-              </div>
-            </div>
-
-            <div className="absolute top-4 left-4 text-xs font-tech text-steel-400 bg-steel-950/60 px-2.5 py-1 rounded border border-steel-800/40">
-              ANSI Y14.5 / ISO 128 Drafting Standards
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between text-xs text-neutral-400 font-tech">
-            <span>Raster DPI: 600 • Vector Layers: 14 • Projection: 3rd Angle</span>
-            <label className="flex items-center gap-2 px-3 py-1.5 bg-graphite-20 hover:bg-neutral-700 text-neutral-200 rounded cursor-pointer transition-colors">
-              <Upload className="w-3.5 h-3.5" />
-              <span>Upload New PDF/DWG</span>
-              <input type="file" className="hidden" accept=".pdf,.dwg,.dxf,.png" />
-            </label>
-          </div>
-        </div>
-
-        {/* Right: Extracted Dimensions & NLP Validation (1 col) */}
-        <div className="p-5 bg-graphite-18 border border-graphite-29 rounded-xl space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="font-semibold text-neutral-100 text-sm">
-              Extracted Engineering Parameters
-            </div>
-            <span className="text-[10px] text-emerald-400 font-tech">100% Resolved</span>
-          </div>
-
-          <div className="space-y-2.5 max-h-[420px] overflow-y-auto">
-            {extractedDimensions.map((dim, i) => (
-              <div
-                key={i}
-                className="p-3 bg-graphite-1c border border-graphite-2c rounded-lg space-y-1 text-xs"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral-400">{dim.label}</span>
-                  <span className="font-tech text-steel-300 font-bold">{dim.value}</span>
-                </div>
-                <div className="flex items-center justify-between text-[11px] font-tech text-neutral-500 pt-1 border-t border-graphite-23">
-                  <span>{dim.view}</span>
-                  <span className="text-emerald-400">Confidence {dim.confidence}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="pt-2">
-            <button
-              onClick={onNavigateToAgent}
-              className="w-full py-2.5 bg-steel-600 hover:bg-steel-500 text-white rounded-lg text-xs font-semibold shadow-md transition-colors"
-            >
-              Reconstruct Parametric 3D Model
-            </button>
-          </div>
-        </div>
-      </div>
+      {error && <p role="alert" className="text-xs text-red-400">The drawing could not be sent: {error}</p>}
+      {running && <p className="text-xs text-neutral-400">The agent is building the part and the kernel is checking it against the drawing…</p>}
+      {result && (
+        <p data-testid="drawing-result" data-kind={result.kind} className={`p-3 rounded-lg border border-graphite-29 bg-graphite-18 text-xs ${LINE[result.kind]}`}>
+          {text(result)}
+        </p>
+      )}
     </div>
   );
 };

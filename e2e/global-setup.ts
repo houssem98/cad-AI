@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,6 +7,7 @@ import { Executor } from '../src/services/cad/executor';
 // The viewport suite renders a part the real kernel built and tessellated, never a hand-made mesh.
 export const PLATE_GLB = fileURLToPath(new URL('./.fixtures/plate.glb', import.meta.url));
 export const PLATE_VIEW = fileURLToPath(new URL('./.fixtures/plate.view.json', import.meta.url));
+export const PLATE_DXF = fileURLToPath(new URL('./.fixtures/plate.dxf', import.meta.url)); // the kernel's drawing of the plate (L7 T10)
 
 const mm = (value: number) => ({ value, unit: 'mm' });
 const op = (id: string, type: string, params: object) => ({
@@ -34,6 +35,9 @@ export default async function globalSetup() {
     mkdirSync(dirname(PLATE_GLB), { recursive: true });
     writeFileSync(PLATE_GLB, preview.glb!);
     writeFileSync(PLATE_VIEW, JSON.stringify(view.view));
+    const drawn = await ex.drawing('plate');
+    if (drawn.status !== 'succeeded') throw new Error(`drawing ${drawn.status}: ${drawn.error?.message}`);
+    copyFileSync(drawn.files!.dxf, PLATE_DXF);
   } finally {
     ex.close();
   }

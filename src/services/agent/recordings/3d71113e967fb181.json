@@ -1,0 +1,987 @@
+{
+ "request": {
+  "model": "deepseek-flash",
+  "messages": [
+   {
+    "role": "system",
+    "content": "You build one part in a CAD kernel by calling tools. Each tool is one operation; the kernel's inspection after it comes back to you.\nLengths are {\"value\": <number>, \"unit\": \"mm\" | \"cm\" | \"m\" | \"in\"}. Sketches lie on a plane through the origin: \"top\" is XY, \"front\" is XZ, \"right\" is YZ.\nextrude and cut take a sketch id. Holes are drilled along Z from the top of the part at XY positions. Fillet and chamfer edges are named \"<feature id>:edge:<n>\":\ncall inspect first, which lists the solid's edges with their name, type, centre and direction, and take the names from that list.\nA hexagon's across-flats size is the distance between two opposite sides; its corners lie across_flats / √3 from its centre.\nA document starts with new_part. Give every operation a new id. If an operation is refused or fails, read its error and correct it.\nWhen the request is done, reply with one line and call no tool."
+   },
+   {
+    "role": "user",
+    "content": "The document does not exist yet.\nBuild this part: Rectangular plate 120 mm long along X, 80 mm wide along Y and 10 mm thick along Z, with through holes whose centres are measured from the plate's corner at minimum X and minimum Y: diameter 6 mm at x 10 mm, y 10 mm; diameter 6 mm at x 10 mm, y 70 mm; diameter 6 mm at x 110 mm, y 10 mm; diameter 6 mm at x 110 mm, y 70 mm.\nSpec, lengths also in mm: {\"part\":\"rectangular plate with through holes\",\"envelope_mm\":[120,80,10],\"assumptions\":[\"every hole goes through\"],\"dimensions\":[{\"name\":\"length along X\",\"value\":120,\"unit\":\"mm\",\"mm\":120},{\"name\":\"width along Y\",\"value\":80,\"unit\":\"mm\",\"mm\":80},{\"name\":\"thickness along Z\",\"value\":10,\"unit\":\"mm\",\"mm\":10},{\"name\":\"hole 1 diameter\",\"value\":6,\"unit\":\"mm\",\"mm\":6},{\"name\":\"hole 1 centre x from the corner\",\"value\":10,\"unit\":\"mm\",\"mm\":10},{\"name\":\"hole 1 centre y from the corner\",\"value\":10,\"unit\":\"mm\",\"mm\":10},{\"name\":\"hole 2 diameter\",\"value\":6,\"unit\":\"mm\",\"mm\":6},{\"name\":\"hole 2 centre x from the corner\",\"value\":10,\"unit\":\"mm\",\"mm\":10},{\"name\":\"hole 2 centre y from the corner\",\"value\":70,\"unit\":\"mm\",\"mm\":70},{\"name\":\"hole 3 diameter\",\"value\":6,\"unit\":\"mm\",\"mm\":6},{\"name\":\"hole 3 centre x from the corner\",\"value\":110,\"unit\":\"mm\",\"mm\":110},{\"name\":\"hole 3 centre y from the corner\",\"value\":10,\"unit\":\"mm\",\"mm\":10},{\"name\":\"hole 4 diameter\",\"value\":6,\"unit\":\"mm\",\"mm\":6},{\"name\":\"hole 4 centre x from the corner\",\"value\":110,\"unit\":\"mm\",\"mm\":110},{\"name\":\"hole 4 centre y from the corner\",\"value\":70,\"unit\":\"mm\",\"mm\":70}]}"
+   }
+  ],
+  "tools": [
+   {
+    "type": "function",
+    "function": {
+     "name": "new_part",
+     "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "id",
+       "params"
+      ],
+      "properties": {
+       "id": {
+        "type": "string",
+        "description": "a new id for this operation"
+       },
+       "params": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "name"
+        ],
+        "properties": {
+         "name": {
+          "type": "string",
+          "minLength": 1
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "function",
+    "function": {
+     "name": "sketch_rectangle",
+     "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "id",
+       "params"
+      ],
+      "properties": {
+       "id": {
+        "type": "string",
+        "description": "a new id for this operation"
+       },
+       "params": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "plane",
+         "width",
+         "height"
+        ],
+        "properties": {
+         "plane": {
+          "enum": [
+           "front",
+           "top",
+           "right"
+          ]
+         },
+         "width": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "value",
+           "unit"
+          ],
+          "properties": {
+           "value": {
+            "type": "number",
+            "exclusiveMinimum": 0
+           },
+           "unit": {
+            "enum": [
+             "mm",
+             "cm",
+             "m",
+             "in"
+            ]
+           }
+          }
+         },
+         "height": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "value",
+           "unit"
+          ],
+          "properties": {
+           "value": {
+            "type": "number",
+            "exclusiveMinimum": 0
+           },
+           "unit": {
+            "enum": [
+             "mm",
+             "cm",
+             "m",
+             "in"
+            ]
+           }
+          }
+         },
+         "center": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "x",
+           "y"
+          ],
+          "properties": {
+           "x": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+             "value",
+             "unit"
+            ],
+            "properties": {
+             "value": {
+              "type": "number"
+             },
+             "unit": {
+              "enum": [
+               "mm",
+               "cm",
+               "m",
+               "in"
+              ]
+             }
+            }
+           },
+           "y": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+             "value",
+             "unit"
+            ],
+            "properties": {
+             "value": {
+              "type": "number"
+             },
+             "unit": {
+              "enum": [
+               "mm",
+               "cm",
+               "m",
+               "in"
+              ]
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "function",
+    "function": {
+     "name": "sketch_circle",
+     "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "id",
+       "params"
+      ],
+      "properties": {
+       "id": {
+        "type": "string",
+        "description": "a new id for this operation"
+       },
+       "params": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "plane",
+         "diameter"
+        ],
+        "properties": {
+         "plane": {
+          "enum": [
+           "front",
+           "top",
+           "right"
+          ]
+         },
+         "diameter": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "value",
+           "unit"
+          ],
+          "properties": {
+           "value": {
+            "type": "number",
+            "exclusiveMinimum": 0
+           },
+           "unit": {
+            "enum": [
+             "mm",
+             "cm",
+             "m",
+             "in"
+            ]
+           }
+          }
+         },
+         "center": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "x",
+           "y"
+          ],
+          "properties": {
+           "x": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+             "value",
+             "unit"
+            ],
+            "properties": {
+             "value": {
+              "type": "number"
+             },
+             "unit": {
+              "enum": [
+               "mm",
+               "cm",
+               "m",
+               "in"
+              ]
+             }
+            }
+           },
+           "y": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+             "value",
+             "unit"
+            ],
+            "properties": {
+             "value": {
+              "type": "number"
+             },
+             "unit": {
+              "enum": [
+               "mm",
+               "cm",
+               "m",
+               "in"
+              ]
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "function",
+    "function": {
+     "name": "sketch_polyline",
+     "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "id",
+       "params"
+      ],
+      "properties": {
+       "id": {
+        "type": "string",
+        "description": "a new id for this operation"
+       },
+       "params": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "plane",
+         "points"
+        ],
+        "properties": {
+         "plane": {
+          "enum": [
+           "front",
+           "top",
+           "right"
+          ]
+         },
+         "points": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+           "type": "object",
+           "additionalProperties": false,
+           "required": [
+            "x",
+            "y"
+           ],
+           "properties": {
+            "x": {
+             "type": "object",
+             "additionalProperties": false,
+             "required": [
+              "value",
+              "unit"
+             ],
+             "properties": {
+              "value": {
+               "type": "number"
+              },
+              "unit": {
+               "enum": [
+                "mm",
+                "cm",
+                "m",
+                "in"
+               ]
+              }
+             }
+            },
+            "y": {
+             "type": "object",
+             "additionalProperties": false,
+             "required": [
+              "value",
+              "unit"
+             ],
+             "properties": {
+              "value": {
+               "type": "number"
+              },
+              "unit": {
+               "enum": [
+                "mm",
+                "cm",
+                "m",
+                "in"
+               ]
+              }
+             }
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "function",
+    "function": {
+     "name": "extrude",
+     "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "id",
+       "params"
+      ],
+      "properties": {
+       "id": {
+        "type": "string",
+        "description": "a new id for this operation"
+       },
+       "params": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "sketch",
+         "depth"
+        ],
+        "properties": {
+         "sketch": {
+          "type": "string",
+          "minLength": 1
+         },
+         "depth": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "value",
+           "unit"
+          ],
+          "properties": {
+           "value": {
+            "type": "number",
+            "exclusiveMinimum": 0
+           },
+           "unit": {
+            "enum": [
+             "mm",
+             "cm",
+             "m",
+             "in"
+            ]
+           }
+          }
+         },
+         "direction": {
+          "enum": [
+           "normal",
+           "reverse",
+           "mid_plane"
+          ]
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "function",
+    "function": {
+     "name": "cut",
+     "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "id",
+       "params"
+      ],
+      "properties": {
+       "id": {
+        "type": "string",
+        "description": "a new id for this operation"
+       },
+       "params": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "sketch",
+         "depth"
+        ],
+        "properties": {
+         "sketch": {
+          "type": "string",
+          "minLength": 1
+         },
+         "depth": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "value",
+           "unit"
+          ],
+          "properties": {
+           "value": {
+            "type": "number",
+            "exclusiveMinimum": 0
+           },
+           "unit": {
+            "enum": [
+             "mm",
+             "cm",
+             "m",
+             "in"
+            ]
+           }
+          }
+         },
+         "through_all": {
+          "type": "boolean"
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "function",
+    "function": {
+     "name": "hole",
+     "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "id",
+       "params"
+      ],
+      "properties": {
+       "id": {
+        "type": "string",
+        "description": "a new id for this operation"
+       },
+       "params": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "diameter",
+         "positions"
+        ],
+        "properties": {
+         "diameter": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "value",
+           "unit"
+          ],
+          "properties": {
+           "value": {
+            "type": "number",
+            "exclusiveMinimum": 0
+           },
+           "unit": {
+            "enum": [
+             "mm",
+             "cm",
+             "m",
+             "in"
+            ]
+           }
+          }
+         },
+         "depth": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "value",
+           "unit"
+          ],
+          "properties": {
+           "value": {
+            "type": "number",
+            "exclusiveMinimum": 0
+           },
+           "unit": {
+            "enum": [
+             "mm",
+             "cm",
+             "m",
+             "in"
+            ]
+           }
+          }
+         },
+         "positions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+           "type": "object",
+           "additionalProperties": false,
+           "required": [
+            "x",
+            "y"
+           ],
+           "properties": {
+            "x": {
+             "type": "object",
+             "additionalProperties": false,
+             "required": [
+              "value",
+              "unit"
+             ],
+             "properties": {
+              "value": {
+               "type": "number"
+              },
+              "unit": {
+               "enum": [
+                "mm",
+                "cm",
+                "m",
+                "in"
+               ]
+              }
+             }
+            },
+            "y": {
+             "type": "object",
+             "additionalProperties": false,
+             "required": [
+              "value",
+              "unit"
+             ],
+             "properties": {
+              "value": {
+               "type": "number"
+              },
+              "unit": {
+               "enum": [
+                "mm",
+                "cm",
+                "m",
+                "in"
+               ]
+              }
+             }
+            }
+           }
+          }
+         },
+         "through_all": {
+          "type": "boolean"
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "function",
+    "function": {
+     "name": "fillet",
+     "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "id",
+       "params"
+      ],
+      "properties": {
+       "id": {
+        "type": "string",
+        "description": "a new id for this operation"
+       },
+       "params": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "edges",
+         "radius"
+        ],
+        "properties": {
+         "edges": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+           "type": "string"
+          }
+         },
+         "radius": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "value",
+           "unit"
+          ],
+          "properties": {
+           "value": {
+            "type": "number",
+            "exclusiveMinimum": 0
+           },
+           "unit": {
+            "enum": [
+             "mm",
+             "cm",
+             "m",
+             "in"
+            ]
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "function",
+    "function": {
+     "name": "chamfer",
+     "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "id",
+       "params"
+      ],
+      "properties": {
+       "id": {
+        "type": "string",
+        "description": "a new id for this operation"
+       },
+       "params": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "edges",
+         "distance"
+        ],
+        "properties": {
+         "edges": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+           "type": "string"
+          }
+         },
+         "distance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "value",
+           "unit"
+          ],
+          "properties": {
+           "value": {
+            "type": "number",
+            "exclusiveMinimum": 0
+           },
+           "unit": {
+            "enum": [
+             "mm",
+             "cm",
+             "m",
+             "in"
+            ]
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "function",
+    "function": {
+     "name": "modify_dimension",
+     "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "id",
+       "params"
+      ],
+      "properties": {
+       "id": {
+        "type": "string",
+        "description": "a new id for this operation"
+       },
+       "params": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "parameter",
+         "value"
+        ],
+        "properties": {
+         "parameter": {
+          "type": "string",
+          "minLength": 1
+         },
+         "value": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+           "value",
+           "unit"
+          ],
+          "properties": {
+           "value": {
+            "type": "number",
+            "exclusiveMinimum": 0
+           },
+           "unit": {
+            "enum": [
+             "mm",
+             "cm",
+             "m",
+             "in"
+            ]
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "function",
+    "function": {
+     "name": "assign_material",
+     "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "id",
+       "params"
+      ],
+      "properties": {
+       "id": {
+        "type": "string",
+        "description": "a new id for this operation"
+       },
+       "params": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "material"
+        ],
+        "properties": {
+         "material": {
+          "type": "string",
+          "minLength": 1
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "function",
+    "function": {
+     "name": "inspect",
+     "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "id",
+       "params"
+      ],
+      "properties": {
+       "id": {
+        "type": "string",
+        "description": "a new id for this operation"
+       },
+       "params": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {}
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "function",
+    "function": {
+     "name": "export",
+     "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "id",
+       "params"
+      ],
+      "properties": {
+       "id": {
+        "type": "string",
+        "description": "a new id for this operation"
+       },
+       "params": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "format"
+        ],
+        "properties": {
+         "format": {
+          "enum": [
+           "step",
+           "brep"
+          ]
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   {
+    "type": "function",
+    "function": {
+     "name": "import",
+     "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "id",
+       "params"
+      ],
+      "properties": {
+       "id": {
+        "type": "string",
+        "description": "a new id for this operation"
+       },
+       "params": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+         "artifact"
+        ],
+        "properties": {
+         "artifact": {
+          "type": "string",
+          "minLength": 1
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  ],
+  "temperature": 0,
+  "max_tokens": 800,
+  "thinking": {
+   "type": "disabled"
+  }
+ },
+ "response": {
+  "id": "f7947807-10c5-464e-9fc0-1286b7fae8b3",
+  "object": "chat.completion",
+  "created": 1794679280,
+  "model": "deepseek-flash",
+  "choices": [
+   {
+    "index": 0,
+    "message": {
+     "role": "assistant",
+     "content": "I'll build the plate and add the four through holes.",
+     "tool_calls": [
+      {
+       "index": 0,
+       "id": "call_00_orD9JHe2VIjDTiwmBoVS2526",
+       "type": "function",
+       "function": {
+        "name": "new_part",
+        "arguments": "{\"id\": \"p1\", \"params\": {\"name\": \"rectangular_plate\"}}"
+       }
+      }
+     ]
+    },
+    "logprobs": null,
+    "finish_reason": "tool_calls"
+   }
+  ],
+  "usage": {
+   "prompt_tokens": 3601,
+   "completion_tokens": 73,
+   "total_tokens": 3674,
+   "prompt_tokens_details": {
+    "cached_tokens": 3456
+   },
+   "prompt_cache_hit_tokens": 3456,
+   "prompt_cache_miss_tokens": 145
+  },
+  "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
+ }
+}
