@@ -1,0 +1,12 @@
+[
+  { "file": "plate_two_holes.dxf", "reference": "plate_two_holes.step", "expect": "part" },
+  { "file": "block_plain.dxf", "reference": "block_plain.step", "expect": "part" },
+  { "file": "plate_four_holes.dxf", "reference": "plate_four_holes.step", "expect": "part" },
+  { "file": "sheet_three_holes.dxf", "reference": "sheet_three_holes.step", "expect": "part" },
+  { "file": "square_offset_hole.dxf", "reference": "square_offset_hole.step", "expect": "part" },
+  { "file": "l_outline.dxf", "expect": "unsupported" },
+  { "file": "blind_hole.dxf", "expect": "unsupported" },
+  { "file": "counterbore.dxf", "expect": "unsupported" },
+  { "file": "scan.png", "expect": "unsupported" },
+  { "file": "contradiction.dxf", "expect": "asks" }
+]

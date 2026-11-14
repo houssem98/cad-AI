@@ -1,0 +1,50 @@
+"""Writes the Drawing-to-CAD eval fixtures (L7 T2): each part as a reference STEP and as the DXF its drawing writer makes, built
+with build123d solids placed off the origin, never with the operation vocabulary the agent uses; plus a raster scan and a
+drawing whose dimension contradicts its geometry. Only files not on disk yet. Run: python evals/drawing2cad/make_fixtures.py"""
+import shutil
+import sys
+import tempfile
+from pathlib import Path
+
+import ezdxf
+from build123d import Box, Cylinder, Pos, export_step
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "cad-AI" / "worker"))
+from drawing import draw  # noqa: E402
+
+OUT = Path(__file__).parent / "fixtures"
+
+
+def plate(cx, cy, l, w, t, holes=()):
+    """An l x w x t plate centred at (cx, cy) on z = 0, minus through holes given as (x, y, diameter) from its centre."""
+    return Pos(cx, cy, t / 2) * Box(l, w, t) - [Pos(cx + x, cy + y, t / 2) * Cylinder(d / 2, t + 2) for x, y, d in holes]
+
+
+PARTS = {
+    "plate_two_holes": plate(30, 20, 100, 60, 8, [(-30, -20, 6), (30, 15, 10)]),
+    "block_plain": plate(-15, 40, 40, 30, 25),
+    "plate_four_holes": plate(5, -7, 120, 80, 10, [(x, y, 6) for x in (-50, 50) for y in (-30, 30)]),
+    "sheet_three_holes": plate(0, 0, 200, 150, 2, [(0, 0, 12), (-80, 55, 4), (80, -55, 4)]),
+    "square_offset_hole": plate(-40, -40, 50, 50, 12, [(10, -12, 8)]),
+    # Out of the reader's scope, so each must come back unsupported.
+    "l_outline": plate(0, 0, 60, 40, 10) + Pos(20, 30, 5) * Box(20, 20, 10),
+    "blind_hole": plate(0, 0, 60, 40, 10) - Pos(0, 0, 8) * Cylinder(4, 4),
+    "counterbore": plate(0, 0, 60, 40, 12, [(0, 0, 6)]) - Pos(0, 0, 10) * Cylinder(6, 4),
+}
+
+if __name__ == "__main__":
+    OUT.mkdir(exist_ok=True)
+    for name, part in PARTS.items():
+        assert len(part.solids()) == 1 and part.is_valid, name
+        if not (OUT / ("%s.step" % name)).exists():
+            export_step(part, str(OUT / ("%s.step" % name)))
+        if not (OUT / ("%s.dxf" % name)).exists():
+            with tempfile.TemporaryDirectory() as d:
+                shutil.copy(draw(part, d)["files"]["dxf"], OUT / ("%s.dxf" % name))
+        print(name, round(part.volume, 3))
+    if not (OUT / "contradiction.dxf").exists():  # the plate's drawing with its 100 mm length labelled 110
+        doc = ezdxf.readfile(OUT / "plate_two_holes.dxf")
+        next(d for d in doc.modelspace().query("DIMENSION") if d.dxf.text == "100").dxf.text = "110"
+        doc.saveas(OUT / "contradiction.dxf")
+    if not (OUT / "scan.png").exists():
+        (OUT / "scan.png").write_bytes(b"\x89PNG\r\n\x1a\n" + bytes(32))
