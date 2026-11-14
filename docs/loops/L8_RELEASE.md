@@ -8,7 +8,7 @@ Deciding rule, fixed before T1 starts: T0 to T5 and T7 are ticked (T7 added 2026
 
 ## Tasks
 
-- [ ] T0 Re-verify. needs: none. Run graph-lint. Evidence: graph-lint exits 0.
+- [x] T0 Re-verify. needs: none. Run graph-lint. Evidence: graph-lint exits 0.
 - [ ] T1 Readiness report. needs: T0. Write `docs/cad-agent/reports/PRODUCTION_READINESS.md` (new): one row per feature-matrix module with a capability word (I11) and the test name that backs it; no test means UNTESTED. Evidence: graph-lint exits 0, and a test fails when a matrix module has no row.
 - [ ] T2 Parity. needs: T0. Every claim in `docs/cad-agent/research/PARITY_SPEC.md` (new) gets, in its readiness row, either a passing test name or UNSUPPORTED with the reason. Where REA holds comparable evidence for both products, run verify_reconstruction on that claim and quote the verdict. Evidence: a test fails when a parity claim has neither a test name nor UNSUPPORTED.
 - [ ] T3 Security. needs: T0. API keys in the OS credential store, never in logs or the bundle; permission levels per tool; an audit trail of every operation; structured logs; rate and resource limits. Evidence: tests: a bundle scan finds no key pattern; an operation without permission is refused and logged.
@@ -18,3 +18,5 @@ Deciding rule, fixed before T1 starts: T0 to T5 and T7 are ticked (T7 added 2026
 - [ ] T7 Light theme. needs: T0. Added 2026-11-12 by the human, deferred from L4: a light theme that mirrors Graphite (L4 T1), with a toggle. Evidence: `cad-AI/e2e/palette.e2e.ts` passes with the light theme on, and the choice survives a reload.
 
 ## Journal
+- 2026-11-14 · L8/T0 · started T0. L6 and L7 are ticked, so L8 is the active loop (driver rule 1).
+- 2026-11-14 · L8/T0 · passed · gate green · commit see git log · graph-lint: "graph-lint: 30 docs · 208 citations (108 file, 0 line range, 98 literal, 2 planned)", "graph-lint: clean", exit=0. Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", "Tests  139 passed (139)", "88 passed in 22.08s", "holdout: 15 of 15 cases build their reference, pass every check, and catch every planted fault", "step2cad: 16 of 16 cases pass (13 to rebuild, 3 unsupported)", "drawing2cad self-check: 49 of 49 cases as expected, 200 of 200 planted faults caught", "holdout-retired-1 (seen, counts only): 12 of 12 cases as expected, 44 of 44 planted faults caught", "holdout-retired-2 (seen, counts only): 14 of 14 cases as expected, 50 of 50 planted faults caught", "47 passed (3.2m)", exit=0 · Direction: goal unchanged; L8 must not call the product ready on passing tests alone (its target) · Next: T1 Readiness report
