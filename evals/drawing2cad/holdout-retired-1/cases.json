@@ -1,0 +1,14 @@
+[
+  { "file": "h01.dxf", "reference": "h01.step", "expect": "part" },
+  { "file": "h02.dxf", "expect": "unsupported" },
+  { "file": "h03.dxf", "reference": "h03.step", "expect": "part" },
+  { "file": "h04.dxf", "reference": "h04.step", "expect": "part" },
+  { "file": "h05.dxf", "expect": "asks" },
+  { "file": "h06.dxf", "reference": "h06.step", "expect": "part" },
+  { "file": "h07.dxf", "expect": "unsupported" },
+  { "file": "h08.dxf", "reference": "h08.step", "expect": "part" },
+  { "file": "h09.dxf", "reference": "h09.step", "expect": "part" },
+  { "file": "h10.dxf", "reference": "h10.step", "expect": "part" },
+  { "file": "h11.dxf", "expect": "unsupported" },
+  { "file": "h12.dxf", "reference": "h12.step", "expect": "part" }
+]
