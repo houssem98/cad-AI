@@ -32,9 +32,12 @@ export function drawingRoutes(executor: Executor, complete: Complete, dataDir: s
       writeFileSync(path, Buffer.from(base64, 'base64'));
       res.json(await drawing2cad(path, { executor, document, requestId: `drawing-${document}`, complete }));
     } catch (e) {
-      // A model or kernel error ends this request, never the server (council V2).
-      const message = `the agent stopped: ${(e as Error).message}`;
-      res.json({ kind: 'failed', message, report: { operations: [], unresolved: [], inspection: null, text: `Failed: ${message}` } });
+      // A model or kernel error ends this request, never the server (council V2), and the result names what it left (round 3, W2).
+      const operations = executor.store.operationsFor(`drawing-${document}`)
+        .map((o) => ({ record: o.rowId, type: o.type, status: o.status, error: executor.store.record(o.rowId)?.errorDetails?.message ?? null }));
+      const left = executor.store.document(document) ? `; document ${document} holds a partial build, so upload again under another name` : '';
+      const message = `the agent stopped: ${(e as Error).message}${left}`;
+      res.json({ kind: 'failed', message, report: { operations, unresolved: [], inspection: null, text: `Failed: ${message}` } });
     } finally {
       running.delete(document);
     }

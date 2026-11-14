@@ -85,7 +85,7 @@ describe('drawing to CAD through the agent', { timeout: 180000 }, () => {
     const usage = { prompt_tokens: 0, completion_tokens: 0 };
     return async () => {
       const t = turns[n];
-      return t ? { text: '', toolCalls: [{ id: `v${n}`, name: t[0], arguments: JSON.stringify({ id: ['p', 's', 'x', 'h'][n++], params: t[1] }) }], usage }
+      return t ? { text: '', toolCalls: [{ id: `v${n}`, name: t[0], arguments: JSON.stringify({ id: ['p', 's', 'x', 'h', 'k', 'c'][n++], params: t[1] }) }], usage }
         : { text: 'Done.', toolCalls: [], usage };
     };
   };
@@ -112,6 +112,14 @@ describe('drawing to CAD through the agent', { timeout: 180000 }, () => {
     const dxf = await drawPlate('v1c', 300, 200, 10, { diameter: mm(5), through_all: true, positions: [at(0, 0)] });
     const blind = { diameter: mm(5), depth: mm(7.1), positions: [at(0, 0)] };
     expect(await objection(dxf, 'v1c-rebuilt', builds(plateTurns(300, 200, 10, blind)))).toMatch(/has no through hole of diameter 5 mm along Z at x 150 mm, y 100 mm/);
+  });
+
+  // Council round 3, W1: a pocket (or a fillet or a chamfer) the drawing does not show fit inside the volume tolerance and passed.
+  it('objects to a feature the drawing does not show, though its volume is inside the tolerance', async () => {
+    const dxf = await drawPlate('w1', 300, 200, 10, { diameter: mm(5), through_all: true, positions: [at(0, 0)] });
+    const pocket: [string, object][] = [['sketch_rectangle', { plane: 'top', width: mm(3), height: mm(3), center: at(100, 50) }], ['cut', { sketch: 'k', depth: mm(5) }]];
+    const turns = [...plateTurns(300, 200, 10, { diameter: mm(5), through_all: true, positions: [at(0, 0)] }), ...pocket];
+    expect(await objection(dxf, 'w1-rebuilt', builds(turns))).toMatch(/faces, but the drawn plate with its holes has 7/);
   });
 
   it('refuses a raster image as unsupported before any model call or document', async () => {

@@ -16,10 +16,11 @@ const PLATE = (doc: string) => [op(doc, 'p', 'new_part', { name: 'plate' }), op(
   op(doc, 'x', 'extrude', { sketch: 's', depth: mm(6) }), op(doc, 'h', 'hole', { diameter: mm(8), through_all: true, positions: [{ x: mm(-25), y: mm(10) }] })];
 
 // A scripted model that builds the drawn plate, so the test grades the route, not a model.
-let calls = 0, throwing = false;
+let calls = 0, throwing = false, throwAt = -1;
 const usage = { prompt_tokens: 0, completion_tokens: 0 };
 const complete: Complete = async () => {
   if (throwing) throw new Error('DEEPSEEK_API_KEY is not set');
+  if (calls === throwAt) throw new Error('the model timed out');
   const t = PLATE('x')[calls];
   calls++;
   return t ? { text: '', toolCalls: [{ id: `t${calls}`, name: t.type, arguments: JSON.stringify({ id: t.id, params: t.params }) }], usage } : { text: 'Done.', toolCalls: [], usage };
@@ -102,5 +103,17 @@ describe('drawing routes', { timeout: 180000 }, () => {
     const statuses = (await Promise.all([call('POST', '/api/drawings/read', body), call('POST', '/api/drawings/read', body)])).map((r) => r.status).sort();
     expect(statuses).toEqual([200, 409]);
     expect((await call('POST', '/api/drawings/read', { ...body, document: 'elsewhere' }, 'evil.example')).status).toBe(403);
+  });
+
+  // Council round 3, W2: an error after some operations ran reported none of them and said nothing of the half-built document.
+  it('reports the operations a stopped upload recorded and the document it left half built', async () => {
+    const dxf = await call('GET', '/api/documents/src/drawing.dxf');
+    calls = 0;
+    throwAt = 2;
+    const out = JSON.parse((await call('POST', '/api/drawings/read', { name: 'plate.dxf', base64: Buffer.from(dxf.text, 'latin1').toString('base64'), document: 'half' })).text);
+    throwAt = -1;
+    expect(out.kind).toBe('failed');
+    expect(out.report.operations.map((o: any) => [o.type, o.status])).toEqual([['new_part', 'succeeded'], ['sketch_rectangle', 'succeeded']]);
+    expect(out.message).toMatch(/document half holds a partial build/);
   });
 });

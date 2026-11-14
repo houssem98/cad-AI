@@ -110,6 +110,12 @@ export class CadStore {
       .map(({ command_json, ...r }) => ({ ...r, command: command_json ? JSON.parse(command_json) : null }));
   }
 
+  // The operations one request ran, in order, so a request that stops partway can still report what it recorded.
+  operationsFor(requestId: string): Array<{ rowId: string; type: string; status: string }> {
+    return (this.db.prepare('SELECT row_id AS rowId, envelope_json, status FROM operations WHERE request_id = ? ORDER BY document_id, seq').all(requestId) as any[])
+      .map((r) => ({ rowId: r.rowId, type: String(JSON.parse(r.envelope_json)?.type ?? ''), status: r.status }));
+  }
+
   // The document change, the record and the status land together or not at all.
   commit(row: OpRow, status: string, rec: RecordInput, doc?: Doc, files: Artifact[] = []) {
     this.db.exec('BEGIN');

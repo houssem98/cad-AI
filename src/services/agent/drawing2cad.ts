@@ -44,6 +44,9 @@ function matches(d: Read) {
       if (!holes.some((p) => Math.abs(p.direction[2]) > 1 - 1e-6 && Math.abs(p.diameter - h.diameter) <= 1e-3 && Math.abs(p.depth - d.height) <= 1e-3
         && Math.abs(p.point[0] - v.bbox_mm.min.x - h.x) <= 1e-3 && Math.abs(p.point[1] - v.bbox_mm.min.y - h.y) <= 1e-3))
         return `the part has no through hole of diameter ${n(h.diameter)} mm along Z at x ${n(h.x)} mm, y ${n(h.y)} mm from its corner at minimum X and Y`;
+    // A plate with through holes has exactly 6 faces and one per hole; a fillet, chamfer or pocket the drawing does not show adds
+    // faces while staying inside the volume tolerance (council round 3, W1).
+    if (v.counts.faces !== 6 + d.holes.length) return `the part has ${v.counts.faces} faces, but the drawn plate with its holes has ${6 + d.holes.length}`;
     return null;
   };
 }
