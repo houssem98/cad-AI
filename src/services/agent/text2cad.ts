@@ -23,6 +23,7 @@ export type Text2CadResult =
 export interface Text2CadContext {
   executor: Executor; document: string; requestId: string; signal?: AbortSignal; complete?: Complete;
   spec?: Spec; // a spec read deterministically (a drawing's), so the model is not asked to transcribe it
+  check?: (inspected: { verification: any; result: any }) => string | null; // an exact target's objection to the kernel's inspection
   onEvent?: (type: 'plan' | 'operation' | 'record', data: object) => void;
 }
 
@@ -38,13 +39,14 @@ export async function text2cad(request: string, ctx: Text2CadContext): Promise<T
   const envelope = spec.spec.envelope_mm;
   // A "done" stands only when the kernel finds one valid solid of the overall size the request states (I3, council C4).
   const verify = async () => {
-    const v = executor.store.document(document) ? (await executor.inspect(document)).verification : null;
+    const r = executor.store.document(document) ? await executor.inspect(document) : null;
+    const v = r?.verification;
     if (!v) return 'the document does not exist';
     if (!(v.valid && v.counts.solids === 1)) return `the document holds ${v.counts.solids} solids and valid is ${v.valid}`;
     const got = sorted(extents(v)), want = envelope && sorted(envelope);
     if (want && got.some((g, i) => Math.abs(g - want[i]) > 0.05))
       return `the part measures ${got.map(n).join(' × ')} mm, but the request's overall size is ${want.map(n).join(' × ')} mm`;
-    return null;
+    return ctx.check?.(r) ?? null;
   };
   const res = await runToolLoop(`Build this part: ${request}\nSpec, lengths also in mm: ${JSON.stringify(spec.spec)}`, { ...ctx, complete, verify });
 

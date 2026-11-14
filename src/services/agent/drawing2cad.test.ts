@@ -55,6 +55,25 @@ describe('drawing to CAD through the agent', { timeout: 180000 }, () => {
     expect(a.volume_mm3).toBeCloseTo(b.volume_mm3, 6);
   });
 
+  // Council S1: the overall-size check alone took a rotated, slightly thick plate with its hole missing for the drawn part.
+  it('does not accept a part that differs from the drawing in holes, axes or volume', async () => {
+    for (const o of [op('s1', 'p', 'new_part', { name: 'plate' }), op('s1', 's', 'sketch_rectangle', { plane: 'top', width: mm(90), height: mm(50) }),
+      op('s1', 'x', 'extrude', { sketch: 's', depth: mm(6) }), op('s1', 'h', 'hole', { diameter: mm(20), through_all: true, positions: [at(0, 0)] })])
+      expect((await ex.execute(o, { requestId: 'd2c-s1' })).status).toBe('succeeded');
+    const drawn = await ex.drawing('s1');
+    const usage = { prompt_tokens: 0, completion_tokens: 0 };
+    const wrong = [['new_part', { name: 'plate' }], ['sketch_rectangle', { plane: 'top', width: mm(50), height: mm(90) }], ['extrude', { sketch: 's', depth: mm(6.04) }]];
+    let n = 0;
+    const model: Complete = async () => {
+      const t = wrong[n];
+      return t ? { text: '', toolCalls: [{ id: `w${n}`, name: t[0] as string, arguments: JSON.stringify({ id: ['p', 's', 'x'][n++], params: t[1] }) }], usage }
+        : { text: 'Done.', toolCalls: [], usage };
+    };
+    const out = await drawing2cad(drawn.files!.dxf, { executor: ex, document: 's1-rebuilt', requestId: 'd2c-s1b', complete: model });
+    expect(out.kind, JSON.stringify(out)).toBe('failed');
+    if (out.kind === 'failed') expect(out.message).toMatch(/kernel's last objection: the part measures 50 × 90 × 6.04 mm along X, Y and Z, but the drawing shows 90 × 50 × 6 mm/);
+  });
+
   it('refuses a raster image as unsupported before any model call or document', async () => {
     const scan = join(dir, 'scan.png');
     writeFileSync(scan, Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
