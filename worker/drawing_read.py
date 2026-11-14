@@ -68,6 +68,7 @@ def read_drawing(path):
                 and (round(e.dxf.center.x, 3), round(e.dxf.center.y, 3), round(e.dxf.radius, 3)) in circles)):
             raise Unsupported("hidden geometry in the top view that no through hole explains")
 
+    outlines = [(fx0, fy0, fx1, fy1), (tx0, ty0, tx1, ty1), (rx0, ry0, rx1, ry1)]
     # A dimension scale factor shows true sizes over scaled geometry, and this reader measures the geometry (council S5).
     if abs(doc.header.get("$DIMLFAC", 1.0) - 1) > 1e-9:
         raise Unsupported("a drawing not at 1:1 (its dimensions scale lengths by %s)" % _n(doc.header.get("$DIMLFAC")))
@@ -77,17 +78,24 @@ def read_drawing(path):
             raise Unsupported("a drawing not at 1:1 (a dimension scales lengths by %s)" % _n(scale))
         diameter = d.dxf.text.lstrip().startswith(("%%c", "%%C", "Ø"))
         text = d.dxf.text.replace("%%c", "").replace("%%C", "").replace("Ø", "").strip()
-        if text in ("", "<>"):
-            continue  # the reader shows the measurement itself
         m = d.get_measurement()
-        try:
-            said = float(text)
-        except ValueError:
-            return {"kind": "asks", "question": "The drawing has a dimension '%s' that is not a number. What does it measure?" % d.dxf.text}
-        if abs(said - m) > TOL:
-            return {"kind": "asks", "question": "The drawing says %s where its geometry measures %s mm. Which is right?" % (_n(said), _n(m))}
-        if diameter and not any(abs(2 * c.dxf.radius - said) <= TOL for c in circles.values()):
-            return {"kind": "asks", "question": "The drawing labels a hole Ø%s mm, but no hole drawn in its top view has that diameter. Which is right?" % _n(said)}
+        if text in ("", "<>"):
+            said = m  # the reader shows the measurement itself
+        else:
+            try:
+                said = float(text)
+            except ValueError:
+                return {"kind": "asks", "question": "The drawing has a dimension '%s' that is not a number. What does it measure?" % d.dxf.text}
+            if abs(said - m) > TOL:
+                return {"kind": "asks", "question": "The drawing says %s where its geometry measures %s mm. Which is right?" % (_n(said), _n(m))}
+        # Each label must also measure what it is attached to (council V3): a Ø its own circle, a length an outline's full extent.
+        ends = (d.dxf.defpoint2, d.dxf.defpoint3)
+        if diameter:
+            if not any(abs(2 * c.dxf.radius - said) <= TOL and all(abs((p - c.dxf.center).magnitude - c.dxf.radius) <= TOL for p in ends)
+                       for c in circles.values()):
+                return {"kind": "asks", "question": "The drawing labels a hole Ø%s mm, but no hole drawn in its top view has that diameter where the label sits. Which is right?" % _n(said)}
+        elif not _labels_outline(ends, round(d.dxf.angle) % 180, said, outlines):
+            return {"kind": "asks", "question": "The drawing labels %s mm, but no outline in its views spans that between the label's ends. Which is right?" % _n(said)}
 
     request = "Rectangular plate %s mm long along X, %s mm wide along Y and %s mm thick along Z" % (_n(length), _n(width), _n(height))
     # Hole centres from the corner at minimum X and Y, as a drawing dimensions them from datum edges: the agent's spec takes only
@@ -111,6 +119,16 @@ def _rectangle(entities, view, circles=False):
     if not all(_on_boundary(e, x0, y0, x1, y1) for e in lines):
         raise Unsupported("a %s view that is not a plain rectangle" % view)
     return x0, y0, x1, y1
+
+
+def _labels_outline(ends, angle, said, outlines):
+    """A horizontal or vertical label whose two ends lie on one view's outline and which spans that outline's full extent."""
+    if angle not in (0, 90):
+        return False
+    def on(p, x0, y0, x1, y1):
+        return ((min(abs(p.x - x0), abs(p.x - x1)) <= TOL and y0 - TOL <= p.y <= y1 + TOL)
+                or (min(abs(p.y - y0), abs(p.y - y1)) <= TOL and x0 - TOL <= p.x <= x1 + TOL))
+    return any(all(on(p, *o) for p in ends) and abs(said - (o[2] - o[0] if angle == 0 else o[3] - o[1])) <= TOL for o in outlines)
 
 
 def _on_boundary(e, x0, y0, x1, y1):

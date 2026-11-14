@@ -50,3 +50,18 @@ test('an image is refused as unsupported, a missing document has no drawing, and
   await expect(page.getByTestId('demo-label')).toContainText('Demo data');
   await expect(page.getByText('0 Interferences Detected')).toHaveCount(0);
 });
+
+// Council V7: a part with a requested operation that failed and was never redone was shown as "Built and verified". The route is
+// stubbed because a recorded model would need to fail on purpose.
+test('a part the report marks incomplete is not shown as verified', async ({ page }) => {
+  await page.route('**/api/drawings/read', (r) => r.fulfill({ json: { kind: 'part', report: { operations: [], inspection: null,
+    unresolved: [{ record: 'r1', type: 'hole', error: 'hole at (300, 0) removed no material' }],
+    text: 'e2e-inc: 4 operations recorded. Incomplete: 1 requested operation failed and was not redone: hole: hole at (300, 0) removed no material' } } }));
+  await open(page, 'Drawing-to-CAD');
+  await page.getByLabel('Drawing file').setInputFiles(PLATE_DXF);
+  await page.getByRole('textbox', { name: 'Document' }).fill('e2e-inc');
+  await page.getByRole('button', { name: 'Build from drawing' }).click();
+  const result = page.getByTestId('drawing-result');
+  await expect(result).toContainText('Built, but incomplete');
+  await expect(result).not.toContainText('verified');
+});

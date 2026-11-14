@@ -91,3 +91,39 @@ def test_a_diameter_in_eighth_millimetre_steps_reads_back_exactly(tmp_path):
     assert spec["kind"] == "spec", spec
     assert spec["holes"][0]["diameter"] == pytest.approx(18.375, abs=1e-9)
     assert spec["holes"][0]["x"] == pytest.approx(100.75 / 2 + 10.0625, abs=1e-9)
+
+
+def _relabel(path, old, new, shift):
+    """Change one dimension's text and move its second attachment point along X, so its own measurement agrees with the new text."""
+    doc = ezdxf.readfile(path)
+    d = next(d for d in doc.modelspace().query("DIMENSION") if d.dxf.text == old)
+    d.dxf.text = new
+    p = d.dxf.defpoint3
+    d.dxf.defpoint3 = (p.x + shift, p.y, p.z)
+    doc.saveas(path)
+
+
+def test_a_length_label_that_measures_itself_but_not_the_outline_is_asked_about(tmp_path):
+    """Council V3: a 90 whose own points were 90 apart, on a 100 mm outline, was read as 100 with no question."""
+    path = draw(plate(), tmp_path)["files"]["dxf"]
+    _relabel(path, "100", "90", -10)
+    out = read_drawing(path)
+    assert out["kind"] == "asks" and "90" in out["question"], out
+
+
+def test_a_hole_label_must_sit_on_the_circle_it_names(tmp_path):
+    """Council V3: the Ø6 hole's label changed to Ø10 and stretched to 10 mm passed, because another hole is Ø10."""
+    path = draw(plate(), tmp_path)["files"]["dxf"]
+    _relabel(path, "%%c6", "%%c10", 4)
+    out = read_drawing(path)
+    assert out["kind"] == "asks" and "10" in out["question"], out
+
+
+def test_a_drawing_wide_scale_factor_is_unsupported(tmp_path):
+    """Council V3: the header's dimension scale factor was refused in code but never tested."""
+    path = draw(plate(), tmp_path)["files"]["dxf"]
+    doc = ezdxf.readfile(path)
+    doc.header["$DIMLFAC"] = 2.0
+    doc.saveas(path)
+    with pytest.raises(Unsupported, match="1:1"):
+        read_drawing(path)

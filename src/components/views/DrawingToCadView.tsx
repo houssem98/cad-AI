@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { FileInput, Play } from 'lucide-react';
 
 type Result =
-  | { kind: 'part'; report: { text: string } }
+  | { kind: 'part'; report: { text: string; unresolved?: unknown[] } }
   | { kind: 'asks'; question: string }
   | { kind: 'unsupported'; message: string }
   | { kind: 'failed' | 'cancelled'; message: string };
@@ -48,7 +48,9 @@ export const DrawingToCadView: React.FC = () => {
     }
   };
 
-  const text = (r: Result) => (r.kind === 'part' ? `Built and verified: ${r.report.text}` : r.kind === 'asks' ? `Question: ${r.question}`
+  // A part whose report holds a failed, never-redone operation is incomplete, never "verified" (council V7).
+  const text = (r: Result) => (r.kind === 'part' ? `${r.report.unresolved?.length ? 'Built, but incomplete' : 'Built and verified'}: ${r.report.text}`
+    : r.kind === 'asks' ? `Question: ${r.question}`
     : r.kind === 'unsupported' ? `Unsupported: ${r.message}` : `Failed: ${r.message}`);
 
   return (
