@@ -55,3 +55,30 @@ def test_raster_images_and_unreadable_drawings_are_unsupported(tmp_path):
 def test_parts_beyond_a_plate_with_through_holes_are_unsupported(tmp_path, part, why):
     with pytest.raises(Unsupported, match=why):
         read_drawing(draw(part, tmp_path)["files"]["dxf"])
+
+
+def test_a_long_plate_reads_back_with_its_three_decimals(tmp_path):
+    """Council S4: the reader's own %g turned 1250.125 into a question that contradicted itself."""
+    spec = read_drawing(draw(Pos(0, 0, 4) * Box(1250.125, 60, 8) - Pos(100, 0, 4) * Cylinder(3, 10), tmp_path)["files"]["dxf"])
+    assert spec["kind"] == "spec" and spec["length"] == pytest.approx(1250.125, abs=1e-6)
+    assert "1250.125 mm long" in spec["request"]
+
+
+def test_a_drawing_not_at_full_scale_is_unsupported(tmp_path):
+    """Council S5: a dimension scale factor of 2 showed true sizes on half-size geometry, and the plate was read at half size."""
+    path = draw(plate(), tmp_path)["files"]["dxf"]
+    doc = ezdxf.readfile(path)
+    doc.modelspace().add_linear_dim(base=(0, -60), p1=(-50, -4), p2=(50, -4), text="<>", dimstyle="Standard", override={"dimlfac": 2}).render()
+    doc.saveas(path)
+    with pytest.raises(Unsupported, match="1:1"):
+        read_drawing(path)
+
+
+def test_a_hole_label_that_matches_no_drawn_circle_is_asked_about(tmp_path):
+    """Council S5: each label was compared only with its own attachment points, never with the circles it names."""
+    path = draw(plate(), tmp_path)["files"]["dxf"]
+    doc = ezdxf.readfile(path)
+    doc.modelspace().add_linear_dim(base=(0, 60), p1=(0, 60), p2=(7, 60), text="%%c7", dimstyle="Standard").render()
+    doc.saveas(path)
+    out = read_drawing(path)
+    assert out["kind"] == "asks" and "7" in out["question"]

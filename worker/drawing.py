@@ -25,8 +25,13 @@ def draw(part, folder):
     return {"views": list(VIEWS), "dimensions": [{"name": n, "value": v, "label": _label(n, v)} for n, v, *_ in dims], "files": files}
 
 
+def _n(v):
+    """Up to three decimals, no trailing zeros: %g keeps only six significant digits, so 1250.125 would read 1250.12."""
+    return ("%.3f" % (round(v, 3) + 0.0)).rstrip("0").rstrip(".")
+
+
 def _label(name, value):
-    return ("Ø%g" if name == "hole" else "%g") % round(value, 3)
+    return ("Ø" if name == "hole" else "") + _n(value)
 
 
 def _sheet(part):

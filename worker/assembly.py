@@ -23,19 +23,28 @@ def assemble(parts, instances, mates=()):
             raise PreconditionFailed("instance %s is listed twice" % i["id"])
         placed[i["id"]] = copy.copy(parts[i["part"]])
     moved = set()
-    for n, m in enumerate(mates):
+    for m in mates:
         if m.get("kind") != "face":
             raise Unsupported("a %s mate" % m.get("kind"))
         if m["instance"] not in placed or m["to"] not in placed or m["instance"] == m["to"]:
             raise PreconditionFailed("a mate needs two different instances; got %s and %s" % (m["instance"], m["to"]))
         if m["instance"] in moved:
             raise PreconditionFailed("instance %s is already placed by a mate" % m["instance"])
-        a, b, label = placed[m["to"]], placed[m["instance"]], "mate%d" % n
-        dx, dy = m.get("offset", (0, 0))
-        RigidJoint(label, a, _frame(a, m["to_face"], inward=False) * Location((dx, dy, 0)))
-        RigidJoint(label, b, _frame(b, m["face"], inward=True))
-        a.joints[label].connect_to(b.joints[label])
         moved.add(m["instance"])
+    # A mate moves its instance to where its target is now, so every target is placed before what is mated to it, whatever the
+    # list's order (council S3); mates that wait on each other form a loop and are refused.
+    pending = list(enumerate(mates))
+    while pending:
+        ready = [(n, m) for n, m in pending if not any(o["instance"] == m["to"] for _, o in pending)]
+        if not ready:
+            raise PreconditionFailed("the mates form a loop: %s" % ", ".join("%s on %s" % (m["instance"], m["to"]) for _, m in pending))
+        for n, m in ready:
+            a, b, label = placed[m["to"]], placed[m["instance"]], "mate%d" % n
+            dx, dy = m.get("offset", (0, 0))
+            RigidJoint(label, a, _frame(a, m["to_face"], inward=False) * Location((dx, dy, 0)))
+            RigidJoint(label, b, _frame(b, m["face"], inward=True))
+            a.joints[label].connect_to(b.joints[label])
+            pending.remove((n, m))
     ids = list(placed)
     clashes = [{"a": x, "b": y, "volume_mm3": v} for k, x in enumerate(ids) for y in ids[k + 1:]
                for v in [(placed[x] & placed[y]).volume] if v > INTERFERENCE_MM3]

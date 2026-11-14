@@ -60,3 +60,18 @@ def test_a_mate_the_kernel_lacks_is_unsupported_and_a_missing_instance_is_refuse
         assemble(parts, [BASE], [on_base("ghost")])
     with pytest.raises(PreconditionFailed):
         assemble(parts, [BASE, {"id": "a", "part": "block"}], [on_base("a"), on_base("a", 30)])
+
+
+def test_a_chain_of_mates_places_parts_the_same_in_any_order_and_a_loop_is_refused(parts):
+    """Council S3: a mate once moved its instance to where the target was at that moment, so a target moved later left it behind."""
+    insts = [BASE, {"id": "blk", "part": "block"}, {"id": "lid", "part": "block"}]
+    blk_on_base, lid_on_blk = on_base("blk"), {"kind": "face", "instance": "lid", "face": "-z", "to": "blk", "to_face": "+z", "offset": [0, 0]}
+    forward = assemble(parts, insts, [blk_on_base, lid_on_blk])
+    backward = assemble(parts, insts, [lid_on_blk, blk_on_base])
+    for out in (forward, backward):
+        assert out["interference"] == []
+        lid = out["instances"][2]["verification"]["bbox_mm"]
+        assert (lid["min"]["z"], lid["max"]["z"]) == pytest.approx((25, 40), abs=1e-6)  # on the block, which sits on the 10 mm base
+    loop = {"kind": "face", "instance": "base", "face": "-z", "to": "lid", "to_face": "+z", "offset": [0, 0]}
+    with pytest.raises(PreconditionFailed, match="loop"):
+        assemble(parts, insts, [blk_on_base, lid_on_blk, loop])

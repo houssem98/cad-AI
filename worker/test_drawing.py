@@ -97,3 +97,12 @@ def test_the_report_lists_the_views_and_the_model_values(sheet, expected):
     report = sheet[0]
     assert report["views"] == VIEWS
     assert Counter(d["label"] for d in report["dimensions"]) == expected
+
+
+def test_a_dimension_of_1000_mm_or_more_keeps_its_three_decimals(tmp_path):
+    """Council S4: a %g label kept 6 significant digits, so 1250.125 read 1250.12."""
+    from build123d import Box, Cylinder, Pos
+    out = draw(Pos(0, 0, 4) * Box(1250.125, 60, 8) - Pos(100, 0, 4) * Cylinder(3, 10), tmp_path)
+    assert sorted(d["label"] for d in out["dimensions"]) == sorted(["1250.125", "60", "8", "Ø6"])
+    texts = [d.dxf.text.replace("%%c", "Ø") for d in ezdxf.readfile(out["files"]["dxf"]).modelspace().query("DIMENSION")]
+    assert "1250.125" in texts

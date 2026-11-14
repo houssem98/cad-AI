@@ -14,7 +14,7 @@ INSUNITS_MM = 4
 
 
 def _n(v):
-    return "%g" % (round(v, 3) + 0.0)
+    return ("%.3f" % (round(v, 3) + 0.0)).rstrip("0").rstrip(".")  # %g keeps only six significant digits
 
 
 def read_drawing(path):
@@ -66,7 +66,14 @@ def read_drawing(path):
                 and (round(e.dxf.center.x, 3), round(e.dxf.center.y, 3), round(e.dxf.radius, 3)) in circles)):
             raise Unsupported("hidden geometry in the top view that no through hole explains")
 
+    # A dimension scale factor shows true sizes over scaled geometry, and this reader measures the geometry (council S5).
+    if abs(doc.header.get("$DIMLFAC", 1.0) - 1) > 1e-9:
+        raise Unsupported("a drawing not at 1:1 (its dimensions scale lengths by %s)" % _n(doc.header.get("$DIMLFAC")))
     for d in msp.query("DIMENSION"):
+        scale = d.override().get("dimlfac", 1.0)
+        if abs(scale - 1) > 1e-9:
+            raise Unsupported("a drawing not at 1:1 (a dimension scales lengths by %s)" % _n(scale))
+        diameter = d.dxf.text.lstrip().startswith(("%%c", "%%C", "Ø"))
         text = d.dxf.text.replace("%%c", "").replace("%%C", "").replace("Ø", "").strip()
         if text in ("", "<>"):
             continue  # the reader shows the measurement itself
@@ -77,6 +84,8 @@ def read_drawing(path):
             return {"kind": "asks", "question": "The drawing has a dimension '%s' that is not a number. What does it measure?" % d.dxf.text}
         if abs(said - m) > TOL:
             return {"kind": "asks", "question": "The drawing says %s where its geometry measures %s mm. Which is right?" % (_n(said), _n(m))}
+        if diameter and not any(abs(2 * r - said) <= TOL for (_, _, r) in circles):
+            return {"kind": "asks", "question": "The drawing labels a hole Ø%s mm, but no hole drawn in its top view has that diameter. Which is right?" % _n(said)}
 
     request = "Rectangular plate %s mm long along X, %s mm wide along Y and %s mm thick along Z" % (_n(length), _n(width), _n(height))
     # Hole centres from the corner at minimum X and Y, as a drawing dimensions them from datum edges: the agent's spec takes only
