@@ -35,7 +35,9 @@ if (!existsSync(casesFile)) {
   process.exit(1);
 }
 const cases = JSON.parse(readFileSync(casesFile, 'utf8'));
-const fixture = (f) => fileURLToPath(new URL(`fixtures/${f}`, DIR));
+const fixture = (f, base = DIR) => fileURLToPath(new URL(`fixtures/${f}`, base));
+// Seen holdouts, retired after their deciding looks: the self-check runs them as a regression set and prints counts only.
+const RETIRED = ['holdout-retired-1', 'holdout-retired-2'].map((d) => new URL(`../evals/drawing2cad/${d}/`, import.meta.url));
 
 await import(new URL('node_modules/tsx/dist/esm/api/index.mjs', CAD)).then((m) => m.register());
 const { Executor } = await import(new URL('src/services/cad/executor.ts', CAD));
@@ -51,26 +53,28 @@ const run = async (o) => {
   if (out.status !== 'succeeded') throw new Error(`${o.target.document} ${o.id}: ${out.error?.message}`);
 };
 
-async function reference(file) {
-  const id = `ref${++n}`, path = fixture(file), data = readFileSync(path);
+async function reference(file, base = DIR) {
+  const id = `ref${++n}`, path = fixture(file, base), data = readFileSync(path);
   ex.store.addArtifact({ id, kind: 'step', path, sha256: createHash('sha256').update(data).digest('hex'), bytes: data.length });
   await run(op(id, id, 'import', { artifact: id }));
   return id;
 }
 
 // The spec, built by a fixed operation sequence: the plate's minimum corner on the origin, holes at the spec's corner-relative positions.
-async function build(s, { dx = 0, dt = 0, dd = 0, drop = false } = {}) {
+async function build(s, { dx = 0, dt = 0, dd = 0, drop = false, blind = false } = {}) {
   const doc = `built${++n}`;
   for (const o of [op(doc, 'p', 'new_part', { name: doc }),
     op(doc, 's', 'sketch_rectangle', { plane: 'top', width: mm(s.length), height: mm(s.width), center: { x: mm(s.length / 2), y: mm(s.width / 2) } }),
     op(doc, 'x', 'extrude', { sketch: 's', depth: mm(s.height + dt) })]) await run(o);
   for (const [i, h] of s.holes.slice(drop ? 1 : 0).entries())
-    await run(op(doc, `h${i}`, 'hole', { diameter: mm(h.diameter + (i ? 0 : dd)), through_all: true, positions: [{ x: mm(h.x + (i ? 0 : dx)), y: mm(h.y) }] }));
+    await run(op(doc, `h${i}`, 'hole', { diameter: mm(h.diameter + (i ? 0 : dd)), ...(blind && !i ? { depth: mm(s.height * 0.7) } : { through_all: true }),
+      positions: [{ x: mm(h.x + (i ? 0 : dx)), y: mm(h.y) }] }));
   return doc;
 }
 
 const extents = (v) => ['x', 'y', 'z'].map((k) => v.bbox_mm.max[k] - v.bbox_mm.min[k]);
-const holesAt = (r, v) => r.hole_list.map((h) => [h.diameter, h.point[0] - v.bbox_mm.min.x, h.point[1] - v.bbox_mm.min.y]).sort((a, b) => a[1] - b[1] || a[2] - b[2] || a[0] - b[0]);
+// Depth too (council V1): a small blind hole on a large plate stays inside the volume tolerance.
+const holesAt = (r, v) => r.hole_list.map((h) => [h.diameter, h.point[0] - v.bbox_mm.min.x, h.point[1] - v.bbox_mm.min.y, h.depth]).sort((a, b) => a[1] - b[1] || a[2] - b[2] || a[0] - b[0]);
 async function grade(doc, ref) {
   const [a, b] = [await ex.inspect(doc), await ex.inspect(ref)];
   const [va, vb] = [a.verification, b.verification];
@@ -86,28 +90,41 @@ async function grade(doc, ref) {
 let bad = 0;
 try {
   if (selfCheck) {
-    let faults = 0, caught = 0;
-    for (const c of cases) {
-      const r = await ex.readDrawing(fixture(c.file));
-      const kind = r.status === 'unsupported' ? 'unsupported' : r.drawing?.kind === 'asks' ? 'asks' : r.drawing?.kind === 'spec' ? 'part' : `failed (${r.error?.message})`;
-      let line = kind === c.expect ? `reads as ${kind}` : `expected ${c.expect}, read as ${kind}`;
-      let ok = kind === c.expect;
-      if (ok && c.expect === 'part') {
-        const ref = await reference(c.reference), s = r.drawing;
-        const miss = await grade(await build(s), ref);
-        ok = !miss;
-        line += miss ? `, but its spec built by fixed operations differs: ${miss}` : `, and its spec built by fixed operations matches ${c.reference}`;
-        const planted = [{ dt: 0.01 }, ...(s.holes.length ? [{ dx: 0.5 }, { dd: 0.1 }, { drop: true }] : [])];
-        for (const f of planted) {
-          faults++;
-          if (await grade(await build(s, f), ref)) caught++;
-          else { ok = false; line += `; the grader passed a planted fault ${JSON.stringify(f)}`; }
+    // One set: each drawing reads as expected, each "part" spec built by fixed operations matches its reference, and the grader
+    // refuses every planted fault. Lines per case only when verbose.
+    const checkSet = async (list, base, verbose) => {
+      let failed = 0, faults = 0, caught = 0;
+      for (const c of list) {
+        const r = await ex.readDrawing(fixture(c.file, base));
+        const kind = r.status === 'unsupported' ? 'unsupported' : r.drawing?.kind === 'asks' ? 'asks' : r.drawing?.kind === 'spec' ? 'part' : `failed (${r.error?.message})`;
+        let line = kind === c.expect ? `reads as ${kind}` : `expected ${c.expect}, read as ${kind}`;
+        let ok = kind === c.expect;
+        if (ok && c.expect === 'part') {
+          const ref = await reference(c.reference, base), s = r.drawing;
+          const miss = await grade(await build(s), ref);
+          ok = !miss;
+          line += miss ? `, but its spec built by fixed operations differs: ${miss}` : `, and its spec built by fixed operations matches ${c.reference}`;
+          const planted = [{ dt: 0.01 }, ...(s.holes.length ? [{ dx: 0.5 }, { dd: 0.1 }, { drop: true }, { blind: true }] : [])];
+          for (const f of planted) {
+            faults++;
+            if (await grade(await build(s, f), ref)) caught++;
+            else { ok = false; line += `; the grader passed a planted fault ${JSON.stringify(f)}`; }
+          }
         }
+        if (!ok) failed++;
+        if (verbose) console.log(`${ok ? 'PASS' : 'FAIL'} ${c.file}: ${line}`);
       }
-      if (!ok) bad++;
-      console.log(`${ok ? 'PASS' : 'FAIL'} ${c.file}: ${line}`);
+      return { failed, faults, caught };
+    };
+    const own = await checkSet(cases, DIR, true);
+    console.log(`drawing2cad self-check: ${cases.length - own.failed} of ${cases.length} cases as expected, ${own.caught} of ${own.faults} planted faults caught`);
+    bad += own.failed + own.faults - own.caught;
+    for (const base of RETIRED) {
+      const list = JSON.parse(readFileSync(new URL('cases.json', base), 'utf8'));
+      const r = await checkSet(list, base, false);
+      console.log(`drawing2cad self-check, ${base.pathname.split('/').filter(Boolean).at(-1)} (seen, counts only): ${list.length - r.failed} of ${list.length} cases as expected, ${r.caught} of ${r.faults} planted faults caught`);
+      bad += r.failed + r.faults - r.caught;
     }
-    console.log(`drawing2cad self-check: ${cases.length - bad} of ${cases.length} cases as expected, ${caught} of ${faults} planted faults caught`);
   } else {
     for (let k = 1; k <= runs; k++) {
       let passed = 0;
