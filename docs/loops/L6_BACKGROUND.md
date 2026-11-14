@@ -506,3 +506,4 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
   - Stop: Budget. This is the 25th of L6's 25 ticks, and its only open task is T6, the human's signoff. By driver rule 3, L7 (needs L5) is the next loop with agent tasks. The loop stops here and asks the human instead of starting L7 on an exhausted L6 budget.
   - Direction: still the goal. Every completed job has a verified output artifact. Next: T6 (human) Signoff.
 - 2026-11-14 · L6/T6 · passed · human signoff in chat, multiple choice: "Sign off L6", asked with L6 at its last agent task (T5 ticked, gate green on 2026-11-14 at cad-AI 1037479, budget reached). The L6 loop line in `docs/LOOP_GRAPH.md` is the human's to tick (driver rule 4); L8 waits on it.
+- 2026-11-14 · L6 · loop line ticked in `docs/LOOP_GRAPH.md` on the human's instruction in chat ("l6 ticked for me"), after the T6 signoff and a green gate (cad-AI 1037479). L8 now waits only on L7.
