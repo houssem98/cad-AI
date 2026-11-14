@@ -18,3 +18,9 @@ Deciding rule, fixed before T1 starts: T0 to T6 are ticked, `npm run gate` exits
 - [ ] T7 (human) Signoff. needs: T6. Evidence: the signoff line in the Journal.
 
 ## Journal
+- 2026-11-14 · L7/T0 · started T0. L6 waits only on its human signoff (T6). The human said "continue the loop", so by driver rule 3 L7, which needs only L5, is the next loop with agent tasks.
+- 2026-11-14 · L7 · human decisions, asked together before any task needed them:
+  - T2 Drawing-to-CAD is deferred. T1, T3, T4 and T5 come first, and T2 waits for a decision on a vision model, so nothing new is installed or billed.
+  - T1 writes its PDF with a small hand-written writer, with no new package. The kernel already writes SVG and DXF.
+  - T5 uses local keyword search, with no model and no new package.
+- 2026-11-14 · L7/T0 · failed · gate red: `cad-AI/src/services/agent/text2cad.test.ts#fails a part whose size differs from the overall size the request states (council C4)` got "Failed after 3 failures; the last failed record: extrude: the document does not exist." after 54.7 s (113 of 114 passed, gate exit=1) · commit none · graph-lint exit 0 ("graph-lint: clean"), but the gate is red, so T0 is not ticked; the human then asked to commit and push everything to github.com/houssem98/cad-AI · Direction: goal unchanged; a document vanishing mid-run is a kernel-record fault and comes before any L7 feature · Next: T0 (find why the document disappeared, re-run the gate)
