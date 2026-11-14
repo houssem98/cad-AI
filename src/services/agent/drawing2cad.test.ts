@@ -46,7 +46,7 @@ describe('drawing to CAD through the agent', { timeout: 180000 }, () => {
     const seen: string[] = [];
     const out = await drawing2cad(drawn.files!.dxf, { executor: ex, document: 'rebuilt', requestId: 'd2c-1', complete: scripted(seen) });
     expect(out.kind, JSON.stringify(out)).toBe('part');
-    expect(seen[0]).toContain('Rectangular plate 90 mm long along X, 50 mm wide along Y and 6 mm thick along Z, with a through hole whose centre is measured from the centre of the plate\'s top face: diameter 8 mm at x -25 mm, y 10 mm.');
+    expect(seen[0]).toContain('Rectangular plate 90 mm long along X, 50 mm wide along Y and 6 mm thick along Z, with a through hole whose centre is measured from the plate\'s corner at minimum X and minimum Y: diameter 8 mm at x 20 mm, y 35 mm.');
     const [a, b] = [(await ex.inspect('rebuilt')).verification, (await ex.inspect('src')).verification];
     expect(a.valid).toBe(true);
     expect(a.volume_mm3).toBeCloseTo(b.volume_mm3, 6);

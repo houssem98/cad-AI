@@ -34,7 +34,7 @@ def test_the_kernel_worker_draws_a_document_and_reads_the_drawing_back(tmp_path)
     [read] = replies(k, {"kind": "read_drawing", "path": drawn["files"]["dxf"]})
     assert read["status"] == "succeeded" and read["drawing"]["kind"] == "spec", read
     assert [read["drawing"][d] for d in ("length", "width", "height")] == [120, 80, 10]
-    assert sorted((h["x"], h["y"]) for h in read["drawing"]["holes"]) == [(-50, -30), (-50, 30), (50, -30), (50, 30)]
+    assert sorted((h["x"], h["y"]) for h in read["drawing"]["holes"]) == [(10, 10), (10, 70), (110, 10), (110, 70)]
 
 
 def test_a_drawing_the_worker_cannot_read_or_draw_is_unsupported(tmp_path):

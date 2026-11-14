@@ -50,7 +50,7 @@ def read_drawing(path):
         for side in (x - r, x + r):
             if not any(_vertical(e, fx0 + side, fy0, fy1) for e in hidden):
                 raise Unsupported("a hole that is not through (centre x %s mm from the left edge)" % _n(x))
-        holes.append({"diameter": 2 * r, "x": x - length / 2, "y": cy - ty0 - width / 2})
+        holes.append({"diameter": 2 * r, "x": x, "y": cy - ty0})
 
     for d in msp.query("DIMENSION"):
         text = d.dxf.text.replace("%%c", "").replace("%%C", "").replace("Ø", "").strip()
@@ -65,8 +65,10 @@ def read_drawing(path):
             return {"kind": "asks", "question": "The drawing says %s where its geometry measures %s mm. Which is right?" % (_n(said), _n(m))}
 
     request = "Rectangular plate %s mm long along X, %s mm wide along Y and %s mm thick along Z" % (_n(length), _n(width), _n(height))
-    if holes:  # no bare count: the agent's unit guard reads "2 through" as a number without a unit
-        request += ", with %s measured from the centre of the plate's top face: %s" % (
+    # Hole centres from the corner at minimum X and Y, as a drawing dimensions them from datum edges: the agent's spec takes only
+    # positive values. No bare count: its unit guard reads "2 through" as a number without a unit.
+    if holes:
+        request += ", with %s measured from the plate's corner at minimum X and minimum Y: %s" % (
             "through holes whose centres are" if len(holes) > 1 else "a through hole whose centre is",
             "; ".join("diameter %s mm at x %s mm, y %s mm" % (_n(h["diameter"]), _n(h["x"]), _n(h["y"])) for h in holes))
     return {"kind": "spec", "length": length, "width": width, "height": height, "holes": holes, "request": request + "."}

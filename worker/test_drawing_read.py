@@ -16,10 +16,10 @@ def test_reads_a_dxf_drawing_back_into_the_part_it_shows(tmp_path):
     spec = read_drawing(draw(plate(), tmp_path)["files"]["dxf"])
     assert spec["kind"] == "spec"
     assert [spec[k] for k in ("length", "width", "height")] == pytest.approx([100, 60, 8], abs=1e-6)
-    assert [(h["diameter"], h["x"], h["y"]) for h in spec["holes"]] == [pytest.approx((6, -30, -20)), pytest.approx((10, 30, 15))]
+    assert [(h["diameter"], h["x"], h["y"]) for h in spec["holes"]] == [pytest.approx((6, 20, 10)), pytest.approx((10, 80, 45))]
     assert spec["request"] == ("Rectangular plate 100 mm long along X, 60 mm wide along Y and 8 mm thick along Z, with through holes whose "
-                               "centres are measured from the centre of the plate's top face: diameter 6 mm at x -30 mm, y -20 mm; "
-                               "diameter 10 mm at x 30 mm, y 15 mm.")
+                               "centres are measured from the plate's corner at minimum X and minimum Y: diameter 6 mm at x 20 mm, y 10 mm; "
+                               "diameter 10 mm at x 80 mm, y 45 mm.")
 
 
 def test_a_dimension_that_contradicts_the_geometry_is_asked_about(tmp_path):
