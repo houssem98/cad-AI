@@ -14,7 +14,7 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
 - [x] T3 STEP-to-CAD. needs: T1. Import a STEP file through the kernel's import operation (`cad-AI/worker/adapter_kernel.py#import_document = create_part`), inspect it, rebuild prismatic parts (planar faces, cylindrical holes) as an editable feature sequence; anything else is reported UNSUPPORTED. Evidence: evals/step2cad/ with at least 10 fixtures: rebuilt volume within 0.1 % and the same bounding box; a freeform fixture returns unsupported.
 - [x] T4 Tasks dashboard. needs: T1. List, progress, cancel, download. Evidence: e2e: submit, watch progress, cancel one, download another.
 - [x] T5 Independent check. needs: T2, T3, T4. A council with the jobs and geometry items of the attack list. Evidence: the chairman's list in the Journal, each item reproduced or rejected; `npm run gate` exits 0.
-- [ ] T6 (human) Signoff. needs: T5. Evidence: the signoff line in the Journal.
+- [x] T6 (human) Signoff. needs: T5. Evidence: the signoff line in the Journal.
 
 ## Journal
 - 2026-11-12 · L6/T0 · started T0 (L5 closed by the human, so L6 is the active loop by driver rule 1)
@@ -505,3 +505,4 @@ Deciding rule, fixed before T1 starts: T0 to T5 are ticked, `npm run gate` exits
   - Gate: "graph-lint: clean", "clean-room-lint: clean", "gate-guard: clean · HEAD..working tree", vitest "Tests  114 passed (114)", pytest "60 passed in 7.58s", "improvement: 25 of 25 …", "holdout: 15 of 15 …", "step2cad: 16 of 16 cases pass (13 to rebuild, 3 unsupported)", "holdout: 12 of 12 as expected, 0 honest misses, 0 false passes", Playwright "40 passed (2.5m)", exit 0.
   - Stop: Budget. This is the 25th of L6's 25 ticks, and its only open task is T6, the human's signoff. By driver rule 3, L7 (needs L5) is the next loop with agent tasks. The loop stops here and asks the human instead of starting L7 on an exhausted L6 budget.
   - Direction: still the goal. Every completed job has a verified output artifact. Next: T6 (human) Signoff.
+- 2026-11-14 · L6/T6 · passed · human signoff in chat, multiple choice: "Sign off L6", asked with L6 at its last agent task (T5 ticked, gate green on 2026-11-14 at cad-AI 1037479, budget reached). The L6 loop line in `docs/LOOP_GRAPH.md` is the human's to tick (driver rule 4); L8 waits on it.

@@ -20,3 +20,4 @@ Deciding rule, fixed before T1 starts: T0 to T4 are ticked, `npm run test:sw` ex
 - [ ] T5 (human) Signoff. needs: T4. The human watches T3 run once in SolidWorks. Evidence: the signoff line in the Journal.
 
 ## Journal
+- 2026-11-14 · L9/T0 · blocked · human answer in chat, multiple choice: "Not available now". L9 stays blocked on T0, which never blocks L6 to L8 (driver rule 6).
