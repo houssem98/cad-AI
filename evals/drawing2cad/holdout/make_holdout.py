@@ -1,6 +1,6 @@
-"""Writes the blind Drawing-to-CAD holdout fixtures: each in-scope part as a reference STEP and as the DXF its drawing writer
-makes, built with build123d solids placed off the origin, never with the operation vocabulary the agent uses; plus out-of-scope
-parts, a drawing with a dimension scale factor of 2, a raster image, and a drawing whose dimension contradicts its geometry.
+"""Writes the Drawing-to-CAD blind holdout: each in-scope part as a reference STEP and as the DXF its drawing writer makes, built
+with build123d solids placed off the origin, never with the operation vocabulary the agent uses; plus out-of-scope parts, a
+drawing at a dimension scale factor of 2, a raster file and a drawing whose dimension contradicts its geometry.
 Run from the repo root: python evals/drawing2cad/holdout/make_holdout.py"""
 import math
 import shutil
@@ -12,91 +12,87 @@ import ezdxf
 from build123d import Box, Cone, Cylinder, Pos, export_step
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "cad-AI" / "worker"))
-from drawing import _n, draw  # noqa: E402
+from drawing import draw  # noqa: E402
 
 OUT = Path(__file__).parent / "fixtures"
 
 
-def plate(cx, cy, l, w, t, holes=()):
-    """An l x w x t plate centred at (cx, cy) on z = 0, minus through holes given as (x, y, diameter) from its centre."""
-    return Pos(cx, cy, t / 2) * Box(l, w, t) - [Pos(cx + x, cy + y, t / 2) * Cylinder(d / 2, t + 2) for x, y, d in holes]
+def plate(cx, cy, cz, l, w, t, holes=()):
+    """An l x w x t plate centred at (cx, cy) with its bottom on z = cz, minus through holes given as (x, y, diameter) from its centre."""
+    return Pos(cx, cy, cz + t / 2) * Box(l, w, t) - [Pos(cx + x, cy + y, cz + t / 2) * Cylinder(d / 2, t + 2) for x, y, d in holes]
 
 
-def check(l, w, t, holes):
-    """Every hole fully inside with at least 1 mm of material around it, and no two holes closer than 1 mm."""
-    for x, y, d in holes:
-        assert abs(x) + d / 2 <= l / 2 - 1 and abs(y) + d / 2 <= w / 2 - 1, (x, y, d)
-    for i, (x1, y1, d1) in enumerate(holes):
-        for x2, y2, d2 in holes[i + 1:]:
-            assert math.hypot(x1 - x2, y1 - y2) >= (d1 + d2) / 2 + 1, (x1, y1, x2, y2)
+def checked(l, w, t, holes):
+    """Each hole at least 1 mm inside the plate and 1 mm from every other hole, and the kernel volume the plate minus its holes."""
+    for i, (x, y, d) in enumerate(holes):
+        assert l / 2 - abs(x) - d / 2 >= 1 and w / 2 - abs(y) - d / 2 >= 1, (x, y, d)
+        assert all(math.hypot(x - a, y - b) - (d + e) / 2 >= 1 for a, b, e in holes[:i]), (x, y, d)
+    return l * w * t - sum(math.pi * d * d / 4 * t for _, _, d in holes)
 
 
-# In scope: (cx, cy, length, width, thickness, holes).
+BAR = [(-498.375 + i * 110.75, 0 if i % 2 == 0 else 0.75, 4.5 if i % 2 == 0 else 3.375) for i in range(10)]
+# In scope: name -> (centre x, y, bottom z, length, width, thickness, holes).
 PARTS = {
-    "q01": (-210.0, -95.25, 142.875, 63.5, 22.225,
-            [(-50.8, 19.05, 7.938), (50.8, -19.05, 7.938), (0, 0, 25.4), (-50.8, -19.05, 11.113), (35.0, 15.875, 4.763)]),
-    "q03": (-155.125, 48.0, 310.375, 95.625, 0.25,
-            [(-152.375, 0, 3.2), (152.375, 0, 3.2), (-100, 45.375, 2.5), (100, -45.375, 2.5), (-60, -10.5, 12.7), (60, 10.5, 12.7),
-             (0, 0, 5.125), (0, 30, 5.125), (-120.5, -30.25, 8.875), (120.5, 30.25, 8.875)]),
-    "q04": (-7.5, 12.25, 3.875, 5.25, 2.125, []),
-    "q06": (700.25, -310.5, 1250.125, 640.5, 15.875,
-            [(x, y, 22.125) for x in (-605, 605) for y in (-298, 298)] + [(0, 0, 150.375), (-300.5, 120.125, 35.75), (300.5, -120.125, 35.75)]),
-    "q08": (-33.375, -44.625, 87.375, 87.375, 4.625, [(x, y, 4.5) for x in (-40.312, 40.312) for y in (-40.312, 40.312)] + [(0, 0, 60.125)]),
-    "q09": (40.0, -60.375, 18.25, 22.5, 140.75, [(-4.125, -5.5, 4.25), (3.5, 5.0, 6.0)]),
-    "q11": (15.0, 230.75, 35.5, 410.25, 6.0, [(0, y, 10.5) for y in (-180, -60, 60, 180)] + [(11.0, 195.0, 6.35), (-11.0, -195.0, 6.35)]),
-    "q13": (540.5, -20.0, 1080.0, 14.5, 9.125, [(x, 0, 5.5) for x in (-500, -250, 0, 250, 500)] + [(-525.5, 2.0, 3.375), (525.5, 2.0, 3.375)]),
-    "q14": (88.875, 133.5, 200.5, 150.25, 30.125, [(-30.0, 5.0, 100.375), (85.0, -65.0, 2.125)]),
+    "h01": (250, -40, 0, 1063.5, 9.75, 6.125, BAR),
+    "h03": (18.25, -9.5, 0, 64.125, 38.5, 0.375, [(-29.5, -16.75, 2.25), (29.5, 16.75, 2.25), (0, 0, 9.5), (-15.125, 10.5, 3.125),
+                                                   (15.125, -10.5, 3.125)]),
+    "h04": (-200, 300, 0, 75, 75, 75, [(0, 0, 60.125), (33.5, 33.5, 3), (-33.5, -33.5, 2)]),
+    "h06": (-317.5, 222.125, 40.5, 1180.375, 412.25, 15.875, [(-575.5, -190.5, 12.7), (575.5, 190.5, 12.7), (0, 0, 25.125),
+                                                               (-300.25, 150.125, 6.35), (450.375, -175.75, 8.5), (120.5, 60.25, 17.5),
+                                                               (580, -195, 6.35)]),
+    "h08": (-130.125, 85.625, -20, 17.375, 311.875, 42.5, []),
+    "h10": (7.5, 7.5, 0, 4.875, 3.625, 1.25, [(0.25, 0, 1.125)]),
+    "h11": (33.333, -66.667, 0, 101.6, 76.2, 9.525, [(-41.275, -28.575, 6.35), (41.275, -28.575, 6.35), (-41.275, 28.575, 6.35),
+                                                      (41.275, 28.575, 6.35), (0, 0, 7.938), (19.05, 12.7, 4.763), (-47.25, 0, 4.763)]),
+    "h13": (-75, -60, 12, 52.75, 47.125, 140.5, [(-14.5, 10.25, 9.875), (16.375, -12.625, 4.125)]),
+    "h14": (60.5, 45.25, 5, 187.25, 126.125, 3.175, [(-85, -55, 5.5), (85, -55, 5.5), (-85, 55, 5.5), (85, 55, 5.5), (-40.125, 20.375, 11),
+                                                      (35.875, -18.5, 11), (0, 0, 3.4), (-60.25, -30.75, 3.4), (62.5, 30.125, 3.4)]),
 }
-# Out of scope: a boss rising above the plate, and a countersunk hole.
-OTHER = {
-    "q02": plate(-25.5, 70.25, 90.0, 55.5, 7.5, [(-30, -15, 5.0)]) + Pos(-10.5, 75.25, 12.5) * Cylinder(9.0, 12),
-    "q12": plate(110.0, -35.0, 70.25, 48.5, 9.0, [(10.0, -5.0, 6.6)]) - Pos(120.0, -40.0, 8.0) * Cone(3.3, 6.3, 3.0),
+
+# Out of the reader's scope: countersunk holes, and a step down at one end.
+OUTSIDE = {
+    "h02": plate(14, -22, 3, 88.5, 54.25, 11.125, [(-30, 0, 6.6), (30, 0, 6.6)])
+           - [Pos(14 + x, -22, 3 + 11.125 - 3 + 1.75) * Cone(3.3, 6.8, 3.5) for x in (-30, 30)],
+    "h09": plate(-45, 30, 0, 90, 40.5, 24, [(-25, 0, 8)]) - Pos(-45 + 31, 30, 19) * Box(32, 42.5, 14),
 }
-SCALED = (-90.0, -15.5, 64.25, 38.75, 5.5, [(12.0, 8.0, 7.25)])  # q10: its drawing gains a dimension with scale factor 2
-CONTRA = (60.5, 75.0, 118.625, 47.625, 11.0, [(-40, 0, 9.0), (40, 0, 9.0)])  # q05: its width labelled 45.625
 
 
-def drawn(part):
-    """The drawing writer's DXF of a part, opened with ezdxf, and its dimensions."""
+def write_dxf(part, name):
     with tempfile.TemporaryDirectory() as d:
         out = draw(part, d)
-        return ezdxf.readfile(out["files"]["dxf"]), out["dimensions"]
-
-
-def solid(name, part):
-    assert len(part.solids()) == 1 and part.is_valid, name
-    return part
+        shutil.copy(out["files"]["dxf"], OUT / ("%s.dxf" % name))
+    return out
 
 
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
-    for name, (cx, cy, l, w, t, holes) in PARTS.items():
-        check(l, w, t, holes)
-        part = solid(name, plate(cx, cy, l, w, t, holes))
-        expected = (l * w - sum(math.pi * d * d / 4 for _, _, d in holes)) * t
-        assert abs(part.volume - expected) <= 1e-6 * expected, (name, part.volume, expected)
+    for name, (cx, cy, cz, l, w, t, holes) in PARTS.items():
+        part, volume = plate(cx, cy, cz, l, w, t, holes), checked(l, w, t, holes)
+        assert len(part.solids()) == 1 and part.is_valid, name
+        assert abs(part.volume - volume) <= 1e-6 * volume, (name, part.volume, volume)
         export_step(part, str(OUT / ("%s.step" % name)))
-        with tempfile.TemporaryDirectory() as d:
-            out = draw(part, d)
-            assert sum(x["name"] == "hole" for x in out["dimensions"]) == len(holes), name
-            shutil.copy(out["files"]["dxf"], OUT / ("%s.dxf" % name))
-    for name, part in OTHER.items():
-        with tempfile.TemporaryDirectory() as d:
-            shutil.copy(draw(solid(name, part), d)["files"]["dxf"], OUT / ("%s.dxf" % name))
-    cx, cy, l, w, t, holes = SCALED
-    check(l, w, t, holes)
-    doc, _ = drawn(solid("q10", plate(*SCALED)))
-    msp = doc.modelspace()
-    ref = next(d for d in msp.query("DIMENSION") if d.dxf.text == _n(l))
-    p1, p2, base = ref.dxf.defpoint2, ref.dxf.defpoint3, ref.dxf.defpoint
-    msp.add_linear_dim(base=(base.x, base.y - 10), p1=(p1.x, p1.y), p2=(p2.x, p2.y), angle=0, dimstyle="Standard",
-                       override={"dimtxt": 3.5, "dimasz": 2.5, "dimlfac": 2}, dxfattribs={"layer": "dimensions"}).render()
-    doc.saveas(OUT / "q10.dxf")
-    cx, cy, l, w, t, holes = CONTRA
-    check(l, w, t, holes)
-    doc, _ = drawn(solid("q05", plate(*CONTRA)))
-    (dim,) = [d for d in doc.modelspace().query("DIMENSION") if d.dxf.text == _n(w)]
-    dim.dxf.text = "45.625"
-    doc.saveas(OUT / "q05.dxf")
-    (OUT / "q07.jpg").write_bytes(b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00" + bytes(64) + b"\xff\xd9")
-    print("written", len(list(OUT.iterdir())))
+        drawn = write_dxf(part, name)
+        assert sum(x["name"] == "hole" for x in drawn["dimensions"]) == len(holes), name
+        print(name, "part", round(part.volume, 3))
+    for name, part in OUTSIDE.items():
+        assert len(part.solids()) == 1 and part.is_valid, name
+        write_dxf(part, name)
+        print(name, "unsupported")
+    # A drawing whose length is shown through a dimension at a scale factor of 2.
+    l, t = 140, 5
+    write_dxf(plate(-60, -35, 0, l, 70.25, t, [(-55, -20, 7), (55, 20, 7), (0, 0, 14.5)]), "h12")
+    doc = ezdxf.readfile(OUT / "h12.dxf")
+    doc.modelspace().add_linear_dim(base=(0, -t / 2 - 30), p1=(-l / 2, -t / 2), p2=(l / 2, -t / 2), text="<>", dimstyle="Standard",
+                                    override={"dimlfac": 2}).render()
+    doc.saveas(OUT / "h12.dxf")
+    print("h12 unsupported")
+    # A drawing whose 36.75 mm width is labelled 37.65.
+    write_dxf(plate(90, 12.5, 0, 63.5, 36.75, 4.5, [(-20, 0, 5), (20, 0, 5), (0, 10, 3)]), "h07")
+    doc = ezdxf.readfile(OUT / "h07.dxf")
+    dims = [x for x in doc.modelspace().query("DIMENSION") if x.dxf.text == "36.75"]
+    assert len(dims) == 1, len(dims)
+    dims[0].dxf.text = "37.65"
+    doc.saveas(OUT / "h07.dxf")
+    print("h07 asks")
+    (OUT / "h05.png").write_bytes(b"\x89PNG\r\n\x1a\n" + bytes(64))
+    print("h05 unsupported")

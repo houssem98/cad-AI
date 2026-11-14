@@ -1,0 +1,16 @@
+[
+  { "file": "q01.dxf", "reference": "q01.step", "expect": "part" },
+  { "file": "q02.dxf", "expect": "unsupported" },
+  { "file": "q03.dxf", "reference": "q03.step", "expect": "part" },
+  { "file": "q04.dxf", "reference": "q04.step", "expect": "part" },
+  { "file": "q05.dxf", "expect": "asks" },
+  { "file": "q06.dxf", "reference": "q06.step", "expect": "part" },
+  { "file": "q07.jpg", "expect": "unsupported" },
+  { "file": "q08.dxf", "reference": "q08.step", "expect": "part" },
+  { "file": "q09.dxf", "reference": "q09.step", "expect": "part" },
+  { "file": "q10.dxf", "expect": "unsupported" },
+  { "file": "q11.dxf", "reference": "q11.step", "expect": "part" },
+  { "file": "q12.dxf", "expect": "unsupported" },
+  { "file": "q13.dxf", "reference": "q13.step", "expect": "part" },
+  { "file": "q14.dxf", "reference": "q14.step", "expect": "part" }
+]
