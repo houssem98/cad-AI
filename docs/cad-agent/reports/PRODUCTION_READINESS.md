@@ -57,3 +57,16 @@ REA holds comparable evidence for both products on no claim, so verify_reconstru
 | P23 | PARTIALLY IMPLEMENTED | `cad-AI/e2e/panels.e2e.ts#renders each of the six states distinctly` | A local web app in the browser, not a desktop window, until L8 T4 |
 | P24 | PARTIALLY IMPLEMENTED | `cad-AI/e2e/viewport.e2e.ts#a kernel part loads in the viewport as a labelled preview with orbit, pan and zoom`, `cad-AI/e2e/a11y.e2e.ts#the kernel preview can be panned, orbited and zoomed from the keyboard` | A labelled preview of the kernel's mesh, never proof of geometry (I3) |
 | P25 | UNSUPPORTED | none | No installer yet; L8 T4 builds one and replaces this row with its smoke test |
+
+## Security
+
+L8 T3, written 2026-11-15. One row per requirement of the T3 task in `docs/loops/L8_RELEASE.md`.
+
+| Requirement | Capability | Tests | Limits |
+|---|---|---|---|
+| Keys in the OS credential store | UNSUPPORTED | none | The human chose on 2026-11-15 to keep the model keys in environment variables, read by the server (`cad-AI/server.ts#key: process.env.DEEPSEEK_API_KEY`) |
+| No key in logs or the bundle | PARTIALLY IMPLEMENTED | `scripts/bundle-scan.mjs#bundle-scan: self-check failed: a planted key was not caught`, `cad-AI/src/services/log.test.ts#writes one JSON line per event and never a model key` | The scan looks for sk- and Google key shapes and for the key values set when the gate runs; the server's console output is plain text and is not redacted |
+| Permission levels per tool | PARTIALLY IMPLEMENTED | `cad-AI/src/services/cad/executor.test.ts#refuses an operation its tool is not permitted` | Levels allow, approve and deny per operation type (`cad-AI/src/services/cad/executor.ts#if (level === 'deny')`); the server sets none, so modify_dimension asks and every other type runs; there is no settings screen |
+| Audit trail of every operation | PARTIALLY IMPLEMENTED | `cad-AI/src/services/cad/executor.test.ts#refuses invalid parameters before the kernel is called, with a record`, `cad-AI/src/services/cad/executor.test.ts#refuses an operation its tool is not permitted` | Each operation has an execution record and a line in operations.log in the data folder; drawings write no execution record (L7 V12) |
+| Structured logs | PARTIALLY IMPLEMENTED | `cad-AI/src/services/log.test.ts#writes one JSON line per event and never a model key` | Only operations are logged as JSON lines; the server's other output is plain console text |
+| Rate and resource limits | PARTIALLY IMPLEMENTED | `cad-AI/src/services/model/modelClient.test.ts#refuses a call once the cap is reached`, `cad-AI/src/services/jobs/jobEngine.test.ts#refuses a submission past the worker cap`, `cad-AI/src/services/cad/executor.test.ts#times out a hung operation, records it and restores the checkpoint` | A model spend cap, a worker cap for jobs and a deadline per operation; no request rate limit per client, since the routes answer this machine only |
