@@ -22,7 +22,7 @@ No module is PRODUCTION READY. The roadmap's rule is `docs/roadmap/MECAGENT_ROAD
 | Model selection | UNSUPPORTED | none | One model, set by the server; there is no tier selector and no per-model run count |
 | File management | PARTIALLY IMPLEMENTED | `cad-AI/e2e/drawings.e2e.ts#an image is refused as unsupported`, `cad-AI/e2e/knowledge.e2e.ts#the hub ingests a local document` | Files are uploaded per module (drawings, knowledge documents, STEP jobs); the agent panel's attach buttons are disabled and say they are not available yet |
 | Error handling | PARTIALLY IMPLEMENTED | `cad-AI/src/services/cad/executor.test.ts#runs a consequential operation only when approved`, `cad-AI/src/services/agent/routes.test.ts#deny an approval nobody answers`, `cad-AI/src/services/cad/executor.test.ts#times out a hung operation, records it and restores the checkpoint` | No CAD host to lose (L9), and no sign-in, since the server serves this machine only |
-| User experience | PARTIALLY IMPLEMENTED | `cad-AI/e2e/layout.e2e.ts#has no wrapped label, no cut-off element`, `cad-AI/e2e/a11y.e2e.ts#every visible control has a name`, `cad-AI/e2e/honesty.e2e.ts#the default workspace claims nothing that no record backs` | A local web app, not a desktop window beside SolidWorks; the installer is L8 T4 and the light theme L8 T7; sidebar modules outside this matrix are not assessed here |
+| User experience | PARTIALLY IMPLEMENTED | `cad-AI/e2e/layout.e2e.ts#has no wrapped label, no cut-off element`, `cad-AI/e2e/a11y.e2e.ts#every visible control has a name`, `cad-AI/e2e/honesty.e2e.ts#the default workspace claims nothing that no record backs` | A desktop window over the local server since L8 T4, not docked beside SolidWorks; these tests run the app in a browser; the light theme is L8 T7; sidebar modules outside this matrix are not assessed here |
 
 ## Parity
 
@@ -54,9 +54,9 @@ REA holds comparable evidence for both products on no claim, so verify_reconstru
 | P20 | PARTIALLY IMPLEMENTED | `cad-AI/src/services/cad/executor.test.ts#runs a consequential operation only when approved`, `cad-AI/src/services/agent/routes.test.ts#deny an approval nobody answers` | Approval in the local app |
 | P21 | PARTIALLY IMPLEMENTED | `cad-AI/src/services/cad/executor.test.ts#times out a hung operation, records it and restores the checkpoint`, `cad-AI/src/services/cad/executor.test.ts#records a failed operation with its error and restores the checkpoint` | Kernel operations only |
 | P22 | UNSUPPORTED | none | No CAD host to reach until SolidWorks is installed (L9 T1) |
-| P23 | PARTIALLY IMPLEMENTED | `cad-AI/e2e/panels.e2e.ts#renders each of the six states distinctly` | A local web app in the browser, not a desktop window, until L8 T4 |
+| P23 | PARTIALLY IMPLEMENTED | `cad-AI/e2e/panels.e2e.ts#renders each of the six states distinctly` | The states are tested in a browser; the desktop window (P25) shows the same app |
 | P24 | PARTIALLY IMPLEMENTED | `cad-AI/e2e/viewport.e2e.ts#a kernel part loads in the viewport as a labelled preview with orbit, pan and zoom`, `cad-AI/e2e/a11y.e2e.ts#the kernel preview can be panned, orbited and zoomed from the keyboard` | A labelled preview of the kernel's mesh, never proof of geometry (I3) |
-| P25 | UNSUPPORTED | none | No installer yet; L8 T4 builds one and replaces this row with its smoke test |
+| P25 | PARTIALLY IMPLEMENTED | `cad-AI/installed/smoke.e2e.ts#the installer installs an app that opens its window over its own local server` | An unsigned per-user NSIS installer (signing and publishing are the human's); Python with build123d must already be on the machine; the smoke test runs with `npm run dist` and `npm run smoke`, not in the gate |
 
 ## Security
 
