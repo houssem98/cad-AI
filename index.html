@@ -9,6 +9,8 @@
     <meta property="og:description" content="Enterprise AI Mechanical Engineering Platform with parametric CAD copilot, 3D viewport, automated drafting, and independent verification center." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+    <!-- The saved theme applies before the first paint (L8 T7); Graphite (dark) unless the user chose light. -->
+    <script>document.documentElement.dataset.theme = (() => { try { return localStorage.getItem('cad-theme') === 'light' ? 'light' : 'dark'; } catch { return 'dark'; } })();</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">

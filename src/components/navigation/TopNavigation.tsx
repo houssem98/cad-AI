@@ -8,6 +8,7 @@ import {
   Search,
   Bell,
   HelpCircle,
+  Sun,
   ChevronDown,
   Building2,
   FolderKanban,
@@ -50,6 +51,13 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
   const [showProjectDropdown, setShowProjectDropdown] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [currentOrg, setCurrentOrg] = useState('AutoNova Corp');
+  const [light, setLight] = useState(() => document.documentElement.dataset.theme === 'light');
+  const toggleTheme = () => {
+    const theme = light ? 'dark' : 'light';
+    document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem('cad-theme', theme); } catch { /* storage refused: the choice lasts until the page reloads */ }
+    setLight(!light);
+  };
 
   const orgs = ['AutoNova Corp', 'AeroFluid Dynamics', 'HyperMach Industrial'];
 
@@ -238,6 +246,16 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
             </div>
           )}
         </div>
+
+        {/* Light theme (L8 T7): index.html applies the saved choice before the first paint */}
+        <button
+          onClick={toggleTheme}
+          aria-pressed={light}
+          className="p-1.5 text-neutral-300 hover:text-white hover:bg-graphite-1a rounded-md transition-colors cursor-pointer aria-pressed:text-steel-300"
+          title="Light theme"
+        >
+          <Sun className="w-4 h-4" />
+        </button>
 
         {/* Help / Docs */}
         <button

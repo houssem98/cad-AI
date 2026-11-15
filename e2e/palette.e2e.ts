@@ -93,11 +93,31 @@ test('the palette check flags a planted violet background, cyan text, colour gra
   expect(found.map(kind).sort()).toEqual(['glow', 'gradient', 'off background', 'off color']);
 });
 
-for (const route of ['/', '/?part=plate']) {
-  test(`at ${route} every colour is a Graphite grey, the steel accent or a status colour, with no gradient or glow`, async ({ page }) => {
-    await servePlate(page);
-    await page.goto(route);
-    await expect(page.locator('[data-panel="viewport"]')).toHaveAttribute('data-status', 'completed', { timeout: 30_000 });
-    expect(await offPalette(page)).toEqual([]);
-  });
+// L8 T7: the light theme mirrors Graphite, so the same check holds with it on.
+for (const theme of ['dark', 'light']) {
+  for (const route of ['/', '/?part=plate']) {
+    test(`at ${route} in the ${theme} theme every colour is a Graphite grey, the steel accent or a status colour, with no gradient or glow`, async ({ page }) => {
+      await page.addInitScript((t) => localStorage.setItem('cad-theme', t), theme);
+      await servePlate(page);
+      await page.goto(route);
+      await expect(page.locator('[data-panel="viewport"]')).toHaveAttribute('data-status', 'completed', { timeout: 30_000 });
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      expect(await offPalette(page)).toEqual([]);
+    });
+  }
 }
+
+test('the theme toggle turns the light theme on, and the choice survives a reload', async ({ page }) => {
+  await page.goto('/');
+  const toggle = page.getByRole('button', { name: 'Light theme' });
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+  const before = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  await toggle.click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe(before);
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expect(page.getByRole('button', { name: 'Light theme' })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Light theme' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+});
