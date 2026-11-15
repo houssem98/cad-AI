@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { CadStore, type Artifact, type Doc, type OpRow } from './cadStore';
 import { CadWorker, WorkerError } from './cadWorker';
 import { validateProposal } from './operationSchema';
+import { log } from '../log';
 import type { DocumentView } from '../../types/cad';
 
 // docs/cad-agent/architecture/EXECUTION_AND_VERIFICATION.md is the lifecycle this file implements.
@@ -16,12 +17,15 @@ const defaultDeadline = (type: string) => (type === 'import' || type === 'export
 const sha256 = (data: Buffer) => createHash('sha256').update(data).digest('hex');
 
 export type Decision = 'approved' | 'denied' | 'auto';
+// Permission level per tool (operation type), L8 T3: allow runs it, approve asks the user first, deny refuses it.
+export type Permission = 'allow' | 'approve' | 'deny';
 export interface ExecutorOptions {
   dbPath: string;
   dataDir: string;
   workerArgs?: string[];
   deadlineMs?: (type: string) => number;
   approve?: (op: any) => Promise<Decision>;
+  permissions?: Record<string, Permission>;
 }
 interface TypedError { code: string; message: string; details?: object }
 export interface Outcome { operationId: string; status: string; record: any; error?: TypedError }
@@ -190,13 +194,17 @@ export class Executor {
     if (this.halted) return { operationId: row.rowId, status: 'failed', record: null, error: this.halted };
     const rev = this.store.document(row.docId)?.revision ?? 0;
     const base = { started, rev, revAfter: rev };
-    const approval = { required: CONSEQUENTIAL.has(proposal?.type), decision: null as Decision | null };
+    const type = String(proposal?.type);
+    const permits = this.opts.permissions ?? {};
+    const level = Object.hasOwn(permits, type) ? permits[type] : CONSEQUENTIAL.has(type) ? 'approve' : 'allow';
+    const approval = { required: level === 'approve', decision: null as Decision | null };
     let command: object | null = null;
     let schema: object[] = [];
     try {
       this.store.insertOperation(row, ctx.requestId, proposal);
       schema = validateProposal(proposal, ctx.agent);
       if (schema.length) return this.finish(row, 'failed', { ...base, validation: { schema }, error: { code: 'validation_failed', message: 'refused by the operation schema', details: { errors: schema } } });
+      if (level === 'deny') return this.finish(row, 'failed', { ...base, validation: { schema }, error: { code: 'permission_denied', message: `${type} is not permitted` } });
       const pre = this.preconditions(proposal, row, rev);
       if (pre) return this.finish(row, 'failed', { ...base, validation: { schema, preconditions: pre }, error: { code: 'precondition_failed', message: pre } });
       this.store.setStatus(row.rowId, 'validated');
@@ -331,6 +339,8 @@ export class Executor {
         validation: f.validation, approval: f.approval ?? { required: false, decision: null }, error: f.error ?? null,
         artifacts: f.artifacts ?? [], started: f.started, ended,
       }, doc, files);
+      // Inside the try: an operation whose audit line cannot be written halts the executor like a failed record.
+      log(join(this.opts.dataDir, 'operations.log'), 'operation', { operation: row.rowId, op: row.opId, document: row.docId, status, error: f.error?.code ?? null });
     } catch (e) {
       this.halted = { code: 'storage_error', message: String(e) }; // no further operation runs until the server restarts with working storage
       console.error('storage_error', e);

@@ -173,6 +173,23 @@ describe('executor', { timeout: 30000 }, () => {
     expect(out.record.approval).toEqual({ required: true, decision: 'approved' });
   });
 
+  it('refuses an operation its tool is not permitted, before the kernel is called, and logs every operation (L8 T3)', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'cad-exec-'));
+    const ex = await Executor.open({ dbPath: join(dir, 'cad.db'), dataDir: dir, permissions: { extrude: 'deny', ['__proto__' as string]: 'allow' } });
+    opened.push(ex);
+    for (const p of PART) expect((await ex.execute(p, { requestId: 'r1' })).status).toBe('succeeded');
+    const before = (await ex.health()).ops;
+    const out = await ex.execute(EXTRUDE, { requestId: 'r1' });
+    expect(out.status).toBe('failed');
+    expect(out.record.errorDetails.code).toBe('permission_denied');
+    expect(out.record.cadCommand).toBeNull();
+    expect((await ex.health()).ops).toBe(before);
+    const lines = readFileSync(join(dir, 'operations.log'), 'utf8').trim().split('\n').map((l) => JSON.parse(l));
+    expect(lines.map((l) => [l.op, l.status, l.error])).toEqual([['p1', 'succeeded', null], ['s1', 'succeeded', null], ['e1', 'failed', 'permission_denied']]);
+    expect(lines[2]).toMatchObject({ event: 'operation', operation: out.operationId, document: 'doc-1' });
+    expect((await ex.execute(MODIFY, { requestId: 'r1' })).record.approval).toEqual({ required: true, decision: 'denied' });
+  });
+
   it('cancels an operation waiting for approval, with a record', async () => {
     const { ex } = await start([], 5000, undefined, () => new Promise(() => {}));
     const abort = new AbortController();
