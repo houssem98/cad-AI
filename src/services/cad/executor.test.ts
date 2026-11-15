@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { appendFileSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -188,6 +188,51 @@ describe('executor', { timeout: 30000 }, () => {
     expect(lines.map((l) => [l.op, l.status, l.error])).toEqual([['p1', 'succeeded', null], ['s1', 'succeeded', null], ['e1', 'failed', 'permission_denied']]);
     expect(lines[2]).toMatchObject({ event: 'operation', operation: out.operationId, document: 'doc-1' });
     expect((await ex.execute(MODIFY, { requestId: 'r1' })).record.approval).toEqual({ required: true, decision: 'denied' });
+  });
+
+  it('asks before a consequential operation even when its level is allow, so a level can only deny it (council X10)', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'cad-exec-'));
+    const ex = await Executor.open({ dbPath: join(dir, 'cad.db'), dataDir: dir, permissions: { modify_dimension: 'allow' } });
+    opened.push(ex);
+    for (const p of PART) await ex.execute(p, { requestId: 'r1' });
+    const out = await ex.execute(MODIFY, { requestId: 'r1' });
+    expect(out.record.approval).toEqual({ required: true, decision: 'denied' });
+    expect(out.record.errorDetails.code).toBe('approval_denied');
+  });
+
+  it('returns the committed record when the operation log cannot be written, then refuses further operations (council X6)', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'cad-exec-'));
+    mkdirSync(join(dir, 'operations.log')); // a folder where the log file should be
+    const ex = await Executor.open({ dbPath: join(dir, 'cad.db'), dataDir: dir });
+    opened.push(ex);
+    const out = await ex.execute(PART[0], { requestId: 'r1' });
+    expect(out.status).toBe('succeeded');
+    expect(ex.store.record(out.operationId).status).toBe('succeeded');
+    const next = await ex.execute(PART[1], { requestId: 'r1' });
+    expect(next.error?.code).toBe('storage_error');
+  });
+
+  it('writes only error codes the operation schema lists (council X11)', () => {
+    const schema = JSON.parse(readFileSync(new URL('../../../schema/cad-operation.schema.json', import.meta.url), 'utf8'));
+    const codes = JSON.stringify(schema).match(/"code":\{"enum":\[([^\]]*)\]/)![1].split(',').map((c: string) => JSON.parse(c));
+    const written = [...readFileSync(new URL('./executor.ts', import.meta.url), 'utf8').matchAll(/code: '([a-z_]+)'/g)].map((m) => m[1]);
+    expect(written).toContain('permission_denied');
+    expect(written.filter((c) => !codes.includes(c))).toEqual([]);
+  });
+
+  it('records a missing Python as a crashed worker instead of crashing the server (council X3)', async () => {
+    const saved = process.env.CAD_PYTHON;
+    process.env.CAD_PYTHON = join(tmpdir(), 'no-such-python.exe');
+    try {
+      const dir = mkdtempSync(join(tmpdir(), 'cad-exec-'));
+      const ex = await Executor.open({ dbPath: join(dir, 'cad.db'), dataDir: dir });
+      opened.push(ex);
+      const out = await ex.execute(PART[0], { requestId: 'r1' });
+      expect(out.status).toBe('failed');
+      expect(out.record.errorDetails.code).toBe('worker_crashed');
+    } finally {
+      if (saved === undefined) delete process.env.CAD_PYTHON; else process.env.CAD_PYTHON = saved;
+    }
   });
 
   it('cancels an operation waiting for approval, with a record', async () => {

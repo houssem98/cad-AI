@@ -31,17 +31,23 @@ export class CadWorker {
     proc.stderr.on('data', (d) => { if (proc === this.proc) this.stderrTail = (this.stderrTail + d).slice(-4096); });
     createInterface({ input: proc.stdout }).on('line', (line) => { if (proc === this.proc) this.onLine?.(line); });
     proc.on('exit', () => { if (proc === this.proc) { this.alive = false; this.onExit?.(); } });
+    // A Python that cannot be started (council X3) is a crashed worker, not an unhandled error that stops the server.
+    proc.on('error', (e) => { if (proc === this.proc) { this.stderrTail = `the kernel worker could not start: ${e.message}`; this.alive = false; this.onExit?.(); } });
   }
 
   restart() {
     this.onLine = this.onExit = null;
-    this.proc.kill();
+    this.kill();
     this.start();
   }
 
   close() {
     this.onLine = this.onExit = null;
-    this.proc.kill();
+    this.kill();
+  }
+
+  private kill() {
+    if (this.proc.pid !== undefined) this.proc.kill(); // a process that never started has no pid, and killing it throws
   }
 
   request(msg: object, timeoutMs = 30_000, signal?: AbortSignal): Promise<any> {

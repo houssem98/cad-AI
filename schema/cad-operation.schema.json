@@ -49,7 +49,7 @@
     "error": {
       "type": ["object", "null"], "additionalProperties": false, "required": ["code", "message"],
       "properties": {
-        "code": { "enum": ["validation_failed", "unsupported", "precondition_failed", "approval_denied", "timeout", "cancelled", "kernel_error", "verification_failed", "worker_crashed", "storage_error", "model_error"] },
+        "code": { "enum": ["validation_failed", "unsupported", "precondition_failed", "approval_denied", "timeout", "cancelled", "kernel_error", "verification_failed", "worker_crashed", "storage_error", "model_error", "permission_denied"] },
         "message": { "type": "string" },
         "details": { "type": "object" }
       }

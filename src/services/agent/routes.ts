@@ -19,7 +19,7 @@ const fail = (res: Response, status: number, code: string, message: string) => r
 const LOOPBACK = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
 const LOCAL_NAMES = ['localhost', '127.0.0.1', '[::1]'];
 const named = (url: string) => { try { return LOCAL_NAMES.includes(new URL(url).hostname); } catch { return false; } };
-export const local = (req: Request) => LOOPBACK.includes(req.socket.remoteAddress ?? '') && named(`http://${req.headers.host ?? ''}`)
+export const local = (req: Pick<Request, 'socket' | 'headers'>) => LOOPBACK.includes(req.socket.remoteAddress ?? '') && named(`http://${req.headers.host ?? ''}`)
   && (!req.headers.origin || named(req.headers.origin));
 export const refuse = (res: Response) => fail(res, 403, 'precondition_failed', 'only this machine may make this request');
 
@@ -76,6 +76,7 @@ export function agentRoutes(executor: Executor, complete: Complete, opts: { appr
   });
 
   router.get('/api/requests/:id/events', (req, res) => {
+    if (!local(req)) return refuse(res); // reads too: a page that rebinds a name to 127.0.0.1 is same-origin (council X1)
     const run = find(req, res);
     if (!run) return;
     res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache', connection: 'keep-alive' });
@@ -117,12 +118,14 @@ export function agentRoutes(executor: Executor, complete: Complete, opts: { appr
   });
 
   router.get('/api/documents/:id/inspect', async (req, res) => {
+    if (!local(req)) return refuse(res); // reads too: a page that rebinds a name to 127.0.0.1 is same-origin (council X1)
     const out = await executor.view(req.params.id);
     if (out.status !== 'succeeded') return res.status(404).json({ error: out.error });
     res.json(out.view);
   });
 
   router.get('/api/documents/:id/preview', async (req, res) => {
+    if (!local(req)) return refuse(res); // reads too: a page that rebinds a name to 127.0.0.1 is same-origin (council X1)
     const out = await executor.preview(req.params.id);
     if (out.status !== 'succeeded') return res.status(404).json({ error: out.error });
     res.type('model/gltf-binary').send(out.glb);
@@ -139,6 +142,7 @@ export function agentRoutes(executor: Executor, complete: Complete, opts: { appr
   });
 
   router.get('/api/artifacts/:id', (req, res) => {
+    if (!local(req)) return refuse(res); // reads too: a page that rebinds a name to 127.0.0.1 is same-origin (council X1)
     const a = executor.store.artifact(req.params.id);
     if (!a) return fail(res, 404, 'precondition_failed', 'no such artifact');
     res.download(a.path, `${req.params.id}.${a.kind}`);

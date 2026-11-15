@@ -207,6 +207,8 @@ describe('job engine (L6 T1)', { timeout: 60_000 }, () => {
       expect(rec.status).toBe('cancelled');
       expect(rec.errorDetails.code).toBe('cancelled');
       expect(rec.targetDocument.revisionAfter).toBe(rec.targetDocument.revisionBefore);
+      const logged = readFileSync(join(jobDir, 'operations.log'), 'utf8').trim().split('\n').map((l) => JSON.parse(l));
+      expect(logged.at(-1)).toMatchObject({ operation: row.rowId, status: 'cancelled', error: 'cancelled' }); // council X9
       expect(rec.cadCommand).toMatchObject({ call: expect.anything(), params: { name: expect.any(String) } }); // council D17
     } finally {
       s.close();

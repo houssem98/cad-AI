@@ -13,7 +13,7 @@ import { GoogleGenAI, Modality } from '@google/genai';
 import { mkdirSync, rmSync } from 'node:fs';
 import { Executor, type Decision } from './src/services/cad/executor';
 import { modelClient } from './src/services/model/modelClient';
-import { agentRoutes } from './src/services/agent/routes';
+import { agentRoutes, local } from './src/services/agent/routes';
 import { drawingRoutes } from './src/services/agent/drawingRoutes';
 import { JobEngine } from './src/services/jobs/jobEngine';
 import { jobRoutes } from './src/services/jobs/jobRoutes';
@@ -54,6 +54,11 @@ const wss = new WebSocketServer({ noServer: true });
 server.on('upgrade', (request, socket, head) => {
   const pathname = request.url ? new URL(request.url, `http://${request.headers.host}`).pathname : '';
   if (pathname === '/api/live') {
+    // A browser applies no CORS to a WebSocket, so the Host and Origin must name this machine like every route (council X1).
+    if (!local(request)) {
+      socket.end('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n');
+      return;
+    }
     wss.handleUpgrade(request, socket, head, (ws) => {
       wss.emit('connection', ws, request);
     });
@@ -164,7 +169,9 @@ async function startServer() {
   const executor = await Executor.open({ dbPath: path.join(dataDir, 'cad.db'), dataDir, workerArgs: ['--adapter', 'kernel'], approve: (op) => approve(op) });
   const recordings = path.resolve(__dirname, 'src/services/agent/recordings') + path.sep;
   const mode = (process.env.MODEL_MODE ?? 'live') as 'live' | 'replay' | 'record';
-  const complete = modelClient({ mode, recordings, spendFile: `${recordings}spend.json`, capUsd: 3, key: process.env.DEEPSEEK_API_KEY });
+  // The spend counter belongs to this install's data, not to the code (council X4); job workers inherit the path.
+  process.env.CAD_SPEND_FILE = path.join(dataDir, 'spend.json');
+  const complete = modelClient({ mode, recordings, spendFile: process.env.CAD_SPEND_FILE, capUsd: 3, key: process.env.DEEPSEEK_API_KEY });
   const agent = agentRoutes(executor, complete);
   approve = agent.approve;
   app.use(agent.router);
@@ -191,8 +198,11 @@ async function startServer() {
   }
 
   // This machine only: in dev mode Vite serves files under cad-AI, data/ included (council D1).
+  // A desktop window waits for 'ready', so it never shows another program that holds the port (council X16).
+  server.on('error', (e) => { console.error(`the server could not listen on 127.0.0.1:${PORT}: ${e.message}`); process.exit(1); });
   server.listen(Number(PORT), '127.0.0.1', () => {
     console.log(`MechForge AI Enterprise server running on port ${PORT}`);
+    process.send?.('ready');
   });
 }
 

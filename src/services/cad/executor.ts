@@ -196,7 +196,9 @@ export class Executor {
     const base = { started, rev, revAfter: rev };
     const type = String(proposal?.type);
     const permits = this.opts.permissions ?? {};
-    const level = Object.hasOwn(permits, type) ? permits[type] : CONSEQUENTIAL.has(type) ? 'approve' : 'allow';
+    // A level can deny a consequential type but never waive its approval (council X10, the human's decision).
+    const set = Object.hasOwn(permits, type) ? permits[type] : 'allow';
+    const level = set === 'deny' ? 'deny' : CONSEQUENTIAL.has(type) ? 'approve' : set;
     const approval = { required: level === 'approve', decision: null as Decision | null };
     let command: object | null = null;
     let schema: object[] = [];
@@ -339,12 +341,17 @@ export class Executor {
         validation: f.validation, approval: f.approval ?? { required: false, decision: null }, error: f.error ?? null,
         artifacts: f.artifacts ?? [], started: f.started, ended,
       }, doc, files);
-      // Inside the try: an operation whose audit line cannot be written halts the executor like a failed record.
-      log(join(this.opts.dataDir, 'operations.log'), 'operation', { operation: row.rowId, op: row.opId, document: row.docId, status, error: f.error?.code ?? null });
     } catch (e) {
       this.halted = { code: 'storage_error', message: String(e) }; // no further operation runs until the server restarts with working storage
       console.error('storage_error', e);
       return { operationId: row.rowId, status: 'failed', record: null, error: this.halted };
+    }
+    // The record is committed, so the outcome reports it; an audit line that cannot be written halts the executor (council X6).
+    try {
+      log(join(this.opts.dataDir, 'operations.log'), 'operation', { operation: row.rowId, op: row.opId, document: row.docId, status, error: f.error?.code ?? null });
+    } catch (e) {
+      this.halted = { code: 'storage_error', message: `the operation log could not be written: ${e}` };
+      console.error('storage_error', e);
     }
     return { operationId: row.rowId, status, record: this.store.record(row.rowId) };
   }

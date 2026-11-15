@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import { CadStore, openSqlite } from '../cad/cadStore';
+import { log } from '../log';
 
 // L6 T1, docs/cad-agent/architecture/AGENT_ORCHESTRATION.md "Job engine": durable jobs in SQLite, each run by its own worker
 // process that heartbeats every 2 s. A watchdog, at start and every 5 s, fails a job whose worker is gone, silent for 10 s or
@@ -84,6 +85,7 @@ const closeOut = (dir: string, code: string, message: string) => {
       const now = iso(), rev = store.document(op.docId)?.revision ?? 0, status = code === 'cancelled' ? 'cancelled' : 'failed';
       store.commit(op, status, { revisionBefore: rev, revisionAfter: rev, command: op.command, result: { status, result: null, started: now, ended: now },
         validation: {}, approval: { required: false, decision: null }, error: { code, message }, artifacts: [], started: now, ended: now });
+      log(join(dir, 'operations.log'), 'operation', { operation: op.rowId, op: op.opId, document: op.docId, status, error: code }); // council X9
     }
   } finally {
     store.close();
