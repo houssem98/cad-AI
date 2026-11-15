@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build",
@@ -11,7 +12,39 @@
     "clean": "rm -rf dist dist-server",
     "lint": "tsc --noEmit",
     "test": "vitest run --maxWorkers=2",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "dist": "vite build && electron-builder --win nsis",
+    "smoke": "playwright test -c installed.config.ts"
+  },
+  "build": {
+    "appId": "local.cadai",
+    "productName": "cad-AI",
+    "directories": {
+      "output": "release"
+    },
+    "asar": false,
+    "npmRebuild": false,
+    "files": [
+      "package.json",
+      "electron/**",
+      "server.ts",
+      "tsconfig.json",
+      "dist/**",
+      "schema/**",
+      "src/**",
+      "!src/**/*.test.ts",
+      "worker/**",
+      "!worker/**/test_*.py",
+      "!worker/**/__pycache__/**"
+    ],
+    "win": {
+      "target": "nsis",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false
+    }
   },
   "dependencies": {
     "@google/genai": "^3.0.0",
@@ -28,6 +61,7 @@
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "three": "^0.187.0",
+    "tsx": "^4.21.0",
     "vite": "^8.3.0",
     "ws": "^8.22.1"
   },
@@ -38,9 +72,10 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "autoprefixer": "^10.4.21",
+    "electron": "45.3.2",
+    "electron-builder": "26.18.0",
     "esbuild": "^0.25.0",
     "tailwindcss": "^4.3.3",
-    "tsx": "^4.21.0",
     "typescript": "^7.0.2",
     "vitest": "^4.1.12"
   }
