@@ -4,6 +4,6 @@
   "type": "module",
   "scripts": {
     "graph": "node scripts/graph-lint.mjs",
-    "gate": "node scripts/graph-lint.mjs && node scripts/readiness-lint.mjs && node scripts/clean-room-lint.mjs && node scripts/gate-guard.mjs && npm --prefix cad-AI run lint && node scripts/bundle-scan.mjs && npm --prefix cad-AI test && python -m pytest cad-AI/worker -q && node scripts/eval-text2cad.mjs --self-check && node scripts/eval-step2cad.mjs && node scripts/eval-drawing2cad.mjs --self-check && npm --prefix cad-AI run e2e"
+    "gate": "node scripts/graph-lint.mjs && node scripts/readiness-lint.mjs && node scripts/clean-room-lint.mjs && node scripts/gate-guard.mjs && npm --prefix cad-AI run lint && node scripts/bundle-scan.mjs && npm --prefix cad-AI test && python -m pytest cad-AI/worker -q && node scripts/eval-text2cad.mjs --self-check && node scripts/eval-step2cad.mjs && node scripts/eval-drawing2cad.mjs --self-check && npm --prefix cad-AI run e2e && npm --prefix cad-AI run dist && npm --prefix cad-AI run smoke"
   }
 }

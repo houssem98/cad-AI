@@ -48,7 +48,7 @@ React UI ──HTTP + SSE──▶ Express server ──stdio JSON lines──�
 
 ## Errors
 
-Every boundary returns a typed error, never a thrown string: `validation_failed`, `unsupported`, `precondition_failed`, `approval_denied`, `timeout`, `cancelled`, `kernel_error`, `verification_failed`, `worker_crashed`, `storage_error`, `model_error`. This is the one list: other docs point here, and the schema's error code enum (`cad-AI/schema/cad-operation.schema.json`) holds the same codes. The UI maps each to a distinct error state (P23).
+Every boundary returns a typed error, never a thrown string: `validation_failed`, `unsupported`, `precondition_failed`, `approval_denied`, `timeout`, `cancelled`, `kernel_error`, `verification_failed`, `worker_crashed`, `storage_error`, `model_error`, `permission_denied` (an operation type its permission level denies, L8 T5). This is the one list: other docs point here, and the schema's error code enum (`cad-AI/schema/cad-operation.schema.json`) holds the same codes. The UI maps each to a distinct error state (P23).
 
 ## Tests
 
